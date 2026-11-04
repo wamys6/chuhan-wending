@@ -18,7 +18,7 @@ static var fullscreen: bool = false
 ## 界面语言：zh | en（英文数据由后续 i18n 阶段接入）
 static var lang: String = "zh"
 ## 联机中继地址（PvP 动作转发服务器）
-static var pvp_relay: String = "ws://101.200.235.68:27775"
+static var pvp_relay: String = "ws://127.0.0.1:27775"
 
 static var _loaded := false
 

@@ -13,7 +13,7 @@
 | 战役闭环 + roguelike 随机化（军师/事件/奖励池/3 存档位） | ✅ |
 | 表现打磨（BGM/SFX/动画/残影/碎裂/军粮点条/暂停菜单/结局画面） | ✅ |
 | 中英双语 + 新手引导 + 图鉴 + 内置字体 | ✅ |
-| **在线 PvP（锁步 + 中继 + 大厅 + 断线重连）** | ✅ 2026-11-02 中继已部署上线（ws://101.200.235.68:27775） |
+| **在线 PvP（锁步 + 中继 + 大厅 + 断线重连）** | ✅ 2026-11-02 中继已部署上线（ws://<你的服务器IP>:27775） |
 | Electron 桌面壳 | ✅（已被 Godot 导出取代，仅留对照） |
 | 难度曲线 / 军师收敛 / 心魔与天时（长线钩子） | ✅ 2026-11-02 |
 | 心魔 / 天时的表现层（揭晓仪式 + 盖章反馈 + 3 枚新音效） | ✅ 2026-11-02 |
@@ -182,7 +182,7 @@
 
 - [ ] **6 张新事件立绘**：`ev_jieqi / ev_guren / ev_shibing / ev_dujiang / ev_qiufeng / ev_honggou`，提示词在 [art-prompts-events-6.md](art-prompts-events-6.md)；出图后放 `godot/assets/cards/` → 登记 `game_data.gd` 的 UI_ART.events → 跑 `art_rect_test`（它会把「事件页取到插画」验一遍）。
 - [ ] **断线重连真实双人验收**：pvp_test 只验了协议层重连，还需真机两客户端手测一次（杀进程→重进房间码→续打）。
-- [ ] **root 密码修改**：101.200.235.68 的密码已出现在聊天记录，改掉并考虑改密钥登录（`passwd` / ssh-keygen）。
+- [ ] **root 密码修改**：<你的服务器IP> 的密码已出现在聊天记录，改掉并考虑改密钥登录（`passwd` / ssh-keygen）。
 - [ ] 表现调参（可选）：残影透明度、碎裂幅度、动画节奏——用户视觉验收后微调。
 - [ ] **JS 版归档**（Steam 上传前）：`js/ test/ index.html css/ electron-* dist/` 建议整体移入 `legacy/` 或打 zip 留存；**tools/trace.js 和 tools/export-data.js 依赖 js/data.js，归档时保留这两个脚本的工作路径**（或把 js/data.js 单独留在原地）。
 - [ ] 中继上云监控（可选）：简单 cron 心跳或 uptime 监控，防挂了没人知道。

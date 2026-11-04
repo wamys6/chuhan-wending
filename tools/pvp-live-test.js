@@ -1,5 +1,7 @@
 const WebSocket = require("ws");
-const URL = "ws://101.200.235.68:27775";
+// 服务器地址从参数或环境变量读，不写死在仓库里：
+//   node tools/pvp-live-test.js ws://1.2.3.4:27775  或  RELAY_URL=ws://... node tools/pvp-live-test.js
+const URL = process.argv[2] || process.env.RELAY_URL || "ws://127.0.0.1:27775";
 function conn(name) {
   return new Promise((res, rej) => {
     const ws = new WebSocket(URL);

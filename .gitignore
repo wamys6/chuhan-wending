@@ -23,3 +23,6 @@ test/_cdp-*/
 Thumbs.db
 Desktop.ini
 .cache/
+
+# ── AI 工作日志（本地笔记，含部署细节，不入库）──
+.workbuddy/

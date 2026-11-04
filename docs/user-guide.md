@@ -37,7 +37,7 @@
 
 ## 4. 联机对战（PvP）
 
-中继服务器已上线：`ws://101.200.235.68:27775`（游戏内已预填，无需修改）。
+中继服务器已上线：`ws://<你的服务器IP>:27775`（游戏内已预填，无需修改）。
 
 1. 两人都打开游戏 → 主菜单 → **联机对战**；
 2. 一方点「建房」→ 屏幕出现 **6 位房间码**（如 `GT92CX`）→ 发给对方（微信/QQ）；
@@ -121,8 +121,8 @@ mkdir -p godot/export          # 已存在则跳过
 node tools/pvp-live-test.js
 
 # 更新中继脚本
-pscp tools/relay.js root@101.200.235.68:/opt/chuhan-relay/relay.js
-ssh root@101.200.235.68 "systemctl restart chuhan-relay"
+pscp tools/relay.js root@<你的服务器IP>:/opt/chuhan-relay/relay.js
+ssh root@<你的服务器IP> "systemctl restart chuhan-relay"
 ```
 
 ## 12. 开发循环建议（给自己立的规矩）

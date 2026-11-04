@@ -69,7 +69,7 @@ cardgame/
 | `campaign.gd` | 战役进度/3 存档位（chuhan_slots）/战后三选一奖励/军师 5 选 3/行军事件（16 个）/`engineRules()` 关卡参数合并 |
 | `game_data.gd` | 加载 data/game.json（卡牌 70/军师 6/事件 16/关卡 8/心魔 3/天时 6） |
 | `net.gd`（autoload 名 Pvp） | WebSocket 客户端状态机：OFF→CONNECTING→LOBBY→IN_ROOM/WAITING；seq 逐条校验防分叉；`process_mode=ALWAYS` |
-| `settings.gd` | 音量/动效/全屏/语言/`pvp_relay`（默认 `ws://101.200.235.68:27775`） |
+| `settings.gd` | 音量/动效/全屏/语言/`pvp_relay`（默认 `ws://<你的服务器IP>:27775`） |
 | `i18n.gd` | `T()` 收口翻译、`set_lang()`（落盘）/`set_lang_soft()`（仅内存，巡览用） |
 | `codex.gd` | 图鉴+成就业绩+PvP 战绩（pvpWins/pvpLosses） |
 | `audio.gd` | BGM/SFX 双总线、程序化音效、tension 动态变速 |
@@ -170,7 +170,7 @@ js/lang-en.js ──node tools/export-i18n.js──▶ godot/data/lang-godot-en.
 
 ## 八、联机中继服务器（已部署）
 
-- **线上地址：`ws://101.200.235.68:27775`**（阿里云 ECS，root 登录，安全组已放行 TCP 27775）。
+- **线上地址：`ws://<你的服务器IP>:27775`**（阿里云 ECS，root 登录，安全组已放行 TCP 27775）。
 - 服务器布局：`/opt/chuhan-relay/{relay.js, node_modules(ws)}`；systemd 服务 `chuhan-relay`（开机自启、崩溃 3s 重启、内存上限 200M）。
 - 运维命令（SSH 后）：
   ```bash
@@ -178,7 +178,7 @@ js/lang-en.js ──node tools/export-i18n.js──▶ godot/data/lang-godot-en.
   journalctl -u chuhan-relay -n 50     # 看日志
   systemctl restart chuhan-relay       # 重启
   ```
-- **更新中继脚本**：本地改 `tools/relay.js` → `pscp tools/relay.js root@101.200.235.68:/opt/chuhan-relay/relay.js` → `systemctl restart chuhan-relay`。
+- **更新中继脚本**：本地改 `tools/relay.js` → `pscp tools/relay.js root@<你的服务器IP>:/opt/chuhan-relay/relay.js` → `systemctl restart chuhan-relay`。
 - 公网验收：`node tools/pvp-live-test.js`（四步：建房/加入/动作转发/断线重连，输出 ALL_PASS 即通）。
 - 注意：**Node 在服务器上的路径是 `/usr/local/node-v22.14.0-linux-x64/bin/node`**，systemd 单元里写的是全路径；若升级 Node 要同步改 unit 文件。
 

@@ -104,6 +104,7 @@ func _test_event() -> void:
 
 	await _test_event_art_complete()
 	await _test_event_no_art()
+	await _test_advisor_art_complete()
 	await _test_advisor_card()
 
 ## 16 个事件必须全部有插画——曾经的「后 6 个暂无 ev_ 图」已经被补上了，
@@ -134,25 +135,58 @@ func _test_event_no_art() -> void:
 	await process_frame
 	app.pending_event = {}
 
-## 军师卡：夏侯婴一直没有立绘，兜底 glyph 却写的是**纸白色**——纸白卡面上的白字，
-## 等于这张卡的顶栏从上线起就是一片空白，所有测试都绿（没人断言过颜色）。
-## 钉住两件事：兜底必须是朱砂，且长英文引语不许压到「拜为军师」按钮上。
+## 8 位军师必须全部配好立绘——这条盯住「以后加军师别忘了配图」。
+## 补图之前 xiangying / zhoubo / liyiji 三位都在走兜底，其中夏侯婴从上线起顶栏就是空白。
+func _test_advisor_art_complete() -> void:
+	ok(GameData.advisors.size() == 8, "军师数 8", str(GameData.advisors.size()))
+	var missing: Array = []
+	for a in GameData.advisors:
+		if UiTheme.art_texture("ad_" + str(a["id"])) == null:
+			missing.append(str(a["id"]))
+	ok(missing.is_empty(), "8 位军师全部有立绘", str(missing))
+
+	app.advisor_choices = GameData.advisors.slice(0, 3)
+	var scene: Node = load("res://scenes/advisor.tscn").instantiate()
+	root.add_child(scene)
+	await process_frame
+	await process_frame
+	for a in app.advisor_choices:
+		var want: Texture2D = UiTheme.art_texture("ad_" + str(a["id"]))
+		var art: TextureRect = _find_tex_rect(scene, want)
+		ok(art != null, "军师卡取到立绘：" + str(a["name"]))
+		if art != null:
+			ok(art.size == Vector2(160, 160), "立绘方窗 160×160：" + str(a["id"]), str(art.size))
+			ok(art.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_COVERED,
+				"方窗按比例铺满（不拉伸变形）：" + str(a["id"]))
+	scene.queue_free()
+	await process_frame
+	app.advisor_choices = []
+
+## 缺图兜底这条路径必须还在（第九位军师来不及配图时就走它）：用合成军师测，
+## 不依赖真实数据里「谁还没图」——否则每补一张图这条就假红一次。
+## 兜底 glyph 曾经写的是**纸白色**：纸白卡面上的白字，等于顶栏一片空白，
+## 当时全量测试都绿（没人断言过颜色）。钉住三件事：朱砂、同尺寸、引语不压按钮。
 func _test_advisor_card() -> void:
-	app.advisor_choices = [GameData.advisor_by_id("zhoubo"), GameData.advisor_by_id("hanxin")]
-	ok(UiTheme.art_texture("ad_zhoubo") == null, "周勃确实没有立绘（走兜底分支）")
+	var fake := {
+		"id": "__probe_no_art", "name": "无图军师", "title": "占位",
+		"glyph": "测", "desc": "这条只为验证缺图兜底的版式。",
+		"flavor": "占位引语，用来量它会不会压到按钮。",
+	}
+	ok(UiTheme.art_texture("ad_" + str(fake["id"])) == null, "合成军师确实没有立绘")
+	app.advisor_choices = [fake]
 	var scene: Node = load("res://scenes/advisor.tscn").instantiate()
 	root.add_child(scene)
 	await process_frame
 	await process_frame
 
-	var glyph := _find_label_text(scene, "周")
+	var glyph := _find_label_text(scene, "测")
 	ok(glyph != null, "缺图军师显示单字 glyph 兜底")
 	if glyph != null:
 		var col := glyph.get_theme_color("font_color")
 		ok(col == UiTheme.SEAL, "兜底用朱砂（纸白底上的白字等于没画）", str(col))
 		ok(glyph.size == Vector2(160, 160), "兜底字框与立绘同尺寸", str(glyph.size))
 
-	var flavor := _find_label(scene, "绛侯")
+	var flavor := _find_label(scene, "占位引语")
 	var btn := _find_button(scene, "拜 为 军 师")
 	ok(flavor != null and btn != null, "取到引语与按钮")
 	if flavor != null and btn != null:

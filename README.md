@@ -49,7 +49,7 @@ Godot 侧（headless）：
 Godot --headless --path godot --script res://tests/replay.gd        # 双端等价性 333 项
 Godot --headless --path godot --script res://tests/campaign_test.gd # 战役 152 项
 # 其余：audio / codex / tutorial / i18n / pvp / battle_ui / fonts / card_art /
-#       art_rect / keyword_stamp / event_pick …共 1942 项 + E2E 19 项（-- --flow）
+#       art_rect / keyword_stamp / event_pick …共 2065 项 + E2E 19 项（-- --flow）
 ```
 
 JS 侧：`node test/<name>.js`（balance / tune-roguelike / sweep-stages 等数值回归）。

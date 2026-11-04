@@ -197,6 +197,20 @@ func _test_data_and_text() -> void:
 		ok(str(a.get("glyph", "")).length() == 1, "%s：glyph 是单字" % id, str(a.get("glyph", "")))
 		ok(str(a.get("desc", "")) != "", "%s：中文描述取得到" % id)
 
+	# 文案里的次数必须与引擎常量同步。周勃/郦食其调档时 cap 从 2/3 砍到 1，
+	# 文案却留在「至多两次/三次」——截图看起来毫无异常，玩家读到的是错的规则。
+	# 中文数字表够用到四档；以后改 cap 忘了改文案，这条就红。
+	var cn := {1: "一", 2: "两", 3: "三", 4: "四"}
+	var zb_desc := str(GameData.advisor_by_id("zhoubo").get("desc", ""))
+	var ly_desc := str(GameData.advisor_by_id("liyiji").get("desc", ""))
+	var xy_desc := str(GameData.advisor_by_id("xiangying").get("desc", ""))
+	ok(zb_desc.contains("每场战斗至多%s次" % cn.get(RulesEngine.ADV_ZHOUBO_CAP, "?")),
+		"周勃文案次数与 ADV_ZHOUBO_CAP 一致", zb_desc)
+	ok(ly_desc.contains("每场战斗至多%s次" % cn.get(RulesEngine.ADV_LIYIJI_CAP, "?")),
+		"郦食其文案次数与 ADV_LIYIJI_CAP 一致", ly_desc)
+	ok(xy_desc.contains("至多额外发动%s次" % cn.get(RulesEngine.ADV_XIANGYING_CAP, "?")),
+		"夏侯婴文案次数与 ADV_XIANGYING_CAP 一致", xy_desc)
+
 	# 英文：advisor_field 只在 EN 模式下取值。注意 apply_data() 会把 GameData.advisors
 	# 本身覆盖成英文，所以中文快照必须在切语言**之前**取，否则两边都是英文、断言假绿。
 	var zh_descs := {}
@@ -207,6 +221,12 @@ func _test_data_and_text() -> void:
 	for id in ["zhoubo", "liyiji"]:
 		var en := I18n.advisor_field(id, "desc")
 		ok(en != "" and en != zh_descs[id], "%s：英文描述是独立文案" % id, en.substr(0, 40))
+	# 英文也钉一次：只改中文、忘了英文，EN 玩家看到的还是旧次数
+	var en_words := {1: "once", 2: "twice", 3: "three times", 4: "four times"}
+	for pair in [["zhoubo", RulesEngine.ADV_ZHOUBO_CAP], ["liyiji", RulesEngine.ADV_LIYIJI_CAP]]:
+		var en_desc := I18n.advisor_field(str(pair[0]), "desc")
+		ok(en_desc.contains("at most %s per battle" % en_words.get(int(pair[1]), "?")),
+			"%s：英文次数与常量一致" % str(pair[0]), en_desc)
 	I18n.set_lang_soft(orig_lang)
 
 	# 战报：两条新 key 中英都有，且能渲染出不含花括号的句子

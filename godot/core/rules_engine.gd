@@ -21,6 +21,10 @@ const ADV_HANXIN_COUNT := 1     ## 韩信：每场战斗受益的兵种数上限
 const ADV_FANKUAI_ATK := 0      ## 樊哙：本场第一个兵种 +N 攻（实测攻击力太贵，只留血）
 const ADV_FANKUAI_HP := 1       ## 樊哙：本场第一个兵种 +N 血
 const ADV_XIANGYING_CAP := 2    ## 夏侯婴：每场战斗死战额外发动的次数上限
+const ADV_ZHOUBO_BUFF := 1      ## 周勃：每回合给最高攻兵种 +N/+N（慢热成长）
+const ADV_ZHOUBO_CAP := 1       ## 周勃：每场战斗成长次数上限（2 次实测 31% 超带）
+const ADV_LIYIJI_DOWN := 1      ## 郦食其：每轮削敌方最高攻兵种 -N 攻（控场）
+const ADV_LIYIJI_CAP := 1       ## 郦食其：每场战斗削减次数上限（3 次 45%、2 次 30%）
 
 ## 全局实例号：每局从 0 开始（与 JS 版一致，保证 uid 序列相同）
 static var uid_seq: int = 0
@@ -311,6 +315,39 @@ static func start_turn(state: Dictionary, pid: String) -> void:
 	for r in RANKS:
 		for u in p["board"][r]:
 			u["canAttack"] = int(u["atk"]) > 0
+
+	# 军师「周勃·安刘定倾」：每个我方回合开始，最高攻兵种 +N/+N（每场至多 CAP 次）
+	# 慢热成长：得先把部队站住，收益在第 3 回合后才显出来——与韩信（登场即 +1）错位
+	if pid == "p1" and str(rules.get("advisor", "")) == "zhoubo" \
+			and int(p.get("zbBuffs", 0)) < ADV_ZHOUBO_CAP:
+		var best = null
+		for r in RANKS:
+			for u in p["board"][r]:
+				if best == null or int(u["atk"]) > int(best["atk"]):
+					best = u
+		if best != null:
+			best["atk"] = int(best["atk"]) + ADV_ZHOUBO_BUFF
+			best["hp"] = int(best["hp"]) + ADV_ZHOUBO_BUFF
+			best["maxHp"] = int(best["maxHp"]) + ADV_ZHOUBO_BUFF
+			best["canAttack"] = int(best["atk"]) > 0
+			p["zbBuffs"] = int(p.get("zbBuffs", 0)) + 1
+			_log(state, "adv_zhoubo", {"name": best["name"],
+				"a": ADV_ZHOUBO_BUFF, "h": ADV_ZHOUBO_BUFF})
+
+	# 军师「郦食其·舌下齐城」：每个敌方回合开始，敌方最高攻兵种 -N 攻（每场至多 CAP 次）
+	# 只削一个、且削不到负数：控的是「对方的大哥」，不是全军
+	if pid == "p2" and str(rules.get("advisor", "")) == "liyiji" \
+			and int(p.get("lyCuts", 0)) < ADV_LIYIJI_CAP:
+		var ly_best = null
+		for r in RANKS:
+			for u in p["board"][r]:
+				if ly_best == null or int(u["atk"]) > int(ly_best["atk"]):
+					ly_best = u
+		if ly_best != null and int(ly_best["atk"]) > 0:
+			ly_best["atk"] = maxi(0, int(ly_best["atk"]) - ADV_LIYIJI_DOWN)
+			ly_best["canAttack"] = int(ly_best["atk"]) > 0
+			p["lyCuts"] = int(p.get("lyCuts", 0)) + 1
+			_log(state, "adv_liyiji", {"name": ly_best["name"], "d": ADV_LIYIJI_DOWN})
 
 	_log(state, "turn", {"n": int(state["turnNo"]), "side": pid,
 		"m": int(p["mana"]), "mm": int(p["maxMana"])})

@@ -160,7 +160,7 @@ function runScenario(cfg) {
   };
 }
 
-/* ---- 场景表：覆盖两位主将、先后手、5 位军师、关卡规则、存活目标 ---- */
+/* ---- 场景表：覆盖两位主将、先后手、8 位军师、关卡规则、存活目标 ---- */
 var jingxing = D && C.stageById('jingxing');
 var jxEnemyDeck = (C.stageById('jingxing').rules.enemyDeck || []).slice();
 
@@ -182,6 +182,22 @@ var scenarios = [
         enemyOpeningUnits: [
           { baseId: 'n_bing1', rank: 'front' },
           { baseId: 'n_shi1', rank: 'mid' },
+          { baseId: 'n_ma2', rank: 'back' }
+        ]
+      }
+    }
+  },
+  /* 周勃：每回合给「最高攻」兵种 +1/+1，必须打过长局才吃满两次上限 */
+  { name: 'advisor-zhoubo', seed: 51, hero: 'liubang', foe: 'xiangyu', first: 'p1',
+    opts: { rules: { advisor: 'zhoubo' } } },
+  /* 郦食其：每轮削「敌方最高攻」兵种，敌方场上必须先有兵才走得到那一支 */
+  {
+    name: 'advisor-liyiji-preset', seed: 53, hero: 'liubang', foe: 'xiangyu', first: 'p1',
+    opts: {
+      rules: {
+        advisor: 'liyiji',
+        enemyOpeningUnits: [
+          { baseId: 'n_shi1', rank: 'front' },
           { baseId: 'n_ma2', rank: 'back' }
         ]
       }

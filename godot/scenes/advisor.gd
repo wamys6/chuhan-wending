@@ -163,9 +163,19 @@ func _advisor_card(a: Dictionary) -> Panel:
 		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 		card.add_child(portrait)
 	else:
-		var glyph := UiTheme.label(str(a.get("glyph", "")), 56, UiTheme.PAPER)
-		glyph.position = Vector2(0, 0)
-		glyph.size = Vector2(380, 160)
+		# 缺图兜底：**必须用朱砂，不能用纸白**。卡面本身就是纸白，白字画上去等于没画——
+		# 夏侯婴一直缺立绘，这张卡的顶栏从上线起就是一片空白，谁也没发现。
+		# 加一层极淡的朱砂圆让它像个印章，避免看起来像渲染失败。
+		var disc := Panel.new()
+		disc.position = Vector2(110, 26)
+		disc.size = Vector2(160, 160)
+		disc.add_theme_stylebox_override("panel", UiTheme.panel_style(
+			Color(UiTheme.SEAL.r, UiTheme.SEAL.g, UiTheme.SEAL.b, 0.06),
+			Color(UiTheme.SEAL.r, UiTheme.SEAL.g, UiTheme.SEAL.b, 0.18), 80, 2))
+		card.add_child(disc)
+		var glyph := UiTheme.label(str(a.get("glyph", "师")), 56, UiTheme.SEAL)
+		glyph.position = Vector2(110, 26)
+		glyph.size = Vector2(160, 160)
 		glyph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		glyph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		card.add_child(glyph)
@@ -186,8 +196,10 @@ func _advisor_card(a: Dictionary) -> Panel:
 	desc.position = Vector2(30, 266)
 	card.add_child(desc)
 
-	var flavor := Widgets.paragraph(str(a.get("flavor", "")), 13, UiTheme.INK_SOFT, 320.0)
-	flavor.position = Vector2(30, 352)
+	# 引语位置是量出来的：英文 desc 三行到 338，引语从 344 起、12 号、三行约 54px，
+	# 收在 398 以内；原先 352 起 + 13 号会让英文第三行压到「拜为军师」按钮上（中文只有一行，看不出来）
+	var flavor := Widgets.paragraph(str(a.get("flavor", "")), 12, UiTheme.INK_SOFT, 320.0)
+	flavor.position = Vector2(30, 344)
 	flavor.modulate = Color(1, 1, 1, 0.85)
 	card.add_child(flavor)
 

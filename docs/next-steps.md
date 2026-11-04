@@ -25,7 +25,7 @@
 | 韩信收敛（ADV_HANXIN_COUNT 2→1） | ✅ 2026-11-03（韩信 18%→13%）|
 | 1.3 行军事件 10→16 + 结算层补全 | ✅ 2026-11-03（含修 3 条「文案骗人」的旧事件）|
 | 1.3b 六张事件插图接入 | ✅ 2026-11-04（16/16 事件有图，素材 104 张全齐）|
-| **① 内容扩展** | 1.2 ✅、1.2c ✅、1.3 ✅；下一步：1.4 军师 6→8 |
+| **① 内容扩展** | 1.2 ✅、1.2c ✅、1.3 ✅、1.4 军师 8 位 ✅；下一步：P2 关键词联动卡 |
 | ② Steam 工程 | ⬜ |
 | ③ 商店素材 | ⬜ |
 
@@ -143,11 +143,12 @@
 - **测试**：`event_pick_test.gd` 新建 35 项（盯「选了之后牌组变没变、变的是不是那一张」）；campaign_test 133→152（fx 键白名单、glyph 单字、候选类型过滤、负 draw 与正 enemyMana 真进 rules）；i18n_test 187→211（新事件中英 + 选牌层扫描）；fonts_test 抓到 22 个新字缺字（重跑 `subset-fonts.py` + `--import`）。全量 **1862 → 1942 项 + E2E 19** 全绿。
 - **遗留**：6 张事件立绘未生成（`ev_jieqi` / `ev_guren` / `ev_shibing` / `ev_dujiang` / `ev_qiufeng` / `ev_honggou`），暂时走单字朱砂 glyph 兜底，不阻塞。提示词见 [art-prompts-events-6.md](art-prompts-events-6.md)。
 
-### 1.4 军师 6 → 8 位（详见 [plan-next-phase.md](plan-next-phase.md) 第二节）
-- **做什么**：2 位新军师（被动只对 p1 生效）。现有 6 位偏资源/续航/开局强度，补「成长」（候选周勃）与「控场」（候选郦食其）两类空白。
-- **注意**：军师被动进 `engineRules()` 合并链；`rules.advisor` 协议不变。
-- **平衡**：军师通关率现状 **12~40%**（2026-11-03 扩容后实测，待校准；tune-roguelike.js 60 局口径），新军师不得显著越界。数值旋钮在 `js/engine.js` 的 `ADV` 与 `rules_engine.gd` 同名常量。
-- **验收**：campaign_test 军师选择断言扩充；两军师立绘（ad_* 命名）接入。
+### 1.4 军师 6 → 8 位 ✅ 2026-11-04（详见 [plan-next-phase.md](plan-next-phase.md) 第二节）
+- **实装**：周勃「安刘定倾」（每个我方回合开始时，最高攻兵种 +1/+1，每场 1 次）、郦食其「舌下齐城」（每个敌方回合开始时，敌方最高攻兵种 -1 攻，每场 1 次）。两者都挂 `start_turn`，只对 p1 生效，`rules.advisor` 协议不变。
+- **平衡**：`tune-roguelike.js 200` 全表 **8 位 14~22%**、无军师 11%，全部落在 10~23% 带内。初版（周勃 2 次 / 郦食其 3 次）是 31% / 45%，郦食其的「每轮 -1 攻」会复利削同一个大哥，砍到 1 次才进带。
+- **测试**：新增 `advisor_test.gd` 32 项；`replay` 564→629（新增 `advisor-zhoubo` / `advisor-liyiji-preset` 两场景）；`art_rect_test` 34→40（军师卡兜底颜色 + 引语不压按钮）；全量 1944→**2049 项 + E2E 19**。
+- **顺手修**：军师卡缺图兜底原来是纸白色（纸白底上的白字），夏侯婴那张从上线起顶栏一直是空白；改朱砂印章并加断言。
+- **遗留**：军师立绘缺 3 张（`ad_xiangying` / `ad_zhoubo` / `ad_liyiji`），提示词见 [art-prompts-advisors-3.md](art-prompts-advisors-3.md)。
 
 ---
 

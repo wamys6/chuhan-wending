@@ -10,7 +10,7 @@
 
 楚汉争霸题材的水墨卡牌 roguelike，主玩法为 8 关 PvE 战役（沛县起兵→垓下），附属「快速开战」单局对战 AI 与**在线 PvP（锁步 WebSocket 中继）**。目标平台 Steam（Windows）。
 
-当前状态：**Godot 主工程功能完整，v0.9.1（卡池 70）**，全量回归 **1944 项 + E2E 19 项**全绿，导出单文件 135MB exe 可直传 Steam。旧 JS/Web 版保留作数值参照与等价性基准。
+当前状态：**Godot 主工程功能完整，v0.9.1（卡池 70）**，全量回归 **2049 项 + E2E 19 项**全绿，导出单文件约 142MB exe 可直传 Steam。旧 JS/Web 版保留作数值参照与等价性基准。
 
 ## 二、新机器环境搭建 Checklist
 
@@ -67,7 +67,7 @@ cardgame/
 | `rng.gd` | xorshift32 确定性随机数，与 `tools/trace.js` 里的 JS 实现逐位一致 |
 | `ai.gd` | 三档难度 AI，名将档会算斩杀 |
 | `campaign.gd` | 战役进度/3 存档位（chuhan_slots）/战后三选一奖励/军师 5 选 3/行军事件（16 个）/`engineRules()` 关卡参数合并 |
-| `game_data.gd` | 加载 data/game.json（卡牌 70/军师 6/事件 16/关卡 8/心魔 3/天时 6） |
+| `game_data.gd` | 加载 data/game.json（卡牌 70/军师 8/事件 16/关卡 8/心魔 3/天时 6） |
 | `net.gd`（autoload 名 Pvp） | WebSocket 客户端状态机：OFF→CONNECTING→LOBBY→IN_ROOM/WAITING；seq 逐条校验防分叉；`process_mode=ALWAYS` |
 | `settings.gd` | 音量/动效/全屏/语言/`pvp_relay`（默认 `ws://<你的服务器IP>:27775`） |
 | `i18n.gd` | `T()` 收口翻译、`set_lang()`（落盘）/`set_lang_soft()`（仅内存，巡览用） |
@@ -111,19 +111,20 @@ js/lang-en.js ──node tools/export-i18n.js──▶ godot/data/lang-godot-en.
 
 | 脚本 | 项数 | 测什么 |
 |---|---|---|
-| `replay.gd` | 564 | 跨语言等价性（规则引擎没走样） |
+| `replay.gd` | 629 | 跨语言等价性（规则引擎没走样；20 个场景，含 8 位军师） |
 | `campaign_test.gd` | 152 | 战役闭环（进度/存档/奖励/删牌/军师/事件/心魔/天时/死战专精） |
 | `campaign_test.gd --flow` | 19 | 全流程 E2E（真实点击流） |
 | `audio_test.gd` | 89 | 音频总线/变速/设置持久化 |
 | `codex_test.gd` | 148 | 图鉴/成就/PvP 战绩/心魔解锁 |
 | `tutorial_test.gd` | 150 | 新手引导/暂停菜单/军粮点条/阵亡特效 |
-| `i18n_test.gd` | 211 | 双语（用 `set_lang_soft`，不落盘） |
+| `i18n_test.gd` | 213 | 双语（用 `set_lang_soft`，不落盘） |
 | `pvp_test.gd` | 25 | 联机全链路：**自动起真 relay + 两个 headless 子进程打完整局比指纹** |
 | `battle_ui_test.gd` | 83 | 对战界面交互与布局：点牌能出、双方部队同屏、手牌明暗、战报不溢出、关键 UI 不互压、单列满编留白、超编等比缩小 |
 | `fonts_test.gd` | 2 | 子集字体覆盖全部用字（扫 `.gd` 字符串 + `data/*.json`），漏字直接报红 |
 | `card_art_test.gd` | 375 | 缺图卡面的占位：`subtitle_of` 对**全卡池**在两种语言下都成立（EN 不许留汉字）、占位节点结构与可辨识名、**有图时占位必须让位 / 无图时必须出现**（走 CardView 真实装配路径） |
 | `keyword_stamp_test.gd` | 76 | 卡面关键词小印：六个字段的判据（false/null 不算）、双关键词的排列顺序、三档印面（朱砂/墨/靛）的色相与深底、字号随 `box` 走、CardView / UnitView / 图鉴大卡三处装配且不出界不压费用圆、全卡池印数与数据一致、切语言不换字 |
-| `art_rect_test.gd` | 34 | 立绘矩形：`UiTheme.texture_rect` 收口（size 不被纹理/切片最小尺寸顶回）、事件页圆图真的铺满 144、主菜单侧立绘 520×900、结局页最后一行不被面板边框切；宽屏舞台对齐：`fill_screen`/`bleed_x` 几何与 `bleed` 标记、每屏都有铺满整屏的底；**卡名 Label 不被文本宽度顶回**（29 字符的英文名必须真的放得下） |
+| `art_rect_test.gd` | 40 | 立绘矩形：`UiTheme.texture_rect` 收口（size 不被纹理/切片最小尺寸顶回）、事件页圆图真的铺满 144、主菜单侧立绘 520×900、结局页最后一行不被面板边框切；宽屏舞台对齐：`fill_screen`/`bleed_x` 几何与 `bleed` 标记、每屏都有铺满整屏的底；**卡名 Label 不被文本宽度顶回**（29 字符的英文名必须真的放得下） |
+| `advisor_test.gd` | 32 | 军师被动：周勃只加我方/只加一个/上限生效/生命上限同步/无兵不空耗；郦食其只削敌方/只削一个/削不到负数/零攻时不空耗次数；其他军师局数值完全不动；8 位数据与中英战报 key 齐全 |
 | `event_pick_test.gd` | 35 | 事件选牌层：`CardPicker` 的多张选择（选满替换、取消选中、无取消回调时只留确认且居中、缩放随张数自适应不越面板）、事件得牌真进牌组且是要求的那一类、事件删牌真删且同名只删一张、一次删两张、牌组到下限不开删牌层 |
 | `anim_peek.gd` | 调试工具 | 抓攻击/阵亡动画帧截图 |
 
@@ -233,3 +234,4 @@ js/lang-en.js ──node tools/export-i18n.js──▶ godot/data/lang-godot-en.
 - 范围纪律（roadmap §五）：在线天梯/内购/装备牌/Mac/Linux 版**不做**；PvP 已解禁为休闲对等卡组对战。
 - 工作日志在 `.workbuddy/memory/`（随机器走，重要约定以本文档为准）。
 40. **迁移时「简化」掉的分支，文案会替它撒谎**：事件结算在 JS 版里是「按 `fx.card` 的类型抽 3×N 张候选开三选一 / 按 `fx.remove` 开牌组让你挑」，Godot 迁移时被简化成「一律发一张随机兵种牌，`remove` 完全不处理」。后果是「三选一计谋牌」实际给兵种牌、「从牌组移除一张」什么也没发生——**而且所有既有测试都是绿的**，因为它们只断言「事件结算成功」，没人断言「牌组真的变了」。修法不只是补代码：把「选牌层」抽成 `ui/card_picker.gd`（奖励页的删牌也改用它），再新增 `event_pick_test.gd` 专门盯「选了之后牌组变没变、变的是不是那一张」。**加了新 fx 字段却没接上新分支，这种错不会崩、不会报错，只能靠逐条断言抓。**
+41. **白字画在纸白底上等于没画**：军师卡缺立绘时的兜底把 glyph 颜色写成了 `UiTheme.PAPER`（纸白）。卡面本身就是纸白，于是夏侯婴那张卡的顶栏从上线起一直是空白——**不报错、不崩、所有测试都绿**，因为没人断言过颜色。这类「颜色语义用错」的 bug 只能靠断言钉：`art_rect_test` 现在直接比对 `glyph.get_theme_color("font_color") == UiTheme.SEAL`。同理，深色印面配纸白字、浅色纸面配朱砂字，写兜底时先问一句「这个颜色画在当前底色上看得见吗」。

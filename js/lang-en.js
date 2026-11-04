@@ -435,6 +435,16 @@
         name: 'Xiahou Ying', title: 'Duke of Teng',
         desc: 'Every Last Stand of yours triggers one extra time; battle rewards lean toward Taunt and Last Stand cards.',
         flavor: 'The prince is in danger—yet he can be saved. Why abandon him?'
+      },
+      zhoubo: {
+        name: 'Zhou Bo', title: 'Steadying the House of Liu',
+        desc: 'At the start of each of your turns, your highest-Attack unit gains +1 Attack and +1 Health (at most twice per battle).',
+        flavor: 'Blunt and plain of speech—yet it is Bo who will keep the House of Liu standing.'
+      },
+      liyiji: {
+        name: 'Li Yiji', title: 'Seventy Cities by Tongue',
+        desc: 'At the start of each enemy turn, their highest-Attack unit loses 1 Attack (at most three times per battle).',
+        flavor: 'One scholar\'s argument, and seventy cities of Qi came over.'
       }
     },
 

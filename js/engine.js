@@ -22,6 +22,10 @@
     hanxinCount: 1,     /* 韩信：每场战斗受益的兵种数上限（2 时中军人人 +1，等于全局光环，实测 37%） */
     fankuaiAtk: 0,      /* 樊哙：本场第一个兵种 +N 攻（实测攻击力太贵，只留血） */
     xiangyingCap: 2,    /* 夏侯婴：每场战斗死战额外发动的次数上限（1 次太弱、3 次等于没限，见 build-lines 11.1） */
+    zhouboBuff: 1,      /* 周勃：每回合给最高攻兵种 +N/+N（慢热成长） */
+    zhouboCap: 1,       /* 周勃：每场战斗成长次数上限（2 次实测 31% 超带，砍到 1 次） */
+    liyijiDown: 1,      /* 郦食其：每轮削敌方最高攻兵种 -N 攻（控场） */
+    liyijiCap: 1,       /* 郦食其：每场战斗削减次数上限（3 次 45%、2 次 30%，只有 1 次才进带） */
     fankuaiHp: 1        /* 樊哙：本场第一个兵种 +N 血 */
   };
 
@@ -212,6 +216,43 @@
     RANKS.forEach(function (r) {
       p.board[r].forEach(function (u) { u.canAttack = u.atk > 0; });
     });
+    /* 军师「周勃·安刘定倾」：每个我方回合开始，最高攻兵种 +N/+N（每场至多 CAP 次）
+       慢热成长：要先把部队站住，收益在第 3 回合后才显出来——与韩信（登场即 +1）错位 */
+    if (pid === 'p1' && rules.advisor === 'zhoubo'
+        && (p.zbBuffs || 0) < ADV.zhouboCap) {
+      var zbBest = null;
+      RANKS.forEach(function (r) {
+        p.board[r].forEach(function (u) {
+          if (!zbBest || u.atk > zbBest.atk) zbBest = u;
+        });
+      });
+      if (zbBest) {
+        zbBest.atk += ADV.zhouboBuff;
+        zbBest.hp += ADV.zhouboBuff;
+        zbBest.maxHp += ADV.zhouboBuff;
+        p.zbBuffs = (p.zbBuffs || 0) + 1;
+        zbBest.canAttack = zbBest.atk > 0;
+        log(state, '军师周勃安刘定倾：' + zbBest.name + ' +'
+          + ADV.zhouboBuff + '/+' + ADV.zhouboBuff);
+      }
+    }
+    /* 军师「郦食其·舌下齐城」：每个敌方回合开始，敌方最高攻兵种攻击力 -N（每场至多 CAP 次）
+       只削一个、且削不到负数：控的是「对方的大哥」，不是全军 */
+    if (pid === 'p2' && rules.advisor === 'liyiji'
+        && (state.players.p2.lyCuts || 0) < ADV.liyijiCap) {
+      var lyP = state.players.p2, lyBest = null;
+      RANKS.forEach(function (r) {
+        lyP.board[r].forEach(function (u) {
+          if (!lyBest || u.atk > lyBest.atk) lyBest = u;
+        });
+      });
+      if (lyBest && lyBest.atk > 0) {
+        lyBest.atk = Math.max(0, lyBest.atk - ADV.liyijiDown);
+        lyP.lyCuts = (lyP.lyCuts || 0) + 1;
+        lyBest.canAttack = lyBest.atk > 0;
+        log(state, '军师郦食其舌下齐城：' + lyBest.name + ' 攻击力 -' + ADV.liyijiDown);
+      }
+    }
     log(state, '—— 第 ' + state.turnNo + ' 回合：' + (pid === 'p1' ? '我方' : '敌方') + '（军粮 ' + p.mana + '/' + p.maxMana + '）');
     drawCard(state, pid);
   }

@@ -104,6 +104,7 @@ func _test_event() -> void:
 
 	await _test_event_art_complete()
 	await _test_event_no_art()
+	await _test_advisor_card()
 
 ## 16 个事件必须全部有插画——曾经的「后 6 个暂无 ev_ 图」已经被补上了，
 ## 这条断言从此盯住「以后加事件别忘了配图」，缺一张就红。
@@ -132,6 +133,45 @@ func _test_event_no_art() -> void:
 	scene.queue_free()
 	await process_frame
 	app.pending_event = {}
+
+## 军师卡：夏侯婴一直没有立绘，兜底 glyph 却写的是**纸白色**——纸白卡面上的白字，
+## 等于这张卡的顶栏从上线起就是一片空白，所有测试都绿（没人断言过颜色）。
+## 钉住两件事：兜底必须是朱砂，且长英文引语不许压到「拜为军师」按钮上。
+func _test_advisor_card() -> void:
+	app.advisor_choices = [GameData.advisor_by_id("zhoubo"), GameData.advisor_by_id("hanxin")]
+	ok(UiTheme.art_texture("ad_zhoubo") == null, "周勃确实没有立绘（走兜底分支）")
+	var scene: Node = load("res://scenes/advisor.tscn").instantiate()
+	root.add_child(scene)
+	await process_frame
+	await process_frame
+
+	var glyph := _find_label_text(scene, "周")
+	ok(glyph != null, "缺图军师显示单字 glyph 兜底")
+	if glyph != null:
+		var col := glyph.get_theme_color("font_color")
+		ok(col == UiTheme.SEAL, "兜底用朱砂（纸白底上的白字等于没画）", str(col))
+		ok(glyph.size == Vector2(160, 160), "兜底字框与立绘同尺寸", str(glyph.size))
+
+	var flavor := _find_label(scene, "绛侯")
+	var btn := _find_button(scene, "拜 为 军 师")
+	ok(flavor != null and btn != null, "取到引语与按钮")
+	if flavor != null and btn != null:
+		var bottom := flavor.position.y + flavor.size.y
+		ok(bottom <= btn.position.y + 2.0, "引语底边不压按钮",
+			"bottom=%.0f btn_top=%.0f" % [bottom, btn.position.y])
+
+	scene.queue_free()
+	await process_frame
+	app.advisor_choices = []
+
+func _find_button(node: Node, text: String) -> Button:
+	if node is Button and (node as Button).text == text:
+		return node as Button
+	for c in node.get_children():
+		var hit := _find_button(c, text)
+		if hit != null:
+			return hit
+	return null
 
 func _find_label_text(node: Node, text: String) -> Label:
 	if node is Label and str((node as Label).text) == text:

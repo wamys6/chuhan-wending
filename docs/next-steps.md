@@ -1,6 +1,7 @@
 # 《楚汉·问鼎》下一步开发计划
 
 > 更新：2026-11-02。本文是 [roadmap.md](roadmap.md) 的「现在进行时」执行清单：roadmap 定战略，本文列待办。
+> **下一段路线（2026-11-04 起）已单独成文：[plan-next-phase.md](plan-next-phase.md)** —— 那里按 P0~P4 排了优先级与判据，本文继续保留历史记录。
 > 每完成一项就勾掉并在日期后签名式备注；已完成的保留勾选供回顾。
 
 ---
@@ -23,6 +24,7 @@
 | 1.2c 卡面关键词印 | ✅ 2026-11-03 |
 | 韩信收敛（ADV_HANXIN_COUNT 2→1） | ✅ 2026-11-03（韩信 18%→13%）|
 | 1.3 行军事件 10→16 + 结算层补全 | ✅ 2026-11-03（含修 3 条「文案骗人」的旧事件）|
+| 1.3b 六张事件插图接入 | ✅ 2026-11-04（16/16 事件有图，素材 104 张全齐）|
 | **① 内容扩展** | 1.2 ✅、1.2c ✅、1.3 ✅；下一步：1.4 军师 6→8 |
 | ② Steam 工程 | ⬜ |
 | ③ 商店素材 | ⬜ |
@@ -141,8 +143,8 @@
 - **测试**：`event_pick_test.gd` 新建 35 项（盯「选了之后牌组变没变、变的是不是那一张」）；campaign_test 133→152（fx 键白名单、glyph 单字、候选类型过滤、负 draw 与正 enemyMana 真进 rules）；i18n_test 187→211（新事件中英 + 选牌层扫描）；fonts_test 抓到 22 个新字缺字（重跑 `subset-fonts.py` + `--import`）。全量 **1862 → 1942 项 + E2E 19** 全绿。
 - **遗留**：6 张事件立绘未生成（`ev_jieqi` / `ev_guren` / `ev_shibing` / `ev_dujiang` / `ev_qiufeng` / `ev_honggou`），暂时走单字朱砂 glyph 兜底，不阻塞。提示词见 [art-prompts-events-6.md](art-prompts-events-6.md)。
 
-### 1.4 军师 5 → 7 位
-- **做什么**：2 位新军师（被动只对 p1 生效，机制与现有 5 位错位：现有偏资源/续航/抽牌，可补「控场/成长」向）。
+### 1.4 军师 6 → 8 位（详见 [plan-next-phase.md](plan-next-phase.md) 第二节）
+- **做什么**：2 位新军师（被动只对 p1 生效）。现有 6 位偏资源/续航/开局强度，补「成长」（候选周勃）与「控场」（候选郦食其）两类空白。
 - **注意**：军师被动进 `engineRules()` 合并链；`rules.advisor` 协议不变。
 - **平衡**：军师通关率现状 **12~40%**（2026-11-03 扩容后实测，待校准；tune-roguelike.js 60 局口径），新军师不得显著越界。数值旋钮在 `js/engine.js` 的 `ADV` 与 `rules_engine.gd` 同名常量。
 - **验收**：campaign_test 军师选择断言扩充；两军师立绘（ad_* 命名）接入。
@@ -180,7 +182,7 @@
 
 ## ④ 零散待办（穿插着做）
 
-- [ ] **6 张新事件立绘**：`ev_jieqi / ev_guren / ev_shibing / ev_dujiang / ev_qiufeng / ev_honggou`，提示词在 [art-prompts-events-6.md](art-prompts-events-6.md)；出图后放 `godot/assets/cards/` → 登记 `game_data.gd` 的 UI_ART.events → 跑 `art_rect_test`（它会把「事件页取到插画」验一遍）。
+- [x] **6 张新事件立绘** ✅ 2026-11-04：`ev_jieqi / ev_guren / ev_shibing / ev_dujiang / ev_qiufeng / ev_honggou` 已接入（图走 `UiTheme.art_texture("ev_" + id)` 按文件名自动加载，无需登记表）。`art_rect_test` 新增「16 个事件全部有插画」守卫，32 → 34 项。
 - [ ] **断线重连真实双人验收**：pvp_test 只验了协议层重连，还需真机两客户端手测一次（杀进程→重进房间码→续打）。
 - [ ] **root 密码修改**：<你的服务器IP> 的密码已出现在聊天记录，改掉并考虑改密钥登录（`passwd` / ssh-keygen）。
 - [ ] 表现调参（可选）：残影透明度、碎裂幅度、动画节奏——用户视觉验收后微调。

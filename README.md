@@ -2,7 +2,7 @@
 
 楚汉争霸主题的水墨卡牌对战游戏。炉石式骨架 + 三列军阵的原创玩法，含 8 关 PvE 战役、快速对战与好友联机。当前版本 **v0.9.1**（开发中）。
 
-![截图](docs/screenshot-1103-event-honggou.png)
+![截图](docs/screenshot-1104-event-honggou.png)
 
 ## 玩法特色
 

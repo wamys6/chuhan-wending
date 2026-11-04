@@ -102,22 +102,33 @@ func _test_event() -> void:
 	await process_frame
 	app.pending_event = {}
 
+	await _test_event_art_complete()
 	await _test_event_no_art()
 
-## 没配图的新事件：必须落到「单字朱砂 glyph」兜底，而不是空白圆
+## 16 个事件必须全部有插画——曾经的「后 6 个暂无 ev_ 图」已经被补上了，
+## 这条断言从此盯住「以后加事件别忘了配图」，缺一张就红。
+func _test_event_art_complete() -> void:
+	var missing: Array = []
+	for e in GameData.events:
+		if UiTheme.art_texture("ev_" + str(e["id"])) == null:
+			missing.append(str(e["id"]))
+	ok(GameData.events.size() == 16, "事件数 16", str(GameData.events.size()))
+	ok(missing.is_empty(), "16 个事件全部有插画", str(missing))
+
+## 缺图兜底这条代码路径仍然要在：用合成事件测，不依赖真实数据里「有没有没配图的」
 func _test_event_no_art() -> void:
-	app.pending_event = Campaign.event_by_id("jieqi")
-	ok(UiTheme.art_texture("ev_jieqi") == null, "jieqi 暂无立绘（未生图）")
+	var fake := {
+		"id": "__probe_no_art", "name": "无图事件", "glyph": "测",
+		"text": "这条只为验证兜底路径。",
+		"options": [{"label": "略过", "hint": "", "fx": {}}],
+	}
+	app.pending_event = fake
+	ok(UiTheme.art_texture("ev_" + str(fake["id"])) == null, "合成事件确实没有立绘")
 	var scene: Node = load("res://scenes/event.tscn").instantiate()
 	root.add_child(scene)
 	await process_frame
 	await process_frame
-	var glyph: Label = null
-	for c in scene.get_children():
-		glyph = _find_label_text(c, str(Campaign.event_by_id("jieqi").get("glyph", "")))
-		if glyph != null:
-			break
-	ok(glyph != null, "缺图事件显示单字 glyph 兜底")
+	ok(_find_label_text(scene, str(fake["glyph"])) != null, "缺图事件显示单字 glyph 兜底")
 	scene.queue_free()
 	await process_frame
 	app.pending_event = {}

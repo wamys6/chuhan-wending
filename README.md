@@ -1,6 +1,6 @@
 # 楚汉·问鼎
 
-楚汉争霸主题的水墨卡牌对战游戏。炉石式骨架 + 三列军阵的原创玩法，含 8 关 PvE 战役、快速对战与好友联机。当前版本 **v0.9.1**（开发中，目标 Steam 上架）。
+楚汉争霸主题的水墨卡牌对战游戏。炉石式骨架 + 三列军阵的原创玩法，含 8 关 PvE 战役、快速对战与好友联机。当前版本 **v0.9.1**（开发中）。
 
 ![截图](docs/screenshot-1103-event-honggou.png)
 
@@ -66,7 +66,7 @@ docs/             设计文档、路线图、技术备忘（踩坑清单在 tech
 
 ## 状态与计划
 
-当前在「内容扩展」阶段（1.3 事件 ✅ → 下一步 1.4 军师 6→8），之后 Steam 上架（Godot 导出直传）。完整路线见 [docs/roadmap.md](docs/roadmap.md)，进度明细见 [docs/next-steps.md](docs/next-steps.md)。
+当前在「内容扩展」阶段（1.3 事件 ✅ → 下一步 1.4 军师 6→8），之后进入打磨与收尾。完整路线见 [docs/roadmap.md](docs/roadmap.md)，进度明细见 [docs/next-steps.md](docs/next-steps.md)。
 
 ## 许可
 

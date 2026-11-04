@@ -1,0 +1,21 @@
+{
+  "name": "chuhan-wending",
+  "productName": "楚汉·问鼎",
+  "version": "0.9.0",
+  "description": "楚汉争霸主题水墨卡牌对战游戏",
+  "main": "electron-main.js",
+  "private": true,
+  "author": "Chuhan Team",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-packager . 楚汉问鼎 --platform=win32 --arch=x64 --out=dist --overwrite --ignore=^/dist --ignore=^/test --ignore=^/docs --ignore=^/.workbuddy --ignore=\\.tmp-art --ignore=chuhan-wending-70-images\\.zip"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-packager": "^17.1.2"
+  },
+  "dependencies": {
+    "ws": "^8.22.1"
+  }
+}

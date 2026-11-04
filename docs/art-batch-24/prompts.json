@@ -1,0 +1,556 @@
+[
+  {
+    "filename": "n_dun1.png",
+    "label": "盾·持盾卒",
+    "group": "A",
+    "path": "godot/assets/cards/n_dun1.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "c19d116bf3b9ee0881ed1133d84c4ef6e75fc8e9cc621dfbe446e0dc61856431",
+    "reference_image": "n_bing2.png",
+    "reference_role": "style_reference",
+    "reference_scope": "上一批成图",
+    "initial_prompt": "Use case: historical-scene. Create ONE NEW finished Chinese strategy game card illustration. Input image is STYLE REFERENCE ONLY: match its warm beige rice-paper, confident black ink linework, dry-brush flying-white edges, ink splashes, muted ochre and slate-grey washes. Create the requested different subject, not a copy of the reference scene or person.\nExactly 1024x1536 PNG, portrait aspect 2:3, opaque paper background. Main story in the upper part. Full artwork without any card interface.\n硬构图：最上方0%-8.6%和最下方84%-100%不放关键物；人物头部中心在画高15%-30%，最好23%；重要道具/武器/结构在8.6%-67%可读，主体下缘约70%，下部以墨迹和宣纸自然淡出。不能把主体缩小居中在画面下半。\n中国水墨古战场插画，古朴手绘，浓墨勾勒、淡赭与青灰设色，苍劲飞白、低饱和、战损感，残旗与尘烟若隐若现。无文字、字母、数字、题跋、印章、签名、水印、边框、图标、标签；所有旗帜无字无图案。无鲜艳杂色、无现代元素或枪炮、无卡通动漫、无照片、无3D、无塑料感。\n主体：蹲踞的步卒把一面拼凑的大盾立在身前，盾面由木板与生皮钉成、布满箭孔，人几乎全藏在盾后，只露出一只戒备的眼睛。\n守御牌：无朱砂、无红披风、无红布红旗，只用土黄石灰木褐与黑墨。一个匿名成年步卒低蹲，全身缩进拼凑的大盾后，盾由粗木板和生皮铆钉接成，满布箭孔和少数断箭；正对观者。只在盾的上沿露出一只戒备眼睛和小片帽盔，不露完整英雄面孔。眼睛在y=25%，盾顶在y=30%，盾主体从30%到68%，盾后蹲人的主要身体不外露。严禁画成站立拄盾的将军。",
+    "selected_version": "initial",
+    "revision_prompts": []
+  },
+  {
+    "filename": "n_lei1.png",
+    "label": "垒·拒马",
+    "group": "A",
+    "path": "godot/assets/cards/n_lei1.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "8efcaee621579fd32ed65c617f26a360ca27c1e02eb6d558958449243163cc94",
+    "reference_image": "n_che3.png",
+    "reference_role": "style_reference",
+    "reference_scope": "上一批成图",
+    "initial_prompt": "Use case: historical-scene. Create ONE NEW finished Chinese strategy game card illustration. Input image is STYLE REFERENCE ONLY: match its warm beige rice-paper, confident black ink linework, dry-brush flying-white edges, ink splashes, muted ochre and slate-grey washes. Create the requested different subject, not a copy of the reference scene or person.\nExactly 1024x1536 PNG, portrait aspect 2:3, opaque paper background. Main story in the upper part. Full artwork without any card interface.\n硬构图：最上方0%-8.6%和最下方84%-100%不放关键物；人物头部中心在画高15%-30%，最好23%；重要道具/武器/结构在8.6%-67%可读，主体下缘约70%，下部以墨迹和宣纸自然淡出。不能把主体缩小居中在画面下半。\n中国水墨古战场插画，古朴手绘，浓墨勾勒、淡赭与青灰设色，苍劲飞白、低饱和、战损感，残旗与尘烟若隐若现。无文字、字母、数字、题跋、印章、签名、水印、边框、图标、标签；所有旗帜无字无图案。无鲜艳杂色、无现代元素或枪炮、无卡通动漫、无照片、无3D、无塑料感。\n主体：削尖的木桩交叉扎成的拒马横陈阵前，桩身缠着浸油麻布、钉着铁刺，桩后一名弓手正张弦瞄准。\n这是守御牌，不出现任何红布、朱砂或红旗。削尖木桩交叉绑成三组拒马，横向封锁画面上中部，拒马尖端与铁刺在y=30%-60%，浸油麻布是暗木褐色。桩后有一名匿名成年弓手正张弦，头部中心y=23%，拉弓双手和弓弦清楚，弓手半身被拒马掩住。画面主体是拒马障碍物，不是参考图中的攻城车。前景横向木栅坚固，低饱和土黄石灰木褐。",
+    "selected_version": "revision",
+    "revision_prompts": [
+      {
+        "prompt": "Use case: precise-object-edit. Input is the current n_lei1.png card art, the edit target. Keep the entire artwork unchanged: same crouching archer identity, face and head position, same drawing pose and hand positions, same crosswise spiked wooden barriers, ropes, materials, background, paper color, all ink brush strokes, no red accents. ONLY fix the bow for card cropping: modestly reduce the vertical extent of the bow and adjust its curve/string naturally while keeping the drawing hands anchored. The entire bow, including its upper tip, must lie inside the vertical 12%-64% of the 1024x1536 canvas. The upper bow tip currently touches the top edge area; move it DOWN into the safe area without moving the archer's face or the barricade. Keep the arrow on the string and the hand anatomy correct. Do not add anything. No text, border or watermark. Output one portrait 2:3 PNG, exactly 1024x1536.",
+        "selected": true,
+        "reason": "将弓上端收进图鉴裁切安全区，保留人物与拒马。"
+      }
+    ]
+  },
+  {
+    "filename": "n_cheng1.png",
+    "label": "城·土垣",
+    "group": "A",
+    "path": "godot/assets/cards/n_cheng1.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "d0ddb44b354c34c3bc2131a7a008709e2d8b26ef99eda078327bf371db5860e5",
+    "reference_image": "n_che3.png",
+    "reference_role": "style_reference",
+    "reference_scope": "上一批成图",
+    "initial_prompt": "Use case: historical-scene. Create ONE NEW finished Chinese strategy game card illustration. Input image is STYLE REFERENCE ONLY: match its warm beige rice-paper, confident black ink linework, dry-brush flying-white edges, ink splashes, muted ochre and slate-grey washes. Create the requested different subject, not a copy of the reference scene or person.\nExactly 1024x1536 PNG, portrait aspect 2:3, opaque paper background. Main story in the upper part. Full artwork without any card interface.\n硬构图：最上方0%-8.6%和最下方84%-100%不放关键物；人物头部中心在画高15%-30%，最好23%；重要道具/武器/结构在8.6%-67%可读，主体下缘约70%，下部以墨迹和宣纸自然淡出。不能把主体缩小居中在画面下半。\n中国水墨古战场插画，古朴手绘，浓墨勾勒、淡赭与青灰设色，苍劲飞白、低饱和、战损感，残旗与尘烟若隐若现。无文字、字母、数字、题跋、印章、签名、水印、边框、图标、标签；所有旗帜无字无图案。无鲜艳杂色、无现代元素或枪炮、无卡通动漫、无照片、无3D、无塑料感。\n主体：一段刚夯成的黄土矮墙，墙面留着夯窝与横木模板痕，墙头插着几支断箭，墙脚堆满沙袋碎石。\n守御牌：无朱砂、无任何红布红旗。只用土黄、石灰、木褐、黑墨。没有人物特写。正面略低角度，一段刚夯成的黄土矮墙横贯画面中央偏上，墙顶在22%高，墙根在65%高；近看夯窝和横木模板印痕，几支断箭在墙顶，墙脚沙袋碎石清楚。四张城防统一设计：浅赭黄土、少量灰石基础、深褐木骨、淡灰尘烟，表现同一座秦末土城。不要画参考图中的攻城冲车。",
+    "selected_version": "initial",
+    "revision_prompts": []
+  },
+  {
+    "filename": "n_cheng2.png",
+    "label": "城·女墙",
+    "group": "A",
+    "path": "godot/assets/cards/n_cheng2.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "421cba68484f87b8b3849982c77a5f30e043288ab0a36a63113c68562cfe38d2",
+    "reference_image": "n_cheng1.png",
+    "reference_role": "style_reference",
+    "reference_scope": "本批成图",
+    "initial_prompt": "Use case: historical-scene. Create ONE NEW finished Chinese strategy game card illustration. Input image is STYLE REFERENCE ONLY: match its warm beige rice-paper, confident black ink linework, dry-brush flying-white edges, ink splashes, muted ochre and slate-grey washes. Create the requested different subject, not a copy of the reference scene or person.\nExactly 1024x1536 PNG, portrait aspect 2:3, opaque paper background. Main story in the upper part. Full artwork without any card interface.\n硬构图：最上方0%-8.6%和最下方84%-100%不放关键物；人物头部中心在画高15%-30%，最好23%；重要道具/武器/结构在8.6%-67%可读，主体下缘约70%，下部以墨迹和宣纸自然淡出。不能把主体缩小居中在画面下半。\n中国水墨古战场插画，古朴手绘，浓墨勾勒、淡赭与青灰设色，苍劲飞白、低饱和、战损感，残旗与尘烟若隐若现。无文字、字母、数字、题跋、印章、签名、水印、边框、图标、标签；所有旗帜无字无图案。无鲜艳杂色、无现代元素或枪炮、无卡通动漫、无照片、无3D、无塑料感。\n主体：城墙顶端的垛口近景，一名弓手半蹲墙后只露兜鍪与弓臂，垛口砖石崩缺，远处烟尘漫过城头。\n使用参考中的同一座土城、完全相同的浅赭黄土/灰石/深褐木骨配色与墨笔质感，但改画另一个局部：城墙顶端女墙垛口近景。前景崩缺灰石垛口横贯画面y=36%-65%，后方仅露出半蹲弓手的兜鍪和拉弓手臂，头盔中心y=23%，箭搭弦朝远处，不画大脸。守御+死战双属性：保留稳固水平工事，仅在左侧垛口上y=40%绑一条清楚可见的小朱砂红布（约画宽6%，单一小色点），其余旗帜全是褪色灰褐无字。烟尘越过城头，不要低墙重复构图。",
+    "selected_version": "initial",
+    "revision_prompts": []
+  },
+  {
+    "filename": "n_cheng3.png",
+    "label": "城·瓮城",
+    "group": "A",
+    "path": "godot/assets/cards/n_cheng3.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "1f57dde941bc4a5bd453b7bf4b987e5268a4dc6ed81d0ec4cbfa291f77cc6978",
+    "reference_image": "n_cheng1.png",
+    "reference_role": "style_reference",
+    "reference_scope": "本批成图",
+    "initial_prompt": "Use case: historical-scene. Create ONE NEW finished Chinese strategy game card illustration. Input image is STYLE REFERENCE ONLY: match its warm beige rice-paper, confident black ink linework, dry-brush flying-white edges, ink splashes, muted ochre and slate-grey washes. Create the requested different subject, not a copy of the reference scene or person.\nExactly 1024x1536 PNG, portrait aspect 2:3, opaque paper background. Main story in the upper part. Full artwork without any card interface.\n硬构图：最上方0%-8.6%和最下方84%-100%不放关键物；人物头部中心在画高15%-30%，最好23%；重要道具/武器/结构在8.6%-67%可读，主体下缘约70%，下部以墨迹和宣纸自然淡出。不能把主体缩小居中在画面下半。\n中国水墨古战场插画，古朴手绘，浓墨勾勒、淡赭与青灰设色，苍劲飞白、低饱和、战损感，残旗与尘烟若隐若现。无文字、字母、数字、题跋、印章、签名、水印、边框、图标、标签；所有旗帜无字无图案。无鲜艳杂色、无现代元素或枪炮、无卡通动漫、无照片、无3D、无塑料感。\n主体：从城内仰视的瓮城，两道厚重门洞层层嵌套，门钉与铁箍泛着冷光，门道里横着一架攻城的云梯残件。\n使用参考中的同一座土城与完全相同的浅赭黄土、灰石基础、深褐木料和尘烟灰的调色。但从城内低角度向上看瓮城门道：两道厚重门洞层层嵌套，前门巨大、后门较小形成清晰纵深，木门钉和冷灰铁箍可辨；整体门洞和门扇在y=12%-65%内，破损攻城云梯残件横斜卡在门道y=51%-64%。画面主体是双重城门的结构，不要士兵肖像。纯守御：不加朱砂，不出现任何红布红旗，不能有文字牌匾。",
+    "selected_version": "initial",
+    "revision_prompts": []
+  },
+  {
+    "filename": "n_cheng4.png",
+    "label": "城·坚壁",
+    "group": "A",
+    "path": "godot/assets/cards/n_cheng4.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "7a31bcf7416c30fef8294d920c30ffa953545e1b47aee8abe9fbdbcaa96e5478",
+    "reference_image": "n_cheng1.png",
+    "reference_role": "style_reference",
+    "reference_scope": "本批成图",
+    "initial_prompt": "Use case: historical-scene. Create ONE NEW finished Chinese strategy game card illustration. Input image is STYLE REFERENCE ONLY: match its warm beige rice-paper, confident black ink linework, dry-brush flying-white edges, ink splashes, muted ochre and slate-grey washes. Create the requested different subject, not a copy of the reference scene or person.\nExactly 1024x1536 PNG, portrait aspect 2:3, opaque paper background. Main story in the upper part. Full artwork without any card interface.\n硬构图：最上方0%-8.6%和最下方84%-100%不放关键物；人物头部中心在画高15%-30%，最好23%；重要道具/武器/结构在8.6%-67%可读，主体下缘约70%，下部以墨迹和宣纸自然淡出。不能把主体缩小居中在画面下半。\n中国水墨古战场插画，古朴手绘，浓墨勾勒、淡赭与青灰设色，苍劲飞白、低饱和、战损感，残旗与尘烟若隐若现。无文字、字母、数字、题跋、印章、签名、水印、边框、图标、标签；所有旗帜无字无图案。无鲜艳杂色、无现代元素或枪炮、无卡通动漫、无照片、无3D、无塑料感。\n主体：高耸的夯土城墙正面压满画面，墙身嵌着加固木骨、裂缝用草泥草草补过，墙下尸骸与断梯枕藉。\n使用参考中的同一座土城与完全相同的浅赭黄土、灰石基础、深褐木骨、尘烟灰；改成高耸坚壁的正面雄伟近景，高墙占满画面横宽，城垣顶部约y=18%，墙身到y=66%，嵌入的加固木骨纵横分明，裂缝用草泥修补。墙下散布倒下士卒的暗色残甲剪影和断梯，悲壮但无血腥细节，地面淡墨收束。守御+死战双属性：横平竖直的固守结构；只在墙顶偏右y=23%处的短旗杆上系一小片清楚的朱砂布（宽约画幅6%），没有大块红旗，无其他鲜红。",
+    "selected_version": "initial",
+    "revision_prompts": []
+  },
+  {
+    "filename": "n_bing5.png",
+    "label": "兵·刑徒",
+    "group": "B",
+    "path": "godot/assets/cards/n_bing5.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "8c6dc520663f802a94004e513b928542d921e634e61907ff80b5af20b7a5ab88",
+    "reference_image": "n_bing3.png",
+    "reference_role": "style_reference",
+    "reference_scope": "上一批成图",
+    "initial_prompt": "Use case: illustration-story. Asset type: 《楚汉·问鼎》卡牌立绘 兵·刑徒，文件名仅作命名不要出现在图中。\nInput image role: supporting style reference only.\nSubject: 骊山刑徒：一名三十余岁成年囚徒，赭色囚衣破到肩臂和胸侧露肉，颈上挂着断开的铁制囚钳，断口与残链要清楚可认。赤脚，紧握短戈，身体低姿前倾，眼神疲惫决绝、豁出去的死气。短戈在胸腰前斜向下，囚钳、面容与握戈手构成清晰三角。臀裆由粗布完全覆盖，站姿或前踏步不色情。背景少量断旗、战损与低压硝烟。单独一小条朱砂红布缠在左上臂，面积很小；其他布料、旗帜、衣服无鲜红色。\nStyle: 中国水墨古战场插画，米白宣纸颗粒与纤维，浓黑墨线和苍劲飞白，低饱和淡赭与青灰薄染，稀疏墨点。纸色、墨色、笔触粗细和人物写实程度与提供的上一批参考图一致，仅参考画风，不复制旧人物身份、旧脸、旧姿势和旧构图。\nComposition: 严格按游戏裁切安全区构图：输出1024×1536 PNG，竖幅2:3。主角整颗头位于画面上部，头顶约画高11%-13%，头部中心约23%（必须15%-30%），头部下缘不低于32%。人物主体与关键身份道具集中画高15%-65%，重要身体不低于70%，下方30%主要是自然淡出的尘烟、飞白、宣纸。顶部0%-8.6%不放头发脸或重要道具。不要画成头部位于画高40%-50%的居中像。左右不裁可展开。\nConstraints: 独立单幅，非拼图，所有人物为匿名成年秦汉兵卒，不能是具名将领。无文字、无字旗、无书法、无边框、无水印、无Logo。无现代物品、无枪炮、无动漫、无3D、无照片质感。衣物破损也完全遮挡私密部位；任何尸体和伤痕均以灰墨、衣甲覆盖或剪影表现，不画血腥开放伤口。",
+    "selected_version": "revision",
+    "revision_prompts": [
+      {
+        "prompt": "针对这张刑徒卡牌只修正两项，其他画风、纸色、人物身份、囚钳、红臂带和动作保持一致：第一，把右手现在的短刀换成一柄真正古代短戈，短木杆约前臂到上臂长，铜铁横刃垂直于木杆形成明显L形或T形戈头；握住木杆，横刃在身前画高40%-52%处清楚可辨，不能仍是直刃匕首或刀。第二，整体构图稍缩小并下移，让整颗头包括发髻的最高点位于全图高度11%或约170像素，脸中心约24%或370像素，不能有头发进入最顶端9%；头仍在画面上部不是中部。保留断开的铁颈钳、赤足、破赭色囚衣、小红臂带、前倾死战动作，重要身体到70%自然淡出。输出1024×1536独立PNG，仍是米白宣纸黑墨飞白淡赭青灰水墨画，无文字无水印无边框。",
+        "selected": true
+      }
+    ],
+    "visual_qa": "断裂颈钳、短柄横刃戈、赤足与小红臂带可辨；头部约画高25%，手与戈位于中上部。"
+  },
+  {
+    "filename": "n_bing6.png",
+    "label": "兵·戍兵",
+    "group": "B",
+    "path": "godot/assets/cards/n_bing6.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "26bab6435fa5397052533ab4784a1a430bf12f8640ed209772c153e6211d7086",
+    "reference_image": "n_bing2.png",
+    "reference_role": "style_reference",
+    "reference_scope": "上一批成图",
+    "initial_prompt": "Use case: illustration-story. Asset type: 《楚汉·问鼎》卡牌立绘 兵·戍兵，文件名仅作命名不要出现在图中。\nInput image role: supporting style reference only.\nSubject: 边关戍卒：一名四十余岁成年守卒，灰褐皮甲外罩磨白的粗布，脸颊皴裂，神情坚忍。抱着一面陈旧木盾，持矛静静倚着城墙，正面偏三分之二视角，稳固防御姿势，不冲锋不扑出。盾面和墙垛在中下部形成横向防线，手、盾沿与矛杆都在安全区域；身后无尽烽燧沿山脊隐入烟霭。仅在抱盾的前臂缠一条细小朱砂红布，作为该守御兵兼有死战能力的标记，其余全用木褐、土黄、青灰，不加红披风或红旗。\nStyle: 中国水墨古战场插画，米白宣纸颗粒与纤维，浓黑墨线和苍劲飞白，低饱和淡赭与青灰薄染，稀疏墨点。纸色、墨色、笔触粗细和人物写实程度与提供的上一批参考图一致，仅参考画风，不复制旧人物身份、旧脸、旧姿势和旧构图。\nComposition: 严格按游戏裁切安全区构图：输出1024×1536 PNG，竖幅2:3。主角整颗头位于画面上部，头顶约画高11%-13%，头部中心约23%（必须15%-30%），头部下缘不低于32%。人物主体与关键身份道具集中画高15%-65%，重要身体不低于70%，下方30%主要是自然淡出的尘烟、飞白、宣纸。顶部0%-8.6%不放头发脸或重要道具。不要画成头部位于画高40%-50%的居中像。左右不裁可展开。\nConstraints: 独立单幅，非拼图，所有人物为匿名成年秦汉兵卒，不能是具名将领。无文字、无字旗、无书法、无边框、无水印、无Logo。无现代物品、无枪炮、无动漫、无3D、无照片质感。衣物破损也完全遮挡私密部位；任何尸体和伤痕均以灰墨、衣甲覆盖或剪影表现，不画血腥开放伤口。",
+    "selected_version": "revision",
+    "revision_prompts": [
+      {
+        "prompt": "只修改此图的构图裁切安全性，保留所有人物身份、五官、护甲旧盾、长矛、倚墙姿态、烽燧背景、小红布和原水墨画风。把人物主体略微缩小并下移，整颗头的最高点包括发髻必须位于全图高度11%-12%（约170至185像素），脸中心约23%（350像素）；不要让发髻进入顶部9%裁切区。盾、持矛双手与脸继续集中在画高15%-65%，下方只为墙垛烟尘宣纸自然淡出。仍为1024×1536，米白宣纸、浓墨飞白、淡赭青灰，无文字无边框无水印。",
+        "selected": true
+      }
+    ],
+    "visual_qa": "倚墙持矛、旧盾与烽燧可辨，稳姿；头部约画高25%，红标在抱盾前臂。"
+  },
+  {
+    "filename": "n_bing7.png",
+    "label": "兵·死士队",
+    "group": "B",
+    "path": "godot/assets/cards/n_bing7.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "a89ff49f145b539bc588bb35034ca1061ab8595b192233de0fa2d06504afa245",
+    "reference_image": "n_bing3.png",
+    "reference_role": "style_reference",
+    "reference_scope": "上一批成图",
+    "initial_prompt": "Use case: illustration-story. Asset type: 《楚汉·问鼎》卡牌立绘 兵·死士队，文件名仅作命名不要出现在图中。\nInput image role: supporting style reference only.\nSubject: 恰好三名匿名成年赤膊死士，年龄体貌略有区别，并肩低姿前压，肩背相抵连成密集锋线，每人反握一把短刀。三颗头横向排在画高20%-28%范围，呈轻微错落但没有低到画面中部的头。每人肩臂有破布绑带，其中每人仅一条很窄的朱砂红臂带是共同视觉标记，红色总面积很小，腰布灰褐不红。粗布裤或腰裙牢固遮挡私密处。脚下同伴尸身仅以衣甲覆盖的暗墨远景形体出现，非血腥。短刀刀尖向下，面孔、肩线和三柄刀都在画高15%-65%。\nStyle: 中国水墨古战场插画，米白宣纸颗粒与纤维，浓黑墨线和苍劲飞白，低饱和淡赭与青灰薄染，稀疏墨点。纸色、墨色、笔触粗细和人物写实程度与提供的上一批参考图一致，仅参考画风，不复制旧人物身份、旧脸、旧姿势和旧构图。\nComposition: 严格按游戏裁切安全区构图：输出1024×1536 PNG，竖幅2:3。主角整颗头位于画面上部，头顶约画高11%-13%，头部中心约23%（必须15%-30%），头部下缘不低于32%。人物主体与关键身份道具集中画高15%-65%，重要身体不低于70%，下方30%主要是自然淡出的尘烟、飞白、宣纸。顶部0%-8.6%不放头发脸或重要道具。不要画成头部位于画高40%-50%的居中像。左右不裁可展开。\nConstraints: 独立单幅，非拼图，所有人物为匿名成年秦汉兵卒，不能是具名将领。无文字、无字旗、无书法、无边框、无水印、无Logo。无现代物品、无枪炮、无动漫、无3D、无照片质感。衣物破损也完全遮挡私密部位；任何尸体和伤痕均以灰墨、衣甲覆盖或剪影表现，不画血腥开放伤口。",
+    "selected_version": "revision",
+    "revision_prompts": [
+      {
+        "prompt": "只作一个局部修改：这张三名死士队插画里，中间和右边的人已有红臂带，最左边那名有胡须、赤膊反握短刀的死士缺少同样的红标。请在最左边死士靠画面左缘的前臂或腕部现有布带上加一条窄小朱砂红布，宽度约画面宽的5%-7%，颜色与其他两人的红臂带完全一致。这样恰好三人各有一条小红带，不能变成红披风或大片红衣。所有脸、三人前倾并肩动作、短刀、位置、纸色、原水墨笔触和其余画面完全保持不变。输出1024×1536 PNG，无文字无边框无水印。",
+        "selected": true
+      }
+    ],
+    "visual_qa": "三名并肩前压死士，每人一条小红带，三颗头约画高22%-25%，三柄反握短刀可辨。"
+  },
+  {
+    "filename": "n_bing8.png",
+    "label": "兵·降卒",
+    "group": "B",
+    "path": "godot/assets/cards/n_bing8.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "2ae3f75ae33713d5ee7f23dd0e11d8e20b73f925825ec3a088589c8eabfbdee3",
+    "reference_image": "n_bing2.png",
+    "reference_role": "style_reference",
+    "reference_scope": "上一批成图",
+    "initial_prompt": "Use case: illustration-story. Asset type: 《楚汉·问鼎》卡牌立绘 兵·降卒，文件名仅作命名不要出现在图中。\nInput image role: supporting style reference only.\nSubject: 一名卸甲的匿名成年降卒低头站着，头微俯但整颗头仍处画面最上方安全区域，不是蹲下。松散甲片挂在灰色粗衣上，肩颈疲惫略前倾，捆缚绳索松松垂落并没有系紧。采用略侧身的三分之二角度，让观者同时看清侧脸和身后那只手：手在腰后悄悄攥着一片无字竹简，竹简必须在画高50%-60%清楚可见，不能藏得完全看不到。另一条手臂有唯一一小段朱砂红布，其他无鲜红。背景为寂静军营烟尘与残旗，不要主将华贵铠甲。\nStyle: 中国水墨古战场插画，米白宣纸颗粒与纤维，浓黑墨线和苍劲飞白，低饱和淡赭与青灰薄染，稀疏墨点。纸色、墨色、笔触粗细和人物写实程度与提供的上一批参考图一致，仅参考画风，不复制旧人物身份、旧脸、旧姿势和旧构图。\nComposition: 严格按游戏裁切安全区构图：输出1024×1536 PNG，竖幅2:3。主角整颗头位于画面上部，头顶约画高11%-13%，头部中心约23%（必须15%-30%），头部下缘不低于32%。人物主体与关键身份道具集中画高15%-65%，重要身体不低于70%，下方30%主要是自然淡出的尘烟、飞白、宣纸。顶部0%-8.6%不放头发脸或重要道具。不要画成头部位于画高40%-50%的居中像。左右不裁可展开。\nConstraints: 独立单幅，非拼图，所有人物为匿名成年秦汉兵卒，不能是具名将领。无文字、无字旗、无书法、无边框、无水印、无Logo。无现代物品、无枪炮、无动漫、无3D、无照片质感。衣物破损也完全遮挡私密部位；任何尸体和伤痕均以灰墨、衣甲覆盖或剪影表现，不画血腥开放伤口。",
+    "selected_version": "revision",
+    "revision_prompts": [
+      {
+        "prompt": "仅修改这张降卒水墨立绘的两个具体细节，其余保持：一、将身后手里当前那一大卷竹简替换成一片狭长无字竹片，大约两指宽、一个手掌长，握在腰后手掌里，露出少量竹片上下端；要看得出悄悄攥着的单片信物，不是大捆公文、不是卷轴。手的位置仍在画高50%-60%安全区域。二、把整个人物略缩小并下移约50像素，使头顶包含发髻位于全图画高11%-12%，脸仍在23%-27%，顶部9%范围仅为宣纸背景，不能裁掉发髻。保留低头站立、松甲挂肩、松绳垂地、臂上小朱砂红布、侧脸、破衣和原背景，不增加武器或其他人物。保留上一张图的米白纸色、浓墨飞白、淡赭青灰低饱和水墨画风。输出1024×1536独立PNG，无文字无边框无水印。",
+        "selected": true
+      }
+    ],
+    "visual_qa": "低头站立、松甲松绳与腰后一片竹简可辨，头部约画高23%-25%，竹片处约画高58%-65%。"
+  },
+  {
+    "filename": "n_bing9.png",
+    "label": "兵·斥候",
+    "group": "B",
+    "path": "godot/assets/cards/n_bing9.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "f9c72ae10335999e63deefeaaebd820306484dc0e068d0d6a8fb96d5589a208a",
+    "reference_image": "n_bing2.png",
+    "reference_role": "style_reference",
+    "reference_scope": "上一批成图",
+    "initial_prompt": "Use case: illustration-story. Asset type: 《楚汉·问鼎》卡牌立绘 兵·斥候，文件名仅作命名不要出现在图中。\nInput image role: supporting style reference only.\nSubject: 一名匿名成年斥候伏在枯草丛中，只露出头肩和两只手。一手压低草叶、一手按着短刀，眼神机警凝视远处，身体藏在草中，绝非站立冲锋。用接近地面的近景构图将头肩放在画面上部；脸中心必须画高23%，头顶12%，双手和短刀在35%-52%，下方大面积枯草与宣纸飞白。远处敌营篝火串成低低一线淡赭光点，残旗藏在雾中。右前臂露出唯一一条细小朱砂红布，背景篝火低饱和赭色，无鲜红旗帜。\nStyle: 中国水墨古战场插画，米白宣纸颗粒与纤维，浓黑墨线和苍劲飞白，低饱和淡赭与青灰薄染，稀疏墨点。纸色、墨色、笔触粗细和人物写实程度与提供的上一批参考图一致，仅参考画风，不复制旧人物身份、旧脸、旧姿势和旧构图。\nComposition: 严格按游戏裁切安全区构图：输出1024×1536 PNG，竖幅2:3。主角整颗头位于画面上部，头顶约画高11%-13%，头部中心约23%（必须15%-30%），头部下缘不低于32%。人物主体与关键身份道具集中画高15%-65%，重要身体不低于70%，下方30%主要是自然淡出的尘烟、飞白、宣纸。顶部0%-8.6%不放头发脸或重要道具。不要画成头部位于画高40%-50%的居中像。左右不裁可展开。\nConstraints: 独立单幅，非拼图，所有人物为匿名成年秦汉兵卒，不能是具名将领。无文字、无字旗、无书法、无边框、无水印、无Logo。无现代物品、无枪炮、无动漫、无3D、无照片质感。衣物破损也完全遮挡私密部位；任何尸体和伤痕均以灰墨、衣甲覆盖或剪影表现，不画血腥开放伤口。\n唯一朱砂红臂带宽约画幅5%-7%，只露一截，能在缩略图中识别，其余不加红。",
+    "selected_version": "revision",
+    "revision_prompts": [
+      {
+        "prompt": "Use case: precise-object-edit. Input is the selected scout card n_bing9.png. Preserve the entire original illustration exactly: same adult male scout face and face position, eyes looking right, prone stealth pose, hands parting dry grass and holding the short knife, single small vermilion arm band, distant campfires, all textures, colors, composition and canvas. ONLY correct the over-high hair bun for card cropping. Replace the tall high topknot with a SMALL, COMPACT, LOW tied knot nestled against the BACK of the head. Keep the face absolutely unmoved at its current approximately 25% canvas height. Keep the forehead and facial identity unchanged. No part of this low bun or any stray hair should extend into the top 10% of the image; highest hair should start around 11%-12% canvas height. This is only a local hairstyle compacting adjustment, NOT moving the entire head, face, figure or camera downward. Fill the vacated small patch above the head with matching rice-paper and faint background wash. Keep all other pixels/objects as close as possible to the original. 1024x1536 portrait PNG. No text, border, stamp or watermark.",
+        "selected": true,
+        "reason": "只将过高发髻收成低发髻，保留脸部与伏草姿势，避开图鉴上裁线。"
+      }
+    ]
+  },
+  {
+    "filename": "n_bing10.png",
+    "label": "兵·死囚",
+    "group": "B",
+    "path": "godot/assets/cards/n_bing10.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "1b1e7adac8edb3a3b0e35cee2da0a193f3f4fd4b45048e17039255db65a7bec7",
+    "reference_image": "n_bing3.png",
+    "reference_role": "style_reference",
+    "reference_scope": "上一批成图",
+    "initial_prompt": "Use case: illustration-story. Asset type: 《楚汉·问鼎》卡牌立绘 兵·死囚，文件名仅作命名不要出现在图中。\nInput image role: supporting style reference only.\nSubject: 一名黥面成年死囚，凌乱披发遮住半张脸，另一半面孔露出黑色刑罚刺痕，刺痕为抽象线痕不是可读汉字。腕上铁锁链已经挣断，残链在前冲中甩动。他向前猛扑，一手拖持一把有明显缺口的古代环首刀，圆环刀柄与缺口刀刃都清楚可读；刀沿身体侧面向下斜拖但整段关键轮廓在画高35%-65%内。赤裸上身，腰间只有一条厚实灰褐布裙牢固包裹臀裆，不露生殖器，非色情。唯一一小截朱砂红布绑在手腕断链旁，其他没有红色大布料。人物头部强制在画高23%，用上部近景表现俯身前扑，不能把脸放到画面中心。\nStyle: 中国水墨古战场插画，米白宣纸颗粒与纤维，浓黑墨线和苍劲飞白，低饱和淡赭与青灰薄染，稀疏墨点。纸色、墨色、笔触粗细和人物写实程度与提供的上一批参考图一致，仅参考画风，不复制旧人物身份、旧脸、旧姿势和旧构图。\nComposition: 严格按游戏裁切安全区构图：输出1024×1536 PNG，竖幅2:3。主角整颗头位于画面上部，头顶约画高11%-13%，头部中心约23%（必须15%-30%），头部下缘不低于32%。人物主体与关键身份道具集中画高15%-65%，重要身体不低于70%，下方30%主要是自然淡出的尘烟、飞白、宣纸。顶部0%-8.6%不放头发脸或重要道具。不要画成头部位于画高40%-50%的居中像。左右不裁可展开。\nConstraints: 独立单幅，非拼图，所有人物为匿名成年秦汉兵卒，不能是具名将领。无文字、无字旗、无书法、无边框、无水印、无Logo。无现代物品、无枪炮、无动漫、无3D、无照片质感。衣物破损也完全遮挡私密部位；任何尸体和伤痕均以灰墨、衣甲覆盖或剪影表现，不画血腥开放伤口。",
+    "selected_version": "revision",
+    "revision_prompts": [
+      {
+        "prompt": "只修正这张死囚插画头发最上缘的裁切安全：将头顶少量向上飞起的头发收拢向后或向两侧下方，让全部头发的最高点位于全图高度10%-11%（约154到170像素）以下。脸、眼睛、嘴和头骨位置完全不要移动，也不要把人物整体下移；脸现在位于上部的位置保持。仍须保留披散长发遮半脸、露出另一侧黑色黥痕的特征。其他所有画面元素保持不变：向前扑的姿势、断锁链、缺口环首刀、灰褐腰布遮挡臀裆、小朱砂红腕带、米白宣纸墨黑飞白淡赭青灰画风。不要改变比例，不新增物品，不加文字。输出1024×1536 PNG，无边框无水印。",
+        "selected": true
+      }
+    ],
+    "visual_qa": "黥面披发、断链与环首缺刀可辨，头脸中心约画高22%；顶部飞发已收拢，红标在腕部。"
+  },
+  {
+    "filename": "n_xiangyong.png",
+    "label": "兵·乡勇",
+    "group": "B",
+    "path": "godot/assets/cards/n_xiangyong.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "c38ad4cf989a23e87f259196494f41c2d57c56eff2371794ee4594d2dfcef046",
+    "reference_image": "n_bing2.png",
+    "reference_role": "style_reference",
+    "reference_scope": "上一批成图",
+    "initial_prompt": "Use case: illustration-story. Asset type: 《楚汉·问鼎》卡牌立绘 兵·乡勇，文件名仅作命名不要出现在图中。\nInput image role: supporting style reference only.\nSubject: 刚被征来的乡里成年青壮，五名普通农民肩扛锄头和木棍，站成一排不整齐的歪斜松散队形。主角三人头部错落在画高20%-28%，两旁农民略小，不能形成居中低矮的人墙。每人的粗布衣衫简陋破损却覆盖臀裆，神情认真而紧张，有朴素泥土气。锄头是有木柄的真实古代农具，没有刀枪铠甲。前方胸腰和农具轮廓清楚，身体在下方渐隐进枯土与淡墨。全图没有朱砂红、红布、红旗或红披风，只有米白、墨黑、木褐、土黄、青灰。\nStyle: 中国水墨古战场插画，米白宣纸颗粒与纤维，浓黑墨线和苍劲飞白，低饱和淡赭与青灰薄染，稀疏墨点。纸色、墨色、笔触粗细和人物写实程度与提供的上一批参考图一致，仅参考画风，不复制旧人物身份、旧脸、旧姿势和旧构图。\nComposition: 严格按游戏裁切安全区构图：输出1024×1536 PNG，竖幅2:3。主角整颗头位于画面上部，头顶约画高11%-13%，头部中心约23%（必须15%-30%），头部下缘不低于32%。人物主体与关键身份道具集中画高15%-65%，重要身体不低于70%，下方30%主要是自然淡出的尘烟、飞白、宣纸。顶部0%-8.6%不放头发脸或重要道具。不要画成头部位于画高40%-50%的居中像。左右不裁可展开。\nConstraints: 独立单幅，非拼图，所有人物为匿名成年秦汉兵卒，不能是具名将领。无文字、无字旗、无书法、无边框、无水印、无Logo。无现代物品、无枪炮、无动漫、无3D、无照片质感。衣物破损也完全遮挡私密部位；任何尸体和伤痕均以灰墨、衣甲覆盖或剪影表现，不画血腥开放伤口。\n锄头的铁刃和木柄接头必须完整留在画高12%-60%内，不能顶出画面或进入顶部裁切区。",
+    "selected_version": "initial",
+    "revision_prompts": []
+  },
+  {
+    "filename": "n_shi4.png",
+    "label": "士·断后",
+    "group": "C",
+    "path": "godot/assets/cards/n_shi4.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "1744f2a4d87757fb517f9e044a1f74c796dc3fed0478f4d4981598b3810fbc05",
+    "reference_image": "n_bing2.png",
+    "reference_role": "style_reference",
+    "reference_scope": "上一批成图",
+    "initial_prompt": "Use case: stylized-concept\n生成独立的卡牌插画，竖幅2:3，实际输出1024×1536，PNG。图片文件名标识n_shi4.png不要画进图中。\n参考图角色：仅借鉴附图的画风、纸色、黑墨飞白、质感和淡彩，不复制参考人物的身份、脸、动作或具体场景。本图是新的匿名兵种。\n主体：一名匿名成年甲士，侧背影，只略见坚毅侧脸，双手把长矛水平横持，孤身静止守住隘口的断桥。断桥断口与破栏在中景下部，撤离的队伍从甲士身后向烟尘深处退去。士卒不是冲锋、不是竖矛，不回头作肖像，是以侧背影堵住通路。近景大半身甲士占画面上2/3；横矛贯穿宽度，位于画高43%-48%；主角头部中心约画高23%，头顶画高12%；只在上臂系一小条朱砂红布，除此以外没有红色。\n画面裁切硬约束：主角头颅中心必须在全画高15%-30%，最佳22%-25%；头发/盔顶完整在8.6%裁切线以下；脸、双手、关键兵器道具完整集中在8.6%-67%高度；重要上身轮廓不晚于70%结束。画面最下30%主要米白纸色、轻墨烟尘和飞白，不安排第二主体。不得在画上显示构图线或标尺。\n沿用参考图的米白宣纸纤维底、浓黑墨线勾勒、苍劲干笔飞白、墨点飞溅、淡赭和青灰设色、战损破布与札甲笔触，低饱和中国水墨古战场插画。保持参考图的绘画完成度和粗粝质感，不要变成照片、3D渲染、动漫、卡通或塑料。秦末楚汉冷兵器，烟尘不是枪炮硝烟，无现代物件。全图无文字、汉字、数字、卡名、印章、边框、水印。",
+    "selected_version": "revision",
+    "revision_prompts": [
+      {
+        "prompt": "只修正主体与画幅的留白关系，不改变图意。将完整甲士略缩小并整体安排得更居中，最高发髻和任何发丝都必须在整幅画高12%以下（距上边至少184像素），侧脸中心约画高24%。保持侧背影、横持长矛、静守断桥、退走队列与上臂唯一朱砂红布。上身主要结束于画高68%，横矛仍在45%-50%高度。颜色、笔触、纸底、人物身份、场景均不变。输出1024×1536，无构图线、无文字、无边框水印。",
+        "selected": true
+      }
+    ],
+    "visual_qa": {
+      "head_center_y_approx": 0.25,
+      "head_top_y_approx": 0.19,
+      "pose": "侧背影横矛静守断桥",
+      "props": "完整横矛约48%画高；退队与断桥清楚",
+      "red": "上臂单处朱砂红布",
+      "selected": "revision"
+    }
+  },
+  {
+    "filename": "n_shi5.png",
+    "label": "士·骸骨",
+    "group": "C",
+    "path": "godot/assets/cards/n_shi5.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "7804d97a83edc7268fe0ae7dc52c20f15fdb4a993ec1398e1f455310afa60476",
+    "reference_image": "n_bing2.png",
+    "reference_role": "style_reference",
+    "reference_scope": "上一批成图",
+    "initial_prompt": "Use case: stylized-concept\n生成独立的卡牌插画，竖幅2:3，实际输出1024×1536，PNG。图片文件名标识n_shi5.png不要画进图中。\n参考图角色：仅借鉴附图的画风、纸色、黑墨飞白、质感和淡彩，不复制参考人物的身份、脸、动作或具体场景。本图是新的匿名兵种。\n主体：一副无生命的干燥陈旧骸骨，腰部以下半埋在战场黄土里，上半身仍披着破碎秦汉札甲。骷髅头与肩胸在画面上半部，白骨干燥如刃；一只指骨紧紧扣住断裂长矛，另一端断口清晰。斜插的无字褪色残旗散布后景。骷髅头中心约画高24%，头顶画高14%；残甲上身到画高60%，土堆从60%向下淡化为宣纸。只在扣矛的前臂骨上缠一小条褪色朱砂红布。没有活人主角、没有眼球、没有发光眼窝、没有血肉、没有魔法。\n画面裁切硬约束：主角头颅中心必须在全画高15%-30%，最佳22%-25%；头发/盔顶完整在8.6%裁切线以下；脸、双手、关键兵器道具完整集中在8.6%-67%高度；重要上身轮廓不晚于70%结束。画面最下30%主要米白纸色、轻墨烟尘和飞白，不安排第二主体。不得在画上显示构图线或标尺。\n沿用参考图的米白宣纸纤维底、浓黑墨线勾勒、苍劲干笔飞白、墨点飞溅、淡赭和青灰设色、战损破布与札甲笔触，低饱和中国水墨古战场插画。保持参考图的绘画完成度和粗粝质感，不要变成照片、3D渲染、动漫、卡通或塑料。秦末楚汉冷兵器，烟尘不是枪炮硝烟，无现代物件。全图无文字、汉字、数字、卡名、印章、边框、水印。",
+    "selected_version": "initial",
+    "revision_prompts": [],
+    "visual_qa": {
+      "head_center_y_approx": 0.21,
+      "head_top_y_approx": 0.12,
+      "pose": "半埋骸骨披残甲",
+      "props": "手骨扣住断矛，断口在上方安全区",
+      "red": "手腕/前臂一条褪色朱砂红布",
+      "selected": "initial"
+    }
+  },
+  {
+    "filename": "n_shi6.png",
+    "label": "士·门客",
+    "group": "C",
+    "path": "godot/assets/cards/n_shi6.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "ed5fc1c73c77d0c360dfb9f59d101f76f225255042b44b9dd29b3ccdde62a19e",
+    "reference_image": "n_bing2.png",
+    "reference_role": "style_reference",
+    "reference_scope": "上一批成图",
+    "initial_prompt": "Use case: stylized-concept\n生成独立的卡牌插画，竖幅2:3，实际输出1024×1536，PNG。图片文件名标识n_shi6.png不要画进图中。\n参考图角色：仅借鉴附图的画风、纸色、黑墨飞白、质感和淡彩，不复制参考人物的身份、脸、动作或具体场景。本图是新的匿名兵种。\n主体：一位匿名成年布衣门客，黑发束髻，灰麻长衣，腰间佩剑，向画面左外方郑重深揖到底，双手拱合伸出，肩背明显弯折，姿态表达诀别后即赴死。袖口滑出半卷无字竹简，竹片与卷起的弧度清楚。深揖动作必须明确，但通过上移的近景取景把整个弯腰上身安排在画面上半部：低垂头部中心仍在画高24%，头顶在14%，肩背在20%-38%，拱手与滑出的竹简在35%-51%，佩剑柄在50%-61%，不是头在画面中下部。下部只接少量衣褶并淡入纸色。只在手腕系一小条朱砂红布，其余衣物纯灰麻与浅赭。身份是普通门客，不是军师名将。\n画面裁切硬约束：主角头颅中心必须在全画高15%-30%，最佳22%-25%；头发/盔顶完整在8.6%裁切线以下；脸、双手、关键兵器道具完整集中在8.6%-67%高度；重要上身轮廓不晚于70%结束。画面最下30%主要米白纸色、轻墨烟尘和飞白，不安排第二主体。不得在画上显示构图线或标尺。\n沿用参考图的米白宣纸纤维底、浓黑墨线勾勒、苍劲干笔飞白、墨点飞溅、淡赭和青灰设色、战损破布与札甲笔触，低饱和中国水墨古战场插画。保持参考图的绘画完成度和粗粝质感，不要变成照片、3D渲染、动漫、卡通或塑料。秦末楚汉冷兵器，烟尘不是枪炮硝烟，无现代物件。全图无文字、汉字、数字、卡名、印章、边框、水印。",
+    "selected_version": "initial",
+    "revision_prompts": [
+      {
+        "prompt": "只修正取景与发髻上方安全留白，不改变门客深揖到底的姿态、拱手、滑出袖口的竹简及腰佩剑。将人物比例稍缩小，最高发髻及所有发丝完整放在整幅画高12%以下（上边留至少184像素），低垂面孔中心保持在画高25%-28%，双手与竹简保持在35%-53%，剑柄在55%左右。仍是上半部近景深揖，上身重要部分到68%截止，下部留纸色。手腕一条朱砂红布保留，其余风格、身份、服装、颜色不变。输出1024×1536，无文字边框水印，无辅助线。",
+        "selected": false,
+        "reason": "候选版把脸部下移至约39%画高，未采用；最终保留脸部约27%的初稿。"
+      }
+    ],
+    "visual_qa": {
+      "head_center_y_approx": 0.27,
+      "head_top_y_approx": 0.09,
+      "pose": "深揖，未下移面孔",
+      "props": "竹简与拱手、佩剑均清楚",
+      "red": "手腕单处朱砂红布",
+      "selected": "initial",
+      "note": "初稿主发髻与面孔在安全区，最顶部少量飘发触及8.6%裁线；根代理复查后指示保留。一次修正版把脸移至约39%因此拒用。"
+    }
+  },
+  {
+    "filename": "n_shi7.png",
+    "label": "士·死节",
+    "group": "C",
+    "path": "godot/assets/cards/n_shi7.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "25d92eb97ce58aa03e60182c0cd0a332a2b9e96984ccda6f75de53c77bfbcf67",
+    "reference_image": "n_shi3.png",
+    "reference_role": "style_reference",
+    "reference_scope": "上一批成图",
+    "initial_prompt": "Use case: stylized-concept\n生成独立的卡牌插画，竖幅2:3，实际输出1024×1536，PNG。图片文件名标识n_shi7.png不要画进图中。\n参考图角色：仅借鉴附图的画风、纸色、黑墨飞白、质感和淡彩，不复制参考人物的身份、脸、动作或具体场景。本图是新的匿名兵种。\n主体：一名匿名成年重甲卫士双膝跪坐，却仍挺住上身持戟不倒，几支箭留在肩甲与胸甲上。他靠戟支持身体，面容疲惫坚决，仍守着撤退小道。必须看见跪坐的膝部轮廓，不能画成站立。半卷残旗在身后，疏落撤离队列淡入烟尘。上移的近景：头部中心画高24%，头顶13%，肩胸在30%-51%，双膝在60%-68%，70%以下淡入墨烟与纸色。戟的刃部完整落在9%-29%，手握杆在42%-53%。伤处不画血肉，只在胸甲绑带保留一小处暗朱砂红，其他绑带、战旗均墨黑土褐。\n画面裁切硬约束：主角头颅中心必须在全画高15%-30%，最佳22%-25%；头发/盔顶完整在8.6%裁切线以下；脸、双手、关键兵器道具完整集中在8.6%-67%高度；重要上身轮廓不晚于70%结束。画面最下30%主要米白纸色、轻墨烟尘和飞白，不安排第二主体。不得在画上显示构图线或标尺。\n沿用参考图的米白宣纸纤维底、浓黑墨线勾勒、苍劲干笔飞白、墨点飞溅、淡赭和青灰设色、战损破布与札甲笔触，低饱和中国水墨古战场插画。保持参考图的绘画完成度和粗粝质感，不要变成照片、3D渲染、动漫、卡通或塑料。秦末楚汉冷兵器，烟尘不是枪炮硝烟，无现代物件。全图无文字、汉字、数字、卡名、印章、边框、水印。",
+    "selected_version": "revision",
+    "revision_prompts": [
+      {
+        "prompt": "仅把右侧长戟的可见杆身缩短，并将戟头在画面内下移，使整个戟刃尖端完整落在画高12%处（距顶184像素），戟头占12%-30%，仍由原来的右手握住，不改变握手、人物和身体。保持跪坐挺立、双膝、箭矢、退路、半卷残旗和一处朱砂甲绦。人物头部中心仍约画高22%，原构图与画风完全保持。1024×1536，无任何文字边框水印或辅助线。",
+        "selected": true
+      }
+    ],
+    "visual_qa": {
+      "head_center_y_approx": 0.22,
+      "head_top_y_approx": 0.13,
+      "pose": "双膝跪坐持戟挺立，箭在甲上",
+      "props": "修正版戟刃完整落在13%-33%，双膝可辨",
+      "red": "腰甲绦单处暗朱砂",
+      "selected": "revision"
+    }
+  },
+  {
+    "filename": "n_jiang1.png",
+    "label": "将·偏将",
+    "group": "C",
+    "path": "godot/assets/cards/n_jiang1.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "1172d96bff9fff0e32127bb9b2c387eae409fa0363e0b573f9a68a42c94e261b",
+    "reference_image": "n_bing2.png",
+    "reference_role": "style_reference",
+    "reference_scope": "上一批成图",
+    "initial_prompt": "Use case: stylized-concept\n生成独立的卡牌插画，竖幅2:3，实际输出1024×1536，PNG。图片文件名标识n_jiang1.png不要画进图中。\n参考图角色：仅借鉴附图的画风、纸色、黑墨飞白、质感和淡彩，不复制参考人物的身份、脸、动作或具体场景。本图是新的匿名兵种。\n主体：一名匿名成年偏将立于阵线之中，高举一面小型无字令旗发出号令，盔缨破损，甲胄覆满尘灰；身后士卒依照旗号整齐向同一方向转身，动作齐一，后景用淡墨简写。以大半身近景突出握旗的手、残盔与坚决神情，不画成任何著名历史人物。头中心位于画高25%，头顶或盔顶在13%，举起的手和旗面在10%-39%，上身主要到64%。令旗墨黑，旗角仅系一小条朱砂红带，这是全图唯一明显红色。\n画面裁切硬约束：主角头颅中心必须在全画高15%-30%，最佳22%-25%；头发/盔顶完整在8.6%裁切线以下；脸、双手、关键兵器道具完整集中在8.6%-67%高度；重要上身轮廓不晚于70%结束。画面最下30%主要米白纸色、轻墨烟尘和飞白，不安排第二主体。不得在画上显示构图线或标尺。\n沿用参考图的米白宣纸纤维底、浓黑墨线勾勒、苍劲干笔飞白、墨点飞溅、淡赭和青灰设色、战损破布与札甲笔触，低饱和中国水墨古战场插画。保持参考图的绘画完成度和粗粝质感，不要变成照片、3D渲染、动漫、卡通或塑料。秦末楚汉冷兵器，烟尘不是枪炮硝烟，无现代物件。全图无文字、汉字、数字、卡名、印章、边框、水印。",
+    "selected_version": "revision",
+    "revision_prompts": [
+      {
+        "prompt": "只修正高举令旗的上边安全留白。将无字墨黑小令旗连同旗杆上段缩短并稍向下移，使旗面最高点与朱砂红小绑带最高点都在画高11%-12%以下（距顶至少169像素），旗面完整位于12%-30%高度；仍由原来的高举的手握持，举旗动作保持。不要移动人物头部，不改变其面容、残盔、甲胄、身体或背景齐转士卒。全图唯一朱砂红小绑带完整可见。保持原水墨画风1024×1536，无文字边框水印辅助线。",
+        "selected": true
+      }
+    ],
+    "visual_qa": {
+      "head_center_y_approx": 0.28,
+      "head_top_y_approx": 0.14,
+      "pose": "高举小令旗，后排士卒齐转",
+      "props": "修正版令旗完整落11%-28%，未裁切",
+      "red": "旗顶单条朱砂红布",
+      "selected": "revision"
+    }
+  },
+  {
+    "filename": "n_jiang2.png",
+    "label": "将·死士将",
+    "group": "C",
+    "path": "godot/assets/cards/n_jiang2.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "cf41520f222289ec9bc1377c24f7330933e5f136c25d9dbc1cdc8f9435eda398",
+    "reference_image": "n_bing3.png",
+    "reference_role": "style_reference",
+    "reference_scope": "上一批成图",
+    "initial_prompt": "Use case: stylized-concept\n生成独立的卡牌插画，竖幅2:3，实际输出1024×1536，PNG。图片文件名标识n_jiang2.png不要画进图中。\n参考图角色：仅借鉴附图的画风、纸色、黑墨飞白、质感和淡彩，不复制参考人物的身份、脸、动作或具体场景。本图是新的匿名兵种。\n主体：一名匿名成年死士之将，身披沉重黑铁札甲，甲色为暗赭与墨黑，绝非大片鲜红。他两手各持一把不同方向的古代长刀，共两把刀，立于残甲与倒伏士卒形成的低丘上，扭腰回身怒喝，身体蓄势前压，神情悲壮猛烈。后方营火冲天但火焰用低饱和赭黄与灰烟，不能成为红色面。倒下士卒只画干燥旧甲与淡墨剪影，无血腥细节。主角头部中心画高24%，头顶13%；两把刀的刀柄、刀锋主要落在28%-64%；大半身至67%，下方残甲丘淡化到纸色。上臂甲仅系一条小朱砂红绦作为全图唯一红标。\n画面裁切硬约束：主角头颅中心必须在全画高15%-30%，最佳22%-25%；头发/盔顶完整在8.6%裁切线以下；脸、双手、关键兵器道具完整集中在8.6%-67%高度；重要上身轮廓不晚于70%结束。画面最下30%主要米白纸色、轻墨烟尘和飞白，不安排第二主体。不得在画上显示构图线或标尺。\n沿用参考图的米白宣纸纤维底、浓黑墨线勾勒、苍劲干笔飞白、墨点飞溅、淡赭和青灰设色、战损破布与札甲笔触，低饱和中国水墨古战场插画。保持参考图的绘画完成度和粗粝质感，不要变成照片、3D渲染、动漫、卡通或塑料。秦末楚汉冷兵器，烟尘不是枪炮硝烟，无现代物件。全图无文字、汉字、数字、卡名、印章、边框、水印。",
+    "selected_version": "revision",
+    "revision_prompts": [
+      {
+        "prompt": "仅局部修正头顶发髻和向上飞散的头发，其余任何部分不动。将现在向上高耸的大发髻收束成贴头的小髻，缩小向上翘起的发丝体积，最高的一根头发也必须在图高12%以下（距上边184像素）。脸部中心保持现在约画高22%的原位置不变，绝对不能整体下移或缩放人物。保持回身怒喝表情、黑铁重甲、双手各持一把长刀、上臂单处朱砂红布、背景营火与脚下残甲。除了头顶发髻/散发与腾出的宣纸背景，不改任何其他像素内容。保留1024×1536竖幅水墨插画，无文字边框水印及辅助线。",
+        "selected": true
+      }
+    ],
+    "visual_qa": {
+      "head_center_y_approx": 0.22,
+      "head_top_y_approx": 0.11,
+      "pose": "黑甲双刀回身怒喝",
+      "props": "两把长刀清楚，刀锋主要在20%-67%",
+      "red": "上臂唯一朱砂绑带",
+      "selected": "revision"
+    }
+  },
+  {
+    "filename": "n_yi1.png",
+    "label": "医·随军医",
+    "group": "D",
+    "path": "godot/assets/cards/n_yi1.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "39297014aaf2ca2704ff6fab597c9b04581bcc70327138cfae240f3c6740173e",
+    "reference_image": "ev_yiqing.png",
+    "reference_role": "style_reference",
+    "reference_scope": "上一批成图",
+    "initial_prompt": "Use case: historical-scene. Asset: 医·随军医，死战卡牌。仅参考输入图片的画风、笔触、宣纸肌理和低饱和配色；这是全新独立卡牌插画，必须重新画下面的新主体与新构图，禁止复制参考图的人物、器械、道具或具体场景布局。中国水墨画风格插画，秦末楚汉古战场题材，宣纸米白色底，浓墨勾勒，淡赭与青灰设色，苍劲干笔飞白、墨点飞溅，残破战旗和烟尘淡墨晕染，战损感。所有人物是成年人。无文字、无可读汉字数字字母、无印章文字、无边框、无水印、无卡通动漫、无3D、无照片、无现代元素。输出单张完整PNG，不拼版。输出1024×1536像素，竖幅2:3，不能沿用参考图方形比例。必须为游戏卡牌裁切布局：主要叙事动作与关键道具全部安排在画面高度的8.6%至67%之间，主体下缘至多到70%，下方30%只是自然淡化的墨迹、烟尘、地面和米白宣纸；不要在底部放关键物件；上边8.6%留低细节背景。不要画任何坐标、分区线或辅助线。主体：一名粗布衣随军医者背着旧药囊，身体前倾蹲于受伤成年兵卒身旁包扎。一手捏着一截点燃而只吐细烟的艾柱，另一手隔着布条按住伤卒上臂伤口，两个动作清晰，伤口被布料覆盖。帐下有少量暗赭旧血迹和散落药草，绝无血腥特写。构图采用放大人物上半身的蹲姿近景，医者头部中心必须在全画高度约23%，头顶高于15%但不贴顶，眼睛完整清楚；医者与伤卒的头肩和两手均位于画面上半部，包扎动作位于约40%-52%。药包绳结只系一小条克制的朱砂红布，作为全图唯一朱砂红视觉标记；其余衣物军旗以青灰淡赭表现，不出现多处红色。底部只是淡化纸色与墨迹。",
+    "selected_version": "initial",
+    "revision_prompts": [],
+    "visual_qa": "医者头脸中心约25%-27%高度；艾柱约41%、按压包扎约49%；药囊朱砂结约28%，主要人物至约69%，下方留纸。非血腥治疗。"
+  },
+  {
+    "filename": "n_che4.png",
+    "label": "车·决死车",
+    "group": "D",
+    "path": "godot/assets/cards/n_che4.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "998020be386318156dea8398e68b4f3084a9c7668a398df391f7e6af3e057401",
+    "reference_image": "n_che3.png",
+    "reference_role": "style_reference",
+    "reference_scope": "上一批成图",
+    "initial_prompt": "Use case: historical-scene. Asset: 车·决死车，死战卡牌。仅参考输入图片的画风、笔触、宣纸肌理和低饱和配色；这是全新独立卡牌插画，必须重新画下面的新主体与新构图，禁止复制参考图的人物、器械、道具或具体场景布局。中国水墨画风格插画，秦末楚汉古战场题材，宣纸米白色底，浓墨勾勒，淡赭与青灰设色，苍劲干笔飞白、墨点飞溅，残破战旗和烟尘淡墨晕染，战损感。所有人物是成年人。无文字、无可读汉字数字字母、无印章文字、无边框、无水印、无卡通动漫、无3D、无照片、无现代元素。输出单张完整PNG，不拼版。输出1024×1536像素，竖幅2:3，不能沿用参考图方形比例。必须为游戏卡牌裁切布局：主要叙事动作与关键道具全部安排在画面高度的8.6%至67%之间，主体下缘至多到70%，下方30%只是自然淡化的墨迹、烟尘、地面和米白宣纸；不要在底部放关键物件；上边8.6%留低细节背景。不要画任何坐标、分区线或辅助线。主体是一辆古代轻型双轮马车，车篷已完全拆除，敞开的车厢塞满扎束柴薪；一匹用灰布蒙住双眼的马拖着车向前疾冲，两名甲士前倾推着车尾狂奔，车尾柴薪刚窜起低饱和赭色火苗，烟尘翻滚。马的灰布眼罩、露天木车厢、成束柴薪、推车甲士和车尾小火必须同时可辨。三分之四侧面动态构图，把马头和甲士头部安排在画面上部约22%-28%，整辆车与马的主要轮廓在10%-65%高度范围，车轮不低于68%；下方只画飞溅泥墨与尘雾。车辕上仅一处细小朱砂红系带作为死战识别标记，其他布条旗帜全是灰赭。不要攻城冲车、不要顶棚、不要巨型撞木、不要现代战车。",
+    "selected_version": "initial",
+    "revision_prompts": [],
+    "visual_qa": "马眼罩约23%-26%、甲士头约26%-29%、敞厢柴薪约23%-36%、车尾火约18%-28%、车辕朱砂带约40%，主车轮与马身在约61%以内。"
+  },
+  {
+    "filename": "n_zhengfa.png",
+    "label": "令·征发",
+    "group": "E",
+    "path": "godot/assets/cards/n_zhengfa.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "ef0430a32cab8a53fead6d2115801c238827f45106c2f5261ef481c20977581a",
+    "reference_image": "n_zengyuan.png",
+    "reference_role": "style_reference",
+    "reference_scope": "上一批成图",
+    "initial_prompt": "Use case: historical-scene. Asset: 令·征发，计谋场景意象卡。仅参考输入图片的画风、笔触、宣纸肌理和低饱和配色；这是全新独立卡牌插画，必须重新画下面的新主体与新构图，禁止复制参考图的人物、器械、道具或具体场景布局。中国水墨画风格插画，秦末楚汉古战场题材，宣纸米白色底，浓墨勾勒，淡赭与青灰设色，苍劲干笔飞白、墨点飞溅，残破战旗和烟尘淡墨晕染，战损感。所有人物是成年人。无文字、无可读汉字数字字母、无印章文字、无边框、无水印、无卡通动漫、无3D、无照片、无现代元素。输出单张完整PNG，不拼版。输出1024×1536像素，竖幅2:3，不能沿用参考图方形比例。必须为游戏卡牌裁切布局：主要叙事动作与关键道具全部安排在画面高度的8.6%至67%之间，主体下缘至多到70%，下方30%只是自然淡化的墨迹、烟尘、地面和米白宣纸；不要在底部放关键物件；上边8.6%留低细节背景。不要画任何坐标、分区线或辅助线。主体：乡野村口一张征兵木案，一名古代基层官吏侧背对观者，举着无字木牍点人；一排衣着破旧的成年青壮被一根绳索牵出队列，村舍与无字征旗在烟尘中。以征兵木案、木牍、连接人群的绳索和队列作为视觉中心；人物都是小比例侧影或背影，绝不画面容清楚的主角肖像。木案和被绳索引出的队列集中在全画高度25%-60%，乡村屋舍在10%-30%，下方30%以空旷的泥地淡墨自然融入宣纸。无朱砂红识别布条，所有旗帜灰黑淡赭，不出现虎符、金币、悬赏牌或战将特写。",
+    "selected_version": "initial",
+    "revision_prompts": [],
+    "visual_qa": "无清楚主角脸，官吏与青壮均侧背影。木牍约36%-41%、队列绳索约47%-51%、征兵案约49%-63%；关键动作在可见区域。"
+  },
+  {
+    "filename": "n_xuanshang.png",
+    "label": "令·悬赏",
+    "group": "E",
+    "path": "godot/assets/cards/n_xuanshang.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "e59a1f411297cf177a331ff932d152d8bffa010afe0a3aba3c8c2810ff7cf1d6",
+    "reference_image": "n_zengyuan.png",
+    "reference_role": "style_reference",
+    "reference_scope": "上一批成图",
+    "initial_prompt": "Use case: historical-scene. Asset: 令·悬赏，计谋场景意象卡。仅参考输入图片的画风、笔触、宣纸肌理和低饱和配色；这是全新独立卡牌插画，必须重新画下面的新主体与新构图，禁止复制参考图的人物、器械、道具或具体场景布局。中国水墨画风格插画，秦末楚汉古战场题材，宣纸米白色底，浓墨勾勒，淡赭与青灰设色，苍劲干笔飞白、墨点飞溅，残破战旗和烟尘淡墨晕染，战损感。所有人物是成年人。无文字、无可读汉字数字字母、无印章文字、无边框、无水印、无卡通动漫、无3D、无照片、无现代元素。输出单张完整PNG，不拼版。输出1024×1536像素，竖幅2:3，不能沿用参考图方形比例。必须为游戏卡牌裁切布局：主要叙事动作与关键道具全部安排在画面高度的8.6%至67%之间，主体下缘至多到70%，下方30%只是自然淡化的墨迹、烟尘、地面和米白宣纸；不要在底部放关键物件；上边8.6%留低细节背景。不要画任何坐标、分区线或辅助线。主体：古城门下一块悬挂的朴素木制悬赏牌，牌上贴几张完全空白、无任何笔画的浅色纸签；一串带方孔的无字铜钱垂在牌前，压着一枚方形铜印信和无字封签。铜印呈现素净金属侧面，绝不显示印文；铜钱也无铭文。木牌下的木案上清楚摆着几枚厚重圆形金饼。围观人群只有小小背影，面孔完全不清楚。木牌位于画面高度15%-42%，铜钱和印信位于30%-48%，金饼和桌面位于48%-62%，关键道具全部在上半至中部可见；下方30%自然淡墨留纸。用木牌、空白纸签、铜钱、印信、金饼表达悬赏，完全禁止可读汉字、数字、字母、符号、书法、印章文字。全图无朱砂红布条、无红印泥，限定青灰淡赭与暗淡金属色，不画虎符。",
+    "selected_version": "initial",
+    "revision_prompts": [],
+    "visual_qa": "无字纸签木牌约16%-46%，方孔铜钱约25%-41%，素面印信约43%-51%，金饼约52%-62%；小背影背景，未见可读文字。"
+  },
+  {
+    "filename": "n_huogong.png",
+    "label": "令·火攻",
+    "group": "E",
+    "path": "godot/assets/cards/n_huogong.png",
+    "status": "complete",
+    "size": [
+      1024,
+      1536
+    ],
+    "sha256": "ff33d2b2053b83a9695ea7eecab93db33bf2beb99d22b4785dac3be946a1e66a",
+    "reference_image": "ev_liangdao.png",
+    "reference_role": "style_reference",
+    "reference_scope": "上一批成图",
+    "initial_prompt": "Use case: historical-scene. Asset: 令·火攻，计谋场景意象卡。仅参考输入图片的画风、笔触、宣纸肌理和低饱和配色；这是全新独立卡牌插画，必须重新画下面的新主体与新构图，禁止复制参考图的人物、器械、道具或具体场景布局。中国水墨画风格插画，秦末楚汉古战场题材，宣纸米白色底，浓墨勾勒，淡赭与青灰设色，苍劲干笔飞白、墨点飞溅，残破战旗和烟尘淡墨晕染，战损感。所有人物是成年人。无文字、无可读汉字数字字母、无印章文字、无边框、无水印、无卡通动漫、无3D、无照片、无现代元素。输出单张完整PNG，不拼版。输出1024×1536像素，竖幅2:3，不能沿用参考图方形比例。必须为游戏卡牌裁切布局：主要叙事动作与关键道具全部安排在画面高度的8.6%至67%之间，主体下缘至多到70%，下方30%只是自然淡化的墨迹、烟尘、地面和米白宣纸；不要在底部放关键物件；上边8.6%留低细节背景。不要画任何坐标、分区线或辅助线。主体：夜空之下敌军营地的中段起火，低饱和赭色火舌卷上装满粮袋的木粮车与军帐，浓灰烟遮住月亮；远处一整排古代弓手正拉弓放出箭头缠燃烧布条的火箭矢，空中有清晰的木箭杆和箭羽、细小赭色火尾，是古代弓箭而非现代火箭导弹。俯看营地和弓手阵线的场景构图，不要任何脸部清楚的主角或骑将，不要山崖粮道袭骑。燃烧军营和粮车集中在全画20%-50%高度，弓手小剪影整排在48%-62%，箭矢弧线位于12%-40%，下方30%只剩淡化烟雾与纸面。火色克制，灰蓝夜墨与米白纸色主导，没有朱砂红布条、没有鲜艳火光。",
+    "selected_version": "initial",
+    "revision_prompts": [],
+    "visual_qa": "古代箭杆与箭羽清楚，火箭矢约16%-32%、起火军帐粮车约29%-49%、弓手阵列约50%-67%；人物面孔不清楚，低饱和赭色火。"
+  }
+]

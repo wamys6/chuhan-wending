@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>楚汉·问鼎</title>
+  <link rel="stylesheet" href="css/style.css?v=11">
+</head>
+<body>
+  <!-- 开局选将 -->
+  <div id="start-screen" class="screen">
+    <!-- 主菜单氛围：左右两位主将的水墨剪影 + 中央雾气 -->
+    <div class="title-scene" aria-hidden="true">
+      <div class="ts-side ts-han"></div>
+      <div class="ts-side ts-chu"></div>
+      <div class="ts-mist"></div>
+      <div class="ts-seam"></div>
+    </div>
+    <div class="start-inner">
+      <h1 class="game-title">楚汉<span class="dot">·</span>问鼎</h1>
+      <p class="subtitle">楚河汉界 · 兵车对垒 · 逐鹿中原</p>
+      <p class="pick-hint">选择你的主将（对手将执掌另一方）</p>
+      <div class="hero-pick">
+        <div class="hero-card" data-hero="liubang">
+          <div class="hero-avatar">刘</div>
+          <div class="hero-name">刘邦 <small>汉王</small></div>
+          <div class="hero-hp">血量 30</div>
+          <div class="hero-skill">技能「约法三章」（2 军粮）<br>恢复 2 点血；满血时随机友军 +1 攻</div>
+          <p class="hero-intro">30 血续航型，越拖越稳</p>
+        </div>
+        <div class="hero-card" data-hero="xiangyu">
+          <div class="hero-avatar">项</div>
+          <div class="hero-name">项羽 <small>西楚霸王</small></div>
+          <div class="hero-hp">血量 26</div>
+          <div class="hero-skill">技能「破釜沉舟」（1 军粮）<br>扫射敌方前锋列（1 伤）；无兵时直击主将</div>
+          <p class="hero-intro">26 血强攻型，节奏激进</p>
+        </div>
+      </div>
+      <div class="diff-pick">
+        <span class="diff-label">敌将智力：</span>
+        <button class="diff-btn" data-level="jianxi">见习</button>
+        <button class="diff-btn selected" data-level="bijiang">裨将</button>
+        <button class="diff-btn" data-level="mingjiang">名将</button>
+      </div>
+      <div class="start-actions">
+        <button id="btn-campaign" class="campaign-btn">楚 汉 战 役</button>
+      </div>
+      <div class="start-actions secondary">
+        <button id="btn-start" disabled>快 速 开 战</button>
+        <button id="btn-deckbuilder" class="ghost-btn" disabled>组 建 牌 库</button>
+      </div>
+      <div class="start-links">
+        <a href="javascript:void(0)" id="link-help">玩法说明</a>
+        <a href="javascript:void(0)" id="link-codex">图鉴 · 成就</a>
+        <a href="javascript:void(0)" id="link-slots">存档位</a>
+        <a href="javascript:void(0)" id="link-replay-tut">重看新手引导</a>
+      </div>
+      <p class="rules-hint">战役：从沛县起兵打到垓下决战（8 关） · 快速开战：单局对战 AI · 卡池 45 张 · 打倒对方主将即胜</p>
+    </div>
+  </div>
+
+  <!-- 组建牌库 -->
+  <div id="deck-screen" class="screen hidden">
+    <div class="deck-inner">
+      <div class="deck-head">
+        <h2 id="deck-hero-title">为刘邦组建牌库</h2>
+        <div class="deck-count">已选 <b id="deck-num">0</b> / 20</div>
+        <button id="btn-deck-back" class="ghost-btn small">返回</button>
+      </div>
+      <p class="deck-hint">每张牌最多带 2 张；汉将可用「中立 + 汉」牌，楚将可用「中立 + 楚」牌。点卡片加入，再点移出。</p>
+      <div class="deck-filter">
+        <button class="filter-btn selected" data-f="all">全部</button>
+        <button class="filter-btn" data-f="neutral">中立</button>
+        <button class="filter-btn" data-f="own">本阵营</button>
+      </div>
+      <div id="deck-pool"></div>
+      <div class="deck-foot">
+        <button id="btn-deck-save" class="ghost-btn small">保存牌库</button>
+        <button id="btn-deck-fight" disabled>以此阵 出 战</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 楚汉战役 · 地图 -->
+  <div id="campaign-screen" class="screen hidden">
+    <div class="camp-inner">
+      <div class="camp-head">
+        <div>
+          <h2 class="camp-title">楚 汉 战 役</h2>
+          <p class="camp-sub" id="camp-sub">自沛县起兵，至垓下决战</p>
+        </div>
+        <div class="camp-head-actions">
+          <button id="btn-camp-slots" class="ghost-btn small">存档位</button>
+          <button id="btn-camp-back" class="ghost-btn small">返回</button>
+        </div>
+      </div>
+      <div class="camp-buffs" id="camp-buffs"></div>
+      <div id="camp-stages"></div>
+      <div class="camp-foot">
+        <span id="camp-deck-info" class="camp-deck-info">牌组 20 张</span>
+        <button id="btn-camp-reset" class="ghost-btn small">重开战役</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 存档位：三个并列的战役存档 -->
+  <div id="slots-screen" class="screen hidden">
+    <div class="slots-inner">
+      <div class="slots-head">
+        <h2 class="slots-title">存 档 位</h2>
+        <button id="btn-slots-back" class="ghost-btn small">返回</button>
+      </div>
+      <p class="slots-hint">三个存档位各存一局楚汉战役，互不干扰；成就业绩是全局记录，不受存档位影响。</p>
+      <div id="slot-list"></div>
+      <p class="slots-note" id="slots-note">当前使用的存档位会高亮显示；进入空存档位会从沛县起兵开新局。</p>
+    </div>
+  </div>
+
+  <!-- 战前剧情过场 -->
+  <div id="lore-screen" class="screen hidden">
+    <div class="lore-inner">
+      <div class="lore-chapter" id="lore-chapter">第一章</div>
+      <h1 class="lore-title" id="lore-title">沛县起兵</h1>
+      <div class="lore-year" id="lore-year"></div>
+      <div class="lore-text" id="lore-text"></div>
+      <div class="lore-rule" id="lore-rule"></div>
+      <div class="lore-actions">
+        <button id="btn-lore-back" class="ghost-btn">退 回 地 图</button>
+        <button id="btn-lore-fight">出 战</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 战后奖励：三选一 -->
+  <div id="reward-screen" class="screen hidden">
+    <div class="reward-inner">
+      <h2 class="reward-title">大 获 全 胜</h2>
+      <p class="reward-desc" id="reward-desc">选一张牌，收入你的牌组</p>
+      <div id="reward-cards"></div>
+      <button id="btn-reward-skip" class="ghost-btn small">都 不 要</button>
+    </div>
+  </div>
+
+  <!-- 军师三选一 -->
+  <div id="advisor-screen" class="screen hidden">
+    <div class="adv-inner">
+      <div class="adv-chapter">楚 汉 战 役 · 择 师</div>
+      <h2 class="adv-title">择 一 军 师</h2>
+      <p class="adv-desc">军师随你走完这一趟楚汉路。他的谋略贯穿每一场战斗，也决定了这一局的打法。</p>
+      <div id="advisor-cards"></div>
+      <p class="adv-note">军师选定后整局不变；想换人就在地图上「重开战役」。</p>
+    </div>
+  </div>
+
+  <!-- 行军事件 -->
+  <div id="event-screen" class="screen hidden">
+    <div class="ev-inner">
+      <div class="ev-chapter">行 军 途 中</div>
+      <div class="ev-glyph" id="ev-glyph">民</div>
+      <h2 class="ev-title" id="ev-title">流民归附</h2>
+      <p class="ev-text" id="ev-text"></p>
+      <div id="ev-options"></div>
+    </div>
+  </div>
+
+  <!-- 通用选牌：得牌 / 精简牌组 -->
+  <div id="pick-screen" class="screen hidden">
+    <div class="pick-inner">
+      <h2 class="pick-title" id="pick-title">得 牌</h2>
+      <p class="pick-desc" id="pick-desc"></p>
+      <div id="pick-cards"></div>
+      <button id="btn-pick-skip" class="ghost-btn small">跳 过</button>
+    </div>
+  </div>
+
+  <!-- 对局界面 -->
+  <div id="game-screen" class="screen hidden">
+    <div class="battlefield">
+      <!-- 敌方 -->
+      <div class="hero-bar enemy">
+        <div class="hero-avatar small" id="enemy-avatar">项</div>
+        <div class="hero-info">
+          <div class="hero-name-line"><span id="enemy-name">项羽</span><small id="enemy-title">西楚霸王</small></div>
+          <div class="hero-stats">
+            <span class="stat hp" id="enemy-hp">❤ 25</span>
+            <span class="stat mana" id="enemy-mana">粮 0/0</span>
+            <span class="stat deck" id="enemy-deck">牌库 20</span>
+            <span class="stat hand" id="enemy-hand">手牌 4</span>
+          </div>
+        </div>
+      </div>
+      <div class="rank-row" data-side="enemy" data-rank="back"></div>
+      <div class="rank-row" data-side="enemy" data-rank="mid"></div>
+      <div class="rank-row" data-side="enemy" data-rank="front"></div>
+      <div class="river-divider"><span>楚 河</span><i></i><span>汉 界</span></div>
+      <div class="rank-row" data-side="player" data-rank="front"></div>
+      <div class="rank-row" data-side="player" data-rank="mid"></div>
+      <div class="rank-row" data-side="player" data-rank="back"></div>
+      <div class="hero-bar player">
+        <div class="hero-avatar small" id="player-avatar">刘</div>
+        <div class="hero-info">
+          <div class="hero-name-line"><span id="player-name">刘邦</span><small id="player-title">汉王</small></div>
+          <div class="hero-stats">
+            <span class="stat hp" id="player-hp">❤ 30</span>
+            <span class="stat mana" id="player-mana">粮 0/0</span>
+            <span class="stat deck" id="player-deck">牌库 20</span>
+          </div>
+        </div>
+        <button id="btn-skill" class="skill-btn">技能</button>
+        <button id="btn-end" class="end-btn">结束回合</button>
+      </div>
+      <!-- 手牌 -->
+      <div id="hand"></div>
+    </div>
+    <div id="turn-banner"></div>
+    <div id="goal-banner" class="hidden"></div>
+    <div id="log"></div>
+    <div id="toast"></div>
+    <div id="callout"></div>
+    <div id="fx-flash"></div>
+  </div>
+
+  <div id="card-preview"></div>
+  <button id="btn-mute" title="音效开关">🔊</button>
+  <button id="btn-settings" title="设置">⚙</button>
+
+  <!-- 设置面板（覆盖层，不打断当前界面） -->
+  <div id="settings-screen" class="hidden">
+    <div class="set-inner">
+      <h2 class="set-title">设 置</h2>
+      <div class="set-row">
+        <span class="set-label">背景音乐</span>
+        <input type="range" id="set-bgm" min="0" max="100" step="1" value="60">
+        <b class="set-val" id="set-bgm-val">60</b>
+      </div>
+      <div class="set-row">
+        <span class="set-label">音 效</span>
+        <input type="range" id="set-sfx" min="0" max="100" step="1" value="80">
+        <b class="set-val" id="set-sfx-val">80</b>
+      </div>
+      <div class="set-row">
+        <span class="set-label">静 音</span>
+        <button class="set-toggle" id="set-mute">关</button>
+      </div>
+      <div class="set-row">
+        <span class="set-label">动画特效</span>
+        <button class="set-toggle" id="set-motion">开</button>
+      </div>
+      <div class="set-row">
+        <span class="set-label">全 屏</span>
+        <button class="set-toggle" id="set-fs">关</button>
+      </div>
+      <div class="set-row">
+        <span class="set-label">语 言</span>
+        <span class="set-lang">
+          <button class="set-toggle lang-btn" data-lang="zh">中文</button>
+          <button class="set-toggle lang-btn" data-lang="en">English</button>
+        </span>
+      </div>
+      <p class="set-hint">设置自动保存，下次打开仍然生效。</p>
+      <button id="set-close" class="ghost-btn">返 回</button>
+    </div>
+  </div>
+
+  <!-- 图鉴 · 成就 · 战绩 -->
+  <div id="codex-screen" class="screen hidden">
+    <div class="codex-inner">
+      <div class="codex-head">
+        <div class="codex-tabs">
+          <button class="codex-tab selected" data-tab="cards">卡牌图鉴</button>
+          <button class="codex-tab" data-tab="ach">成 就</button>
+          <button class="codex-tab" data-tab="career">战 绩</button>
+        </div>
+        <button id="btn-codex-back" class="ghost-btn small">返回</button>
+      </div>
+      <p class="codex-sub" id="codex-sub"></p>
+
+      <div id="codex-cards" class="codex-pane">
+        <div class="codex-filters">
+          <span class="filter-group" id="codex-faction">
+            <button class="filter-btn selected" data-v="all">全部</button>
+            <button class="filter-btn" data-v="neutral">中立</button>
+            <button class="filter-btn" data-v="han">汉</button>
+            <button class="filter-btn" data-v="chu">楚</button>
+          </span>
+          <span class="filter-group" id="codex-type">
+            <button class="filter-btn selected" data-v="all">全部</button>
+            <button class="filter-btn" data-v="piece">兵种</button>
+            <button class="filter-btn" data-v="spell">计谋</button>
+          </span>
+        </div>
+        <div id="codex-grid"></div>
+      </div>
+
+      <div id="codex-ach" class="codex-pane hidden"></div>
+      <div id="codex-career" class="codex-pane hidden"></div>
+    </div>
+  </div>
+
+  <!-- 玩法说明 -->
+  <div id="help-screen" class="screen hidden">
+    <div class="help-inner">
+      <h2>玩 法 说 明</h2>
+      <div class="help-body">
+        <p><b class="kw-red">目标</b>：打倒对方主将即获胜。主将就是你开局选的人物（刘邦 30 血 / 项羽 26 血）。</p>
+        <p><b class="kw-gold">调兵遣将</b>：开局先看起手牌，不满意的可以点选换掉（先机虎符不可换），也可全部保留——这是唯一一次换手牌的机会。</p>
+        <p><b class="kw-gold">军粮</b>：出牌要花军粮。第 1 回合 1 点、第 2 回合 2 点……每回合上限 +1（最多 10），每回合回满。</p>
+        <p><b class="kw-red">三列军阵</b>：战场分前锋、中军、后军三列，每列最多站 3 员。兵只能进前锋，车、马、士、象进中军，炮进后军。</p>
+        <p><b class="kw-gold">攻击规则</b>：默认只能攻击敌方最靠前且有兵的一列——前锋空了才能打中军，中军空了才能打后军；全军覆没时才能直取主将。单位登场当回合不能攻击。</p>
+        <p><b class="kw-red">兵种关键字</b>：<b>守御</b>（士、象）：敌人必须先攻击它；<b>迂回</b>（马）：可直接攻击前锋或中军；<b>远程</b>（炮）：可攻击任意一列。</p>
+        <p><b class="kw-gold">交锋关键字</b>：<b>冲锋</b>：登场当回合即可攻击；<b>死战</b>：阵亡时触发一次效果；<b>连击</b>：本回合此前已出过别的牌才会触发。</p>
+        <p><b class="kw-red">楚汉战役</b>：8 关历史路线，每关有专属规则与敌军牌组；每胜一关，从三张牌里选一张永久加入你的战役牌组。</p>
+        <p><b class="kw-gold">择一军师</b>：每局战役开局从三名军师里选一位，他的被动贯穿所有战斗（如韩信：前锋兵种 +1 攻）。想换人就在地图上「重开战役」。</p>
+        <p><b class="kw-red">行军事件</b>：每关打完、进入下一关之前，会随机遇到一个行军事件——开仓赈济、粮道被断、破釜沉舟……每个选择都有代价与收获，生命上限会累计到之后的每场战斗。</p>
+        <p><b class="kw-gold">奖励随机</b>：每次三选一的候选牌从全局卡池随机抽取，越靠后的关能抽到越强的牌；同名牌最多带 2 张。</p>
+        <p><b class="kw-gold">计谋牌</b>：使用后立即生效并弃置，如「萧何·运粮」抽两张牌、「范增·毒计」狙击残血兵种。</p>
+        <p><b class="kw-red">疲劳</b>：牌库抽完后，每次该抽牌改为受到递增伤害（1、2、3……），对局必有胜负。</p>
+        <p><b class="kw-gold">先机</b>：后手玩家开局多 1 张牌和一张 0 费「先机」，使用后本回合 +1 军粮。</p>
+        <p><b class="kw-red">操作</b>：点手牌即出牌（悬停可放大看牌）；点我方发绿光的单位，再点红色光圈的目标即攻击，右键或 ESC 取消选择；点「结束回合」交给对方（还有牌可出时会请你再确认一次）。</p>
+      </div>
+      <button id="btn-help-close">明 白 了</button>
+    </div>
+  </div>
+
+  <!-- 开局换牌 -->
+  <div id="mulligan-screen" class="screen hidden">
+    <div class="mull-inner">
+      <h2>调 兵 遣 将</h2>
+      <p class="mull-hint">这是你的起手牌。点选不想要的牌（可多选），确认后洗回牌库换成新牌；也可以全部保留。</p>
+      <div id="mulligan-cards"></div>
+      <div class="mull-actions">
+        <button id="btn-mull-keep" class="ghost-btn">全部保留</button>
+        <button id="btn-mull-ok">确 认 出 战</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 结算 -->
+  <div id="over-screen" class="screen hidden">
+    <div class="over-inner">
+      <h1 id="over-title">大 获 全 胜</h1>
+      <p id="over-desc"></p>
+      <div id="over-stats"></div>
+      <div id="over-ach"></div>
+      <div class="over-actions">
+        <button id="btn-again">再 战 一 局</button>
+        <button id="btn-over-back" class="ghost-btn small hidden">返 回 地 图</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/data.js?v=11"></script>
+  <script src="js/campaign.js?v=11"></script>
+  <script src="js/codex.js?v=11"></script>
+  <script src="js/engine.js?v=11"></script>
+  <script src="js/ai.js?v=11"></script>
+  <script src="js/audio.js?v=11"></script>
+  <script src="js/i18n.js?v=11"></script>
+  <script src="js/tutorial.js?v=11"></script>
+  <script src="js/lang-en.js?v=11"></script>
+  <script src="js/ui.js?v=11"></script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+# ── 依赖 ──
+node_modules/
+
+# ── 构建产物（可随时重新生成）──
+dist/
+export/
+godot/export/
+
+# ── Godot 导入缓存（.godot/ 由编辑器自动生成）──
+godot/.godot/
+
+# ── 素材压缩包（内容已全部解压进 godot/assets/cards，留着纯属重复）──
+*.zip
+
+# ── 旧 JS 版立绘（与 godot/assets/cards 完全重复，280MB）──
+# JS 版保留作数值参照，跑逻辑测试不需要图
+/assets/
+
+# ── CDP 浏览器调试档案（UI 测试启动 Chrome 留下的用户目录，纯垃圾）──
+test/_cdp-*/
+
+# ── 系统杂项 ──
+Thumbs.db
+Desktop.ini
+.cache/

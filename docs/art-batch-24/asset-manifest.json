@@ -1,0 +1,554 @@
+[
+  {
+    "filename": "n_dun1.png",
+    "label": "盾·持盾卒",
+    "group": "A",
+    "mechanics": "守御 · 1/3 · 登场抽牌",
+    "description": "蹲踞的步卒把一面拼凑的大盾立在身前，盾面由木板与生皮钉成、布满箭孔，人几乎全藏在盾后，只露出一只戒备的眼睛",
+    "death_trigger": false,
+    "defensive": true,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_dun1.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 3457790,
+    "sha256": "c19d116bf3b9ee0881ed1133d84c4ef6e75fc8e9cc621dfbe446e0dc61856431",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_lei1.png",
+    "label": "垒·拒马",
+    "group": "A",
+    "mechanics": "守御 · 1/4 · 登场前锋+1攻",
+    "description": "削尖的木桩交叉扎成的拒马横陈阵前，桩身缠着浸油麻布、钉着铁刺，桩后一名弓手正张弦瞄准",
+    "death_trigger": false,
+    "defensive": true,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_lei1.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 3095207,
+    "sha256": "8efcaee621579fd32ed65c617f26a360ca27c1e02eb6d558958449243163cc94",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_cheng1.png",
+    "label": "城·土垣",
+    "group": "A",
+    "mechanics": "守御 · 1/6",
+    "description": "一段刚夯成的黄土矮墙，墙面留着夯窝与横木模板痕，墙头插着几支断箭，墙脚堆满沙袋碎石",
+    "death_trigger": false,
+    "defensive": true,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_cheng1.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 3575206,
+    "sha256": "d0ddb44b354c34c3bc2131a7a008709e2d8b26ef99eda078327bf371db5860e5",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_cheng2.png",
+    "label": "城·女墙",
+    "group": "A",
+    "mechanics": "守御 · 2/6 · 死战中军+1攻",
+    "description": "城墙顶端的垛口近景，一名弓手半蹲墙后只露兜鍪与弓臂，垛口砖石崩缺，远处烟尘漫过城头",
+    "death_trigger": true,
+    "defensive": true,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_cheng2.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 3282494,
+    "sha256": "421cba68484f87b8b3849982c77a5f30e043288ab0a36a63113c68562cfe38d2",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_cheng3.png",
+    "label": "城·瓮城",
+    "group": "A",
+    "mechanics": "守御 · 2/7 · 登场主将回2血",
+    "description": "从城内仰视的瓮城，两道厚重门洞层层嵌套，门钉与铁箍泛着冷光，门道里横着一架攻城的云梯残件",
+    "death_trigger": false,
+    "defensive": true,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_cheng3.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 3375888,
+    "sha256": "1f57dde941bc4a5bd453b7bf4b987e5268a4dc6ed81d0ec4cbfa291f77cc6978",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_cheng4.png",
+    "label": "城·坚壁",
+    "group": "A",
+    "mechanics": "守御 · 3/8 · 死战全体+1攻",
+    "description": "高耸的夯土城墙正面压满画面，墙身嵌着加固木骨、裂缝用草泥草草补过，墙下尸骸与断梯枕藉",
+    "death_trigger": true,
+    "defensive": true,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_cheng4.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 3424979,
+    "sha256": "7a31bcf7416c30fef8294d920c30ffa953545e1b47aee8abe9fbdbcaa96e5478",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_bing5.png",
+    "label": "兵·刑徒",
+    "group": "B",
+    "mechanics": "死战 · 2/2 · 阵亡补新卒",
+    "description": "骊山刑徒，赭色囚衣破到露肉，颈上还挂着断开的铁钳，赤脚握短戈，眼里是豁出去的死气",
+    "death_trigger": true,
+    "defensive": false,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_bing5.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 2851816,
+    "sha256": "8c6dc520663f802a94004e513b928542d921e634e61907ff80b5af20b7a5ab88",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_bing6.png",
+    "label": "兵·戍兵",
+    "group": "B",
+    "mechanics": "守御 · 1/4 · 死战补新卒",
+    "description": "边关戍卒，皮甲外罩磨白的粗布，抱一面旧盾持矛倚墙，脸颊皴裂，身后是望不到头的烽燧",
+    "death_trigger": true,
+    "defensive": true,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_bing6.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 3205122,
+    "sha256": "26bab6435fa5397052533ab4784a1a430bf12f8640ed209772c153e6211d7086",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_bing7.png",
+    "label": "兵·死士队",
+    "group": "B",
+    "mechanics": "死战 · 3/4 · 阵亡补新卒",
+    "description": "三名赤膊缠红带的死士并肩前压，短刀反握，肩背相抵连成密集锋线，脚下是同伴的尸身",
+    "death_trigger": true,
+    "defensive": false,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_bing7.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 2922112,
+    "sha256": "a89ff49f145b539bc588bb35034ca1061ab8595b192233de0fa2d06504afa245",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_bing8.png",
+    "label": "兵·降卒",
+    "group": "B",
+    "mechanics": "死战 · 2/2 · 阵亡抽牌",
+    "description": "卸甲的降卒低头站着，甲片松松挂着，缚绳垂在地上并没系紧，一只手在身后悄悄攥着一片竹简",
+    "death_trigger": true,
+    "defensive": false,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_bing8.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 2815554,
+    "sha256": "2ae3f75ae33713d5ee7f23dd0e11d8e20b73f925825ec3a088589c8eabfbdee3",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_bing9.png",
+    "label": "兵·斥候",
+    "group": "B",
+    "mechanics": "死战 · 2/2 · 阵亡伤敌前锋1",
+    "description": "伏在枯草丛里的斥候只露头肩，一手压低草叶、一手按着短刀，远处敌营篝火串成一线",
+    "death_trigger": true,
+    "defensive": false,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_bing9.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 2964959,
+    "sha256": "f9c72ae10335999e63deefeaaebd820306484dc0e068d0d6a8fb96d5589a208a",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_bing10.png",
+    "label": "兵·死囚",
+    "group": "B",
+    "mechanics": "死战 · 4/2 · 阵亡重创残血",
+    "description": "黥面死囚散发遮住半张脸，腕上锁链已断，拖着缺口环首刀向前扑，身上只剩一条腰布",
+    "death_trigger": true,
+    "defensive": false,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_bing10.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 2995894,
+    "sha256": "1b1e7adac8edb3a3b0e35cee2da0a193f3f4fd4b45048e17039255db65a7bec7",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_xiangyong.png",
+    "label": "兵·乡勇",
+    "group": "B",
+    "mechanics": "无关键词 · 1/3",
+    "description": "刚被征来的乡里青壮，扛着锄头木棍站成一排，衣不蔽体却神情认真，队形歪斜",
+    "death_trigger": false,
+    "defensive": false,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_xiangyong.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 3263060,
+    "sha256": "c38ad4cf989a23e87f259196494f41c2d57c56eff2371794ee4594d2dfcef046",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_shi4.png",
+    "label": "士·断后",
+    "group": "C",
+    "mechanics": "守御 · 2/5 · 死战前锋+1攻",
+    "description": "侧背影的甲士横矛独守隘口断桥，身后是正在撤离的队伍与漫天尘烟，他一动不动",
+    "death_trigger": true,
+    "defensive": true,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_shi4.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 2914610,
+    "sha256": "1744f2a4d87757fb517f9e044a1f74c796dc3fed0478f4d4981598b3810fbc05",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_shi5.png",
+    "label": "士·骸骨",
+    "group": "C",
+    "mechanics": "死战 · 3/4 · 阵亡中军+1攻",
+    "description": "半埋土中的骸骨仍披着残甲，指骨紧扣一杆断矛，周围斜插褪色残旗，白骨如刃",
+    "death_trigger": true,
+    "defensive": false,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_shi5.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 3209837,
+    "sha256": "7804d97a83edc7268fe0ae7dc52c20f15fdb4a993ec1398e1f455310afa60476",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_shi6.png",
+    "label": "士·门客",
+    "group": "C",
+    "mechanics": "死战 · 3/4 · 阵亡抽牌",
+    "description": "布衣门客束发佩剑，向画外深揖到底，袖中滑出半卷竹简——揖完即转身赴死",
+    "death_trigger": true,
+    "defensive": false,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_shi6.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 3081290,
+    "sha256": "ed5fc1c73c77d0c360dfb9f59d101f76f225255042b44b9dd29b3ccdde62a19e",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_shi7.png",
+    "label": "士·死节",
+    "group": "C",
+    "mechanics": "守御 · 3/6 · 死战主将回3血",
+    "description": "重甲卫士跪坐持戟不倒，身中数箭、血染甲绦，身后残旗半卷，仍在守着退路",
+    "death_trigger": true,
+    "defensive": true,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_shi7.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 3050603,
+    "sha256": "25d92eb97ce58aa03e60182c0cd0a332a2b9e96984ccda6f75de53c77bfbcf67",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_jiang1.png",
+    "label": "将·偏将",
+    "group": "C",
+    "mechanics": "死战 · 4/3 · 阵亡中军+1攻",
+    "description": "偏将立于阵中高举令旗，盔缨残破，身后士卒按他的旗号整齐转向，甲胄上全是战场灰土",
+    "death_trigger": true,
+    "defensive": false,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_jiang1.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 2992115,
+    "sha256": "1172d96bff9fff0e32127bb9b2c387eae409fa0363e0b573f9a68a42c94e261b",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_jiang2.png",
+    "label": "将·死士将",
+    "group": "C",
+    "mechanics": "死战 · 5/4 · 阵亡全场2伤",
+    "description": "死士之将身披赤黑重甲、双持长刀，立于尸山顶上回身怒喝，身后营火冲天",
+    "death_trigger": true,
+    "defensive": false,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_jiang2.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 2952552,
+    "sha256": "cf41520f222289ec9bc1377c24f7330933e5f136c25d9dbc1cdc8f9435eda398",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_yi1.png",
+    "label": "医·随军医",
+    "group": "D",
+    "mechanics": "死战 · 1/3 · 阵亡主将回2血",
+    "description": "随军医者背着药囊蹲在伤卒身旁包扎，一手持艾柱一手按着伤口，帐下地面有血迹与散落的药草",
+    "death_trigger": true,
+    "defensive": false,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_yi1.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 3467330,
+    "sha256": "39297014aaf2ca2704ff6fab597c9b04581bcc70327138cfae240f3c6740173e",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_che4.png",
+    "label": "车·决死车",
+    "group": "D",
+    "mechanics": "冲锋 · 4/4 · 死战伤敌前锋2",
+    "description": "一辆拆了车篷的轻车，马蒙着眼、车厢塞满柴薪，甲士推车狂奔，车尾已窜起火苗",
+    "death_trigger": true,
+    "defensive": false,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_che4.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 3186041,
+    "sha256": "998020be386318156dea8398e68b4f3084a9c7668a398df391f7e6af3e057401",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_zhengfa.png",
+    "label": "令·征发",
+    "group": "E",
+    "mechanics": "召唤 1/2 新卒到前锋",
+    "description": "乡野间设着征兵木案，官吏举木牍点人，一排青壮被绳索牵出队列，村舍与征旗在远处",
+    "death_trigger": false,
+    "defensive": false,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_zhengfa.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 3196923,
+    "sha256": "ef0430a32cab8a53fead6d2115801c238827f45106c2f5261ef481c20977581a",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_xuanshang.png",
+    "label": "令·悬赏",
+    "group": "E",
+    "mechanics": "抽牌 + 主将回2血",
+    "description": "城门下贴着的悬赏木牌，一串铜钱压着印信挂在牌上，围观人群只见背影，案上搁着几枚金饼",
+    "death_trigger": false,
+    "defensive": false,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_xuanshang.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 3216271,
+    "sha256": "e59a1f411297cf177a331ff932d152d8bffa010afe0a3aba3c8c2810ff7cf1d6",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  },
+  {
+    "filename": "n_huogong.png",
+    "label": "令·火攻",
+    "group": "E",
+    "mechanics": "敌中军列 3 伤",
+    "description": "夜空下敌营中段起火，火舌卷上粮车与帐篷，远处一排弓手正在射出火箭",
+    "death_trigger": false,
+    "defensive": false,
+    "size": [
+      1024,
+      1536
+    ],
+    "path": "godot/assets/cards/n_huogong.png",
+    "format": "PNG",
+    "color_mode": "RGB",
+    "bytes": 3456830,
+    "sha256": "ff33d2b2053b83a9695ea7eecab93db33bf2beb99d22b4785dac3be946a1e66a",
+    "status": "complete",
+    "validation": {
+      "decoded": true,
+      "dimensions_match": true
+    }
+  }
+]

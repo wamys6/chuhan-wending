@@ -1,0 +1,41 @@
+; 《楚汉·问鼎》Godot 工程配置
+; 迁移自纯 Web 版，规则与数值以 data/game.json 为单一数据源
+config_version=5
+
+[application]
+
+config/name="楚汉·问鼎"
+config/description="楚汉争霸主题卡牌 roguelike"
+run/main_scene="res://scenes/menu.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+config/icon="res://icon.png"
+boot_splash/show_image=false
+
+[autoload]
+
+App="*res://core/app.gd"
+Pvp="*res://core/net.gd"
+
+[display]
+
+window/size/viewport_width=1440
+window/size/viewport_height=900
+window/size/window_width_override=1440
+window/size/window_height_override=900
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[gui]
+
+theme/default_font_multichannel_signed_distance_field=true
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/canvas_textures/default_texture_filter=1
+environment/defaults/default_clear_color=Color(0.972549, 0.960784, 0.921569, 1)
+
+[input_devices]
+
+pointing/emulate_mouse_from_touch=true

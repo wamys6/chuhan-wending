@@ -91,6 +91,22 @@
     h_chenping:{ id: 'h_chenping', name: '陈平·反间', type: 'spell', cost: 3, glyph: '间', effect: { dmgHighest: 3, draw: 1 }, desc: '对敌方攻击力最高的兵种造成 3 点伤害，并抽一张牌。' },
     h_luyi:  { id: 'h_luyi', name: '郦食其·说客', type: 'spell', cost: 3, glyph: '说', effect: { debuffAll: 1, draw: 1 }, desc: '敌方全军 -1 攻，抽一张牌。三寸之舌退百万师。' },
     s_simian:{ id: 's_simian', name: '四面楚歌', type: 'spell', cost: 5, glyph: '歌', effect: { debuffAll: 2 }, desc: '敌方全军 -2 攻。楚歌声起，军心自散。' },
+    /* ---- P2 · 连击 6 张（汉）
+       为什么成套补：全池原本只有 1 张连击卡（项庄，楚阵营），PvE 奖励池只给汉+中立，
+       玩家一辈子拿不到第二张连击牌——关键词等于不存在。
+       设计原则：全部用现有效果字段（零引擎改动），费用压在 1~3 费。
+       连击是"本回合已出过牌"，所以它天然是节奏流：便宜的牌铺路，后手牌吃加成。
+       两张兼有关键词的（叠阵/接武）负责和守御、死战咬合，不做纯数值变体。 */
+    h_zhiji:{ id: 'h_zhiji', name: '兵·执戟郎', type: 'piece', cost: 1, col: 'front', atk: 1, hp: 3, glyph: '戟', combo: { selfAtk: 1 }, desc: '连击：本回合已出过牌则自身 +1 攻。执戟守门，进退有节。' },
+    s_liannu:{ id: 's_liannu', name: '令·连弩齐发', type: 'spell', cost: 1, glyph: '弩', effect: { dmgCol: 'front', amount: 1 }, combo: { dmgCol: 'front', amount: 1 }, desc: '敌方前锋列受 1 点伤害；连击：再受 1 点。弩矢连发，不绝如雨。' },
+    s_lianhuan:{ id: 's_lianhuan', name: '计·连环', type: 'spell', cost: 1, glyph: '环', effect: { draw: 1 }, combo: { draw: 1 }, desc: '抽一张牌；连击：再抽一张。环环相扣，计出不穷。' },
+    h_qimen:{ id: 'h_qimen', name: '士·期门郎', type: 'piece', cost: 2, col: 'mid', atk: 2, hp: 3, glyph: '期', combo: { draw: 1 }, desc: '连击：本回合已出过牌则抽一张牌。期门宿卫，闻鼓即至。' },
+    h_diezhen:{ id: 'h_diezhen', name: '垒·叠阵', type: 'piece', cost: 3, col: 'front', atk: 2, hp: 5, glyph: '叠', taunt: true, combo: { buffCol: 'front', atk: 1 }, desc: '守御。连击：前锋列全体 +1 攻。叠阵而前，盾如山积。' },
+    h_jiewu:{ id: 'h_jiewu', name: '兵·接武', type: 'piece', cost: 3, col: 'mid', atk: 3, hp: 3, glyph: '接', deathrattle: { buffCol: 'mid', atk: 1 }, combo: { selfAtk: 2 }, desc: '死战：中军列 +1 攻。连击：自身 +2 攻。前武既接，后劲不绝。' },
+    /* 后段两张：上面 6 张最贵 3 费，第 5 关后抽到 1/2 小兵等于废牌（实测连击流 12%，与随机无异）。
+       补两张 5 费，让"连击"在后半程也有牌可打。 */
+    h_xiandeng:{ id: 'h_xiandeng', name: '将·先登', type: 'piece', cost: 5, col: 'front', atk: 5, hp: 5, glyph: '登', combo: { selfAtk: 2 }, desc: '连击：本回合已出过牌则自身 +2 攻。先登者赏，怯者斩。' },
+    s_lianying:{ id: 's_lianying', name: '计·连营', type: 'spell', cost: 4, glyph: '营', effect: { dmgCol: 'mid', amount: 2 }, combo: { dmgAll: 1 }, desc: '敌方中军列受 2 点伤害；连击：敌方全体再受 1 点。连营百里，一炬皆惊。' },
     /* ---- 楚 · 牌 ---- */
     s_fanzeng:{ id: 's_fanzeng', name: '范增·毒计', type: 'spell', cost: 2, glyph: '毒', effect: { dmgLowest: 3 }, desc: '对敌方血量最低的兵种造成 3 点伤害。竖子不足与谋！' },
     s_bawang:{ id: 's_bawang', name: '霸王枪法', type: 'spell', cost: 4, glyph: '枪', effect: { buffCol: 'front', atk: 3 }, desc: '己方前锋列全体 +3 攻。力拔山兮气盖世！' },
@@ -133,6 +149,8 @@
     s_xiaohe: 'han', s_jinang: 'han', h_caocan: 'han', h_zhoub: 'han',
     h_fankuai: 'han', h_guanying: 'han', h_jixin: 'han',
     h_chenping: 'han', h_luyi: 'han', s_simian: 'han',
+    h_zhiji: 'han', h_qimen: 'han', h_diezhen: 'han', h_jiewu: 'han',
+    s_liannu: 'han', s_lianhuan: 'han', h_xiandeng: 'han', s_lianying: 'han',
     s_fanzeng: 'chu', s_bawang: 'chu', c_longqie: 'chu', c_jibu: 'chu',
     c_huanchu: 'chu', c_xiangzhuang: 'chu', c_zhuiqi: 'chu', c_zhongli: 'chu',
     c_yuji: 'chu', s_pozhen: 'chu', s_juding: 'chu'

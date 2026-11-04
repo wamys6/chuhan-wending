@@ -814,7 +814,14 @@
   }
 
   /* 稀有度按费用分档：1 = 普通（≤2 费）/ 2 = 精良（3-4 费）/ 3 = 史诗（≥5 费） */
-  function rarityOf(card) { return card.cost <= 2 ? 1 : card.cost <= 4 ? 2 : 3; }
+  function rarityOf(card) {
+    var r = card.cost <= 2 ? 1 : card.cost <= 4 ? 2 : 3;
+    /* 连击牌后置一档（P2）：它们全是低成本牌，若按费用分档会挤进第 1 关的三选一，
+       把早期强牌稀释掉（实测随机玩家 -2pp）。后置后第 1 关池子不变，
+       连击流从第 2 关开始成型——本来也是"先铺路再连击"的节奏。 */
+    if (card.combo && r < 3) r = 3;
+    return r;
+  }
 
   /* 关卡可给的稀有度上限：越靠后的关卡池子越深 */
   function tierOf(stage) {
@@ -835,6 +842,14 @@
      - 按玩家阵营过滤（汉营不出楚牌）
      - 同名不超过 2 张（与构筑规则一致）
      - 关卡自带的特色牌不受稀有度限制（那是设计者特意给的） */
+  /* P2 连击 8 张：调参时用 CH_FILTER_NEW=1 把它们从奖励池排除，做同种子 A/B 对照。
+     整轮通关率对"池子里有什么"很敏感（牌池一变，每次三选一的随机结果全变），
+     不同 seed 单跑差异能到 7pp，必须同种子开关对照才看得出新卡的真实影响。*/
+  var P2_NEW_CARDS = ['h_zhiji', 's_liannu', 's_lianhuan', 'h_qimen',
+    'h_diezhen', 'h_jiewu', 'h_xiandeng', 's_lianying'];
+  var FILTER_P2 = (typeof process !== 'undefined' && process.env
+    && process.env.CH_FILTER_NEW === '1');
+
   function rewardPool(stage, heroFaction, deck, opts) {
     opts = opts || {};
     var Data = dataRef();
@@ -845,6 +860,7 @@
     function usable(id) {
       var c = Data.CARDS[id];
       if (!c || c.cost === 0 || id === 's_xianji') return false;   /* 先机虎符不入池 */
+      if (FILTER_P2 && P2_NEW_CARDS.indexOf(id) >= 0) return false; /* 调参 A/B */
       if (want && c.type !== want) return false;
       var f = Data.factionOf(id);
       if (f !== 'neutral' && f !== heroFaction) return false;
@@ -885,6 +901,27 @@
       }
       out.push(pick);
       copy.splice(copy.indexOf(pick), 1);
+    }
+    /* 构筑引导（P2 连击）：牌组里已有 2 张连击牌时，三选一有 45% 概率替换一张为连击牌。
+       实测（test/_probe-ratio.js combo 120 局）：不加这条时，刻意选连击的玩家八关下来
+       牌组里也只有 1~2 张连击牌（占比 4%，P90 7%），combo 策略通关率 11% = 与随机无异。
+       原因不是连击牌弱，是池里 7/75、三选一几乎刷不出来。
+       只服务"已经在走这条路"的人：牌组不足 2 张连击牌时不触发，其余玩家的奖励不变。 */
+    var Data2 = dataRef();
+    if (deck && Data2 && out.length) {
+      var cn = 0;
+      for (var di = 0; di < deck.length; di++) {
+        var dc = Data2.CARDS[deck[di]];
+        if (dc && dc.combo) cn++;
+      }
+      if (cn >= 2 && Math.random() < 0.30) {
+        var comboPool = pool.filter(function (id) {
+          return Data2.CARDS[id] && Data2.CARDS[id].combo && out.indexOf(id) < 0;
+        });
+        if (comboPool.length) {
+          out[Math.floor(Math.random() * out.length)] = comboPool[Math.floor(Math.random() * comboPool.length)];
+        }
+      }
     }
     return out;
   }

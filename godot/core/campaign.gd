@@ -296,9 +296,13 @@ static func consume_boosts(progress: Dictionary) -> void:
 ## 稀有度按费用分档：1 普通（≤2 费）/ 2 精良（3-4 费）/ 3 史诗（≥5 费）
 static func rarity_of(card: Dictionary) -> int:
 	var cost := int(card.get("cost", 0))
-	if cost <= 2:
-		return 1
-	return 2 if cost <= 4 else 3
+	var r := 1 if cost <= 2 else (2 if cost <= 4 else 3)
+	# 连击牌统一后置到第 4 关起（P2）。它们全是低成本牌，按费用分档会挤进早期三选一，
+	# 把强牌稀释掉（实测随机玩家 -2pp）。后置后第 1~3 关池子不变，
+	# 连击流从第 4 关成型——本来也是「先铺路再连击」的节奏。
+	if card.get("combo", null) != null and r < 3:
+		r = 3
+	return r
 
 ## 关卡可给的稀有度上限：越靠后池子越深
 static func tier_of(stage: Dictionary) -> int:
@@ -373,6 +377,23 @@ static func roll_rewards(stage: Dictionary, hero_faction: String, n: int, deck: 
 			pick = str(copy[randi() % copy.size()])
 		out.append(pick)
 		copy.erase(pick)
+	# 构筑引导（P2 连击）：牌组里已有 2 张连击牌时，三选一有 45% 概率替换一张为连击牌。
+	# 连击牌全池 8/77、三选一命中率约 25%，不引导的话八关只拿得到 1~2 张，
+	# 浓度永远到不了能形成打法的程度（实测 combo 策略与随机无异）。
+	# 只服务「已经在走这条路」的人：不足 2 张时不触发，其余玩家奖励不变。
+	var combo_n := 0
+	for id in deck:
+		var dc: Dictionary = GameData.cards.get(str(id), {})
+		if dc.get("combo", null) != null:
+			combo_n += 1
+	if combo_n >= 2 and out.size() > 0 and randf() < 0.30:
+		var combo_pool: Array = []
+		for id in pool:
+			var c: Dictionary = GameData.cards.get(str(id), {})
+			if c.get("combo", null) != null and not (str(id) in out):
+				combo_pool.append(str(id))
+		if combo_pool.size() > 0:
+			out[randi() % out.size()] = str(combo_pool[randi() % combo_pool.size()])
 	return out
 
 # ---------------- 军师 ----------------

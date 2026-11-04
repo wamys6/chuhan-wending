@@ -273,14 +273,15 @@ func _test_pool() -> void:
 			for s in got:
 				by_word[str(s["zh"])] = int(by_word.get(str(s["zh"]), 0)) + 1
 	ok(mismatch.is_empty(), "全卡池 %d 张的印数与数据一致" % total, str(mismatch))
-	ok(stamped == 45, "45 张卡有关键词印", str(stamped))
-	# 这几个数来自卡池实测分布，改动卡池时应当同步——不然就是有人动了关键词
-	ok(int(by_word.get("死", 0)) == 20, "死战 20 张", str(by_word.get("死", 0)))
-	ok(int(by_word.get("守", 0)) == 18, "守御 18 张", str(by_word.get("守", 0)))
+	ok(stamped == 53, "53 张卡有关键词印", str(stamped))
+	# 这几个数来自卡池实测分布，改动卡池时应当同步——不然就是有人动了关键词。
+	# 2026-11-04 P2 连击 8 张：连 1→9、死 +1（接武）、守 +1（叠阵）、有印卡 45→53
+	ok(int(by_word.get("死", 0)) == 21, "死战 21 张", str(by_word.get("死", 0)))
+	ok(int(by_word.get("守", 0)) == 19, "守御 19 张", str(by_word.get("守", 0)))
 	ok(int(by_word.get("冲", 0)) == 6, "冲锋 6 张", str(by_word.get("冲", 0)))
 	ok(int(by_word.get("迂", 0)) == 6, "迂回 6 张", str(by_word.get("迂", 0)))
 	ok(int(by_word.get("远", 0)) == 3, "远程 3 张", str(by_word.get("远", 0)))
-	ok(int(by_word.get("连", 0)) == 1, "连击 1 张", str(by_word.get("连", 0)))
+	ok(int(by_word.get("连", 0)) == 9, "连击 9 张", str(by_word.get("连", 0)))
 
 # ---------------- 语言 ----------------
 

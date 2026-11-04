@@ -24,6 +24,18 @@ var out = {
   },
   heroes: strip(D.HEROES),
   cards: strip(D.CARDS),
+  /* 阵营映射：PvE 奖励池按它过滤（汉营不出楚牌）。
+     漏导过一次：GameData.faction_of() 读到空表 → 所有卡都是 neutral →
+     Godot 版一直在给汉营发楚牌，而「汉营不出楚牌」的测试因为取到 neutral 而假绿。
+     新增导出键时，记得同步 game_data.gd 的读取与一条能证伪的断言。 */
+  faction: (function () {
+    var m = {};
+    Object.keys(D.CARDS).forEach(function (id) {
+      var f = D.factionOf(id);
+      if (f !== 'neutral') m[id] = f;
+    });
+    return m;
+  })(),
   decks: strip(D.DECKS),
   art: { cards: strip(D.ART), heroes: strip(D.HERO_ART), ui: strip(D.UI_ART) },
   stages: strip(C.STAGES),

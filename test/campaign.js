@@ -47,7 +47,7 @@ assert(C.STAGES.length === 8, '战役应为 8 关，实际：' + C.STAGES.length
 section('①b 卡池规模与数据完整性');
 (function () {
   var pool = Object.keys(D.CARDS).filter(function (id) { return id !== 's_xianji'; });
-  assert(pool.length === 69, '可构筑卡池应为 69 张（70 减去先机虎符），实际：' + pool.length);
+  assert(pool.length === 75, '可构筑卡池应为 75 张（76 减去先机虎符），实际：' + pool.length);
   pool.forEach(function (id) {
     var c = D.CARDS[id];
     assert(c.id === id, id + ' 的 id 字段不一致');

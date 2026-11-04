@@ -160,6 +160,13 @@ func _test_reward_pool() -> void:
 			faction_ok = false
 	ok(tier_ok, "低关卡不出高稀有度（特色牌豁免）")
 	ok(faction_ok, "汉营不出楚牌")
+	# 上面那条只有在阵营表真的加载时才有效——2026-11-04 发现 game.json 漏导 faction，
+	# faction_of() 全返回 neutral，于是「汉营不出楚牌」永远通过（假绿），
+	# 而 Godot 版奖励池一直在给玩家发楚牌。这条守卫把"表是空的"变成红灯。
+	ok(GameData.faction_of("c_xiangzhuang") == "chu" and GameData.faction_of("h_caocan") == "han",
+		"阵营映射已加载（漏导会让所有卡变中立）",
+		"%s / %s" % [GameData.faction_of("c_xiangzhuang"), GameData.faction_of("h_caocan")])
+	ok(GameData.faction_of("n_bing1") == "neutral", "中立牌仍是中立")
 	ok(pool.size() >= 5, "池子非空（%d 张）" % pool.size())
 	# 同名 ≤2：把两张兵·锐士塞进牌组，兵·锐士应从池里消失
 	var p2: Dictionary = p.duplicate(true)
@@ -181,6 +188,45 @@ func _test_reward_pool() -> void:
 		if Campaign.rarity_of(GameData.card(str(id))) == 3:
 			has_epic = true
 	ok(has_epic, "垓下池子里有史诗牌")
+
+	# ---- 连击牌：后置到第 4 关 + 构筑引导（P2）----
+	# 两个规则都是「不做就会悄悄失效」的类型：后置写错会让 1 费连击牌挤进第 1 关池子，
+	# 引导写错则玩家永远凑不出连击流（实测八关只拿得到 1~2 张）。
+	var combo_n := 0
+	for id in GameData.cards.keys():
+		var cc: Dictionary = GameData.card(str(id))
+		if cc.get("combo", null) != null:
+			combo_n += 1
+	ok(combo_n == 9, "全池 9 张连击牌（汉 8 + 楚项庄）", str(combo_n))
+	var early_combo := false
+	for id in pool:
+		var ec: Dictionary = GameData.card(str(id))
+		if ec.get("combo", null) != null:
+			early_combo = true
+	ok(not early_combo, "第 1 关池子里没有连击牌（已后置到第 4 关）")
+	var late_combo := 0
+	for id in pool3:
+		var lc: Dictionary = GameData.card(str(id))
+		if lc.get("combo", null) != null:
+			late_combo += 1
+	ok(late_combo == 8, "第 4 关起汉营池子里 8 张连击牌都在", str(late_combo))
+
+	var deck_combo: Array = (p["deck"] as Array).duplicate()
+	deck_combo.append("h_zhiji")
+	deck_combo.append("s_lianhuan")
+	var hit_plain := 0
+	var hit_combo := 0
+	for i in 200:
+		for id in Campaign.roll_rewards(gaixia, "han", 3, p["deck"]):
+			if (GameData.card(str(id)) as Dictionary).get("combo", null) != null:
+				hit_plain += 1
+				break
+		for id in Campaign.roll_rewards(gaixia, "han", 3, deck_combo):
+			if (GameData.card(str(id)) as Dictionary).get("combo", null) != null:
+				hit_combo += 1
+				break
+	ok(hit_combo >= hit_plain + 20,
+		"构筑引导提高连击牌出现率（有 %d / 无 %d，共 200 次）" % [hit_combo, hit_plain])
 
 ## 奖励页的次要选项：不取牌，改为从牌组删一张
 func _test_skip_reward() -> void:

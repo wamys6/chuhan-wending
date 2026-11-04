@@ -273,7 +273,7 @@ func _test_stats() -> void:
 func _test_filters() -> void:
 	GameData.ensure_loaded()
 	var all := Codex.filter_cards()
-	ok(all.size() == 69, "构筑卡池 69 张（70 减去先机虎符）", str(all.size()))
+	ok(all.size() == 77, "构筑卡池 77 张（78 减去先机虎符）", str(all.size()))
 
 	var pieces := Codex.filter_cards({"type": "piece"})
 	var spells := Codex.filter_cards({"type": "spell"})
@@ -291,7 +291,7 @@ func _test_filters() -> void:
 	ok(only_han, "汉军筛选只含汉军牌")
 
 	var stats := Codex.card_stats()
-	ok(int(stats["total"]) == 69, "统计总数 69")
+	ok(int(stats["total"]) == 77, "统计总数 77")
 	ok(int(stats["byFaction"]["han"]) == han.size(), "统计汉军数量一致")
 	ok(int(stats["byType"]["piece"]) == pieces.size(), "统计兵种数量一致")
 

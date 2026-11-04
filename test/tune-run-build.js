@@ -7,7 +7,7 @@
  *
  * 用法：
  *   node test/tune-run-build.js [局数] [重复次数] [军师id|none] [选牌偏好]
- *   选牌偏好：random（默认）| death（优先死战）| taunt（优先守御）| quality（优先总属性）
+ *   选牌偏好：random（默认）| death（优先死战）| taunt（优先守御）| combo（优先连击）| quality（优先总属性）
  *
  * 输出：逐关胜率曲线 + 整轮通关率；多轮取中位数（单轮 100 局噪声约 ±5pp）。
  */
@@ -68,6 +68,7 @@ function score(id) {
   const body = (c.atk || 0) + (c.hp || 0);
   if (PREFER === 'death') return (c.deathrattle ? 100 : 0) + body;
   if (PREFER === 'taunt') return (c.taunt ? 100 : 0) + body;
+  if (PREFER === 'combo') return (c.combo ? 100 : 0) + body;
   if (PREFER === 'quality') return body - (c.cost || 0) * 1.5;
   return Math.random();
 }

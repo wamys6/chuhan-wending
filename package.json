@@ -3,7 +3,7 @@
   "productName": "楚汉·问鼎",
   "version": "0.9.0",
   "description": "楚汉争霸主题水墨卡牌对战游戏",
-  "main": "electron-main.js",
+  "main": "legacy/web/electron-main.js",
   "private": true,
   "author": "Chuhan Team",
   "license": "UNLICENSED",

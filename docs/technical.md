@@ -43,19 +43,21 @@ cardgame/
 │   ├── ui/                 表现组件：unit_view/card_view/card_tip/coach/
 │   │                       settings_panel/ui_theme/widgets/card_art/keyword_stamp
 │   ├── data/               game.json（全部数值单源）+ lang-en.json + lang-godot-en.json
-│   ├── assets/cards/       74 张 AI 水墨立绘（约 232MB）
+│   ├── assets/cards/       115 张 AI 水墨立绘（约 348MB，不进包，只打包 .ctex）
 │   ├── fonts/              内置 Noto Serif SC（OFL 许可，勿删 LICENSE）
 │   ├── tests/              Godot 测试 + fixtures/trace.json（等价性基准）
-│   ├── export/             导出产物 ChuHanWenDing.exe（约 134MB）
+│   ├── export/             导出产物 ChuHanWenDing.exe（约 146MB）
 │   └── export_presets.cfg  embed_pck、include_filter="*.json"、exclude tests/*
-├── js/                     旧 Web 版逻辑（数据单源在这里！见 §五）
-├── test/                   旧 Web 版测试（campaign 1663 项等，逻辑类可 node 直跑）
-├── tools/                  node 脚本：relay.js 中继 / trace.js 录制 / export-data.js /
-│                           export-i18n.js / relay-smoke.js / pvp-live-test.js
+├── js/                     ★ 数据单源 + 旧 Web 版逻辑（见 §五）：data/engine/ai/campaign/
+│                           codex/i18n/lang-en/tutorial —— 导出与录制工具都读它，不可删
+├── legacy/                 已冻结的网页版（只读，别在这里加功能）
+│   ├── web/                index.html + css + ui.js/audio.js + electron 壳（可直接双击运行）
+│   └── checks/             网页版的浏览器验收脚本（uicheck/flow/art-check/…，需 CHROME 环境变量）
+├── test/                   JS 数值测试与调参脚本（campaign 1828 项、tune-* 全在这）
+├── tools/                  node 脚本：relay.js 中继（含 /health）/ trace.js 录制 /
+│                           export-data.js / export-i18n.js / relay-smoke.js / pvp-live-test.js
 ├── docs/                   全部文档
-├── index.html + css/       旧 Web 版入口（保留可玩）
-├── electron-main.js 等     旧桌面壳（已弃用，留作对照）
-└── package.json            ws 依赖 + electron 打包脚本（已弃用）
+└── package.json            ws 依赖 + 已弃用的 electron 打包脚本（main 指向 legacy/web）
 ```
 
 ### godot/core/ 各文件职责
@@ -67,7 +69,7 @@ cardgame/
 | `rng.gd` | xorshift32 确定性随机数，与 `tools/trace.js` 里的 JS 实现逐位一致 |
 | `ai.gd` | 三档难度 AI，名将档会算斩杀 |
 | `campaign.gd` | 战役进度/3 存档位（chuhan_slots）/战后三选一奖励/军师 5 选 3/行军事件（16 个）/`engineRules()` 关卡参数合并 |
-| `game_data.gd` | 加载 data/game.json（卡牌 70/军师 8/事件 16/关卡 8/心魔 3/天时 6） |
+| `game_data.gd` | 加载 data/game.json（卡牌 78/军师 8/事件 16/关卡 8/心魔 3/天时 6） |
 | `net.gd`（autoload 名 Pvp） | WebSocket 客户端状态机：OFF→CONNECTING→LOBBY→IN_ROOM/WAITING；seq 逐条校验防分叉；`process_mode=ALWAYS` |
 | `settings.gd` | 音量/动效/全屏/语言/`pvp_relay`（默认 `ws://<你的服务器IP>:27775`） |
 | `i18n.gd` | `T()` 收口翻译、`set_lang()`（落盘）/`set_lang_soft()`（仅内存，巡览用） |
@@ -98,7 +100,7 @@ js/lang-en.js ──node tools/export-i18n.js──▶ godot/data/lang-godot-en.
 ```
 
 - **改卡牌数值/加新卡：改 `js/data.js`，然后 `node tools/export-data.js`，再跑测试。** 不要直接改 game.json（下次导出会被覆盖）。
-- 加新卡还须在 `godot/core/game_data.gd` 的 ART 表登记立绘（缺图回退 glyph），跑 `node test/art-check.js` 验收（需 Chrome CDP）。
+- 加新卡还须在 `godot/core/game_data.gd` 的 ART 表登记立绘（缺图回退 glyph），跑 `node legacy/checks/art-check.js` 验收（需 `CHROME=` 指浏览器路径）。
 - 新增可见中文文案必须：① GDScript 侧用 `I18n.T()` 包装 ② 在 `godot/data/lang-godot-en.json` 补英文键，否则英文模式残留中文（有 `lang-ui-check.js` 扫描兜底）。
 
 ## 六、测试体系
@@ -118,10 +120,10 @@ js/lang-en.js ──node tools/export-i18n.js──▶ godot/data/lang-godot-en.
 | `codex_test.gd` | 148 | 图鉴/成就/PvP 战绩/心魔解锁 |
 | `tutorial_test.gd` | 160 | 新手引导/暂停菜单/军粮点条/阵亡特效 |
 | `i18n_test.gd` | 213 | 双语（用 `set_lang_soft`，不落盘） |
-| `pvp_test.gd` | 25 | 联机全链路：**自动起真 relay + 两个 headless 子进程打完整局比指纹** |
+| `pvp_test.gd` | 35 | 联机全链路：**自动起真 relay + 两个 headless 子进程打完整局比指纹**；并有一局**真的把 socket 断开**（`--drop-at 6`）再 resume，断言「补放动作数 > 0 且两端指纹仍一致」 |
 | `battle_ui_test.gd` | 83 | 对战界面交互与布局：点牌能出、双方部队同屏、手牌明暗、战报不溢出、关键 UI 不互压、单列满编留白、超编等比缩小 |
 | `fonts_test.gd` | 2 | 子集字体覆盖全部用字（扫 `.gd` 字符串 + `data/*.json`），漏字直接报红 |
-| `card_art_test.gd` | 415 | 缺图卡面的占位：`subtitle_of` 对**全卡池**在两种语言下都成立（EN 不许留汉字）、占位节点结构与可辨识名、**有图时占位必须让位 / 无图时必须出现**（走 CardView 真实装配路径） |
+| `card_art_test.gd` | 416 | 缺图卡面的占位：`subtitle_of` 对**全卡池**在两种语言下都成立（EN 不许留汉字）、占位节点结构与可辨识名、**有图时占位必须让位 / 无图时必须出现**（走 CardView 真实装配路径） |
 | `keyword_stamp_test.gd` | 76 | 卡面关键词小印：六个字段的判据（false/null 不算）、双关键词的排列顺序、三档印面（朱砂/墨/靛）的色相与深底、字号随 `box` 走、CardView / UnitView / 图鉴大卡三处装配且不出界不压费用圆、全卡池印数与数据一致、切语言不换字 |
 | `art_rect_test.gd` | 51 | 立绘矩形：`UiTheme.texture_rect` 收口（size 不被纹理/切片最小尺寸顶回）、事件页圆图真的铺满 144、主菜单侧立绘 520×900、结局页最后一行不被面板边框切；宽屏舞台对齐：`fill_screen`/`bleed_x` 几何与 `bleed` 标记、每屏都有铺满整屏的底；**卡名 Label 不被文本宽度顶回**（29 字符的英文名必须真的放得下）；**8 位军师全部有立绘**且方窗 160×160 按比例铺满，缺图兜底改用合成军师测（不依赖真实数据） |
 | `advisor_test.gd` | 37 | 军师被动：周勃只加我方/只加一个/上限生效/生命上限同步/无兵不空耗；郦食其只削敌方/只削一个/削不到负数/零攻时不空耗次数；其他军师局数值完全不动；8 位数据与中英战报 key 齐全；**文案里的「至多 N 次」必须与 ADV_*_CAP 常量同步**（中文数字 + 英文 at most 各钉一遍） |
@@ -136,7 +138,10 @@ js/lang-en.js ──node tools/export-i18n.js──▶ godot/data/lang-godot-en.
 - 单关难度杠杆：`tune-stages.js`（预置部队 / 敌我军粮 / 敌将血量 四个杠杆的量级对比）——动关卡 rules 前先跑，量级差得非常多；
 - 心魔梯度与天时：`tune-ascension.js`（0~3 级心魔 + 6 个天时各跑一遍整轮通关率）——加/改心魔等级后必须重跑，八关连乘会放大每一级的修正；
 - 奖励强度定价：`tune-skip.js`（血量 vs 一张牌的等价性）/ `tune-skip-drop.js`（删牌收益曲线）——改奖励池或牌组强度前先跑这两个；
-- 界面类需 Chrome CDP：`uicheck/art-check/slots-check/i18n-check/lang-ui-check/desktop-check`。
+**网页版验收脚本已归档到 `legacy/checks/`**（uicheck/clickcheck/flow/art-check/polish-check/slots-check/lang-ui-check/desktop-check），只做回归对照，不参与 Godot 版测试体系。本机 Chrome 卸了就指到 Edge：
+```bash
+CHROME="C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" node legacy/checks/uicheck.js
+```
 
 **改规则/数值的最小回归集**：`replay.gd` + `campaign_test.gd` + `pvp_test.gd`（锁步最敏感）；动界面再补 `battle_ui_test.gd`。大改动才跑全部。
 
@@ -147,7 +152,7 @@ js/lang-en.js ──node tools/export-i18n.js──▶ godot/data/lang-godot-en.
    ```bash
    <GODOT> --headless --path godot --export-release "Windows Desktop" export/ChuHanWenDing.exe
    ```
-3. 产物为**单文件约 134MB**（embed_pck，资源全打包），可直接上传 Steam depot。
+3. 产物为**单文件约 146MB**（embed_pck，资源全打包；2026-11-05 补齐连击 8 张立绘后从 143.5MB 涨上来），可直接上传 Steam depot。
 4. 冒烟验收：双击 exe 能进主菜单、开一局快速对战、声音正常即 OK。
 5. 关键配置在 `godot/export_presets.cfg`：`include_filter="*.json"`（FileAccess 运行时读 json 必需，**删了就会白屏**）、`exclude_filter="tests/*"`。
 
@@ -157,15 +162,15 @@ js/lang-en.js ──node tools/export-i18n.js──▶ godot/data/lang-godot-en.
 
 | 项 | 之前 | 现在 | 手段 |
 |---|---|---|---|
-| 74 张立绘/场景图 | 200MB | 27MB | `.import` 的 `compress/mode=1`（WebP 有损）+ `lossy_quality=0.8` |
+| 74 张立绘/场景图（现已 115 张） | 200MB | 27MB | `.import` 的 `compress/mode=1`（WebP 有损）+ `lossy_quality=0.8` |
 | 字体两个字重 | 42MB | 1.6MB | `python tools/subset-fonts.py` 子集化到实际用字（950 字） |
 
 **改压缩参数后必须重新导入**：`<GODOT> --headless --path godot --import`，否则读的还是旧 `.godot/imported/*.ctex`。
 
-⚠️ **新加的图不会自动继承压缩设置**：`.import` 是每张图首次导入时按项目默认值生成的，默认 `compress/mode=0`（无损）。2026-11-03 补的 24 张立绘就是这样漏掉的——一次 `--import` + 导出，exe 从 135MB 涨到 181MB（每张约 2.5MB）。**加图后先批量改 `.import`（mode=1、lossy_quality=0.8）再导**，改完 `du -sh .godot/imported` 会从 95MB 掉回 56MB。当前 98 张全部是 mode=1，导出 142MB。
+⚠️ **新加的图不会自动继承压缩设置**：`.import` 是每张图首次导入时按项目默认值生成的，默认 `compress/mode=0`（无损）。2026-11-03 补的 24 张立绘就是这样漏掉的——一次 `--import` + 导出，exe 从 135MB 涨到 181MB（每张约 2.5MB）。**加图后先批量改 `.import`（mode=1、lossy_quality=0.8）再导**，改完 `du -sh .godot/imported` 会从 95MB 掉回 56MB。当前 115 张全部是 mode=1，导出 146MB。
 
 - **为什么选 q0.80**：单张 PSNR 36dB，整屏实测 39.8/43.8dB，肉眼可察差异像素占比 0.03%~1.4%。q0.30 的极端对照只把 PSNR 压到 36.6dB，说明这个量级的图对 WebP 很不敏感，没必要用无损。
-- **源 PNG 仍是 233MB**（在 `godot/assets/cards/`）：**它不进包**，导出只带 `.ctex`。工程目录大是正常的，别为了瘦身去删源图——换压缩参数、换分辨率都得靠它们重导。
+- **源 PNG 仍是 348MB**（在 `godot/assets/cards/`）：**它不进包**，导出只带 `.ctex`。工程目录大是正常的，别为了瘦身去删源图——换压缩参数、换分辨率都得靠它们重导。
 - **字体源文件在 `assets/fonts-src/`**：47MB，刻意放在 Godot 工程目录**之外**，否则会被 `all_resources` 当成资源打进包，子集化就白做了。`godot/fonts/` 只放子集后的 1.8MB 版本，代码仍按 `res://fonts/NotoSerifSC-*.otf` 加载，路径不用改。
 - **加新文案后要重跑子集脚本**，否则新字会回退系统字体（字形不一致）或显示方块。`fonts_test.gd` 会扫全部 `.gd` 字符串与 `data/*.json`，发现缺字直接报红并提示重跑。
 
@@ -181,6 +186,11 @@ js/lang-en.js ──node tools/export-i18n.js──▶ godot/data/lang-godot-en.
   ```
 - **更新中继脚本**：本地改 `tools/relay.js` → `pscp tools/relay.js root@<你的服务器IP>:/opt/chuhan-relay/relay.js` → `systemctl restart chuhan-relay`。
 - 公网验收：`node tools/pvp-live-test.js`（四步：建房/加入/动作转发/断线重连，输出 ALL_PASS 即通）。
+- **监控口（2026-11-05 加）**：同端口的 `GET /health`（不额外开洞，WS 走 upgrade 分流），返回
+  `{ok, version, uptimeSec, rooms, peers, clients, actions, peakRooms, servedRooms}`；
+  巡检 `curl -s http://<IP>:27775/health`。有人玩时每 5 分钟打一行 `[relay] stats {...}`，空转不刷日志；
+  `SIGTERM`/`SIGINT` 会先广播 `{t:"error", msg:"relay shutting down"}` 再退出（客户端停在断线界面而不是崩）。
+  中继自测 `node tools/relay-smoke.js` 20 项（建/加/转发/重连拉日志/满房与假码/health/优雅退出）。
 - 注意：**Node 在服务器上的路径是 `/usr/local/node-v22.14.0-linux-x64/bin/node`**，systemd 单元里写的是全路径；若升级 Node 要同步改 unit 文件。
 
 ## 九、踩坑实录（新环境最容易死的点）
@@ -240,3 +250,6 @@ js/lang-en.js ──node tools/export-i18n.js──▶ godot/data/lang-godot-en.
 44. **给关键词卡加「条件」却只给平级强度，等于白送一个负面条件**：P2 首批 8 张连击卡按「连击触发后才达到同费标准」设计，实测 combo 策略只有 10%，而同一策略在**排除新卡**后反而 18%（那时它退化成「按体质选」）——说明这批卡比「什么都不想、直接拿大牌」还差 8pp。改法是把底子提到同费标准（1 费 1/3、3 费 3/3、5 费 5/5），连击当**额外**收益，combo 才回到 14.5%。**判据也要选对：必须和「同一策略在无新卡时」对照，否则分不清「连击卡弱」和「这批卡让随机池变差」。**
 45. **多层加成叠加要在「最后一步」再钳制，写在中间等于没写**：初阵档位（敌首回合 -1 军粮）在 `engineRules` 里紧跟生命加成写入，随后天时/心魔才逐层叠加——霜降天时（-1）叠上来就把全局 +1 抵穿成 -1。第一次把钳制写在初阵块里，测试立刻红（实际 -1）。**教训：凡是「下限/上限」约束，一律放在所有加成都合完之后、`return` 之前；中途钳制只对已经算过的层生效。**
 46. **同一批改动里，JS 侧漏改的旧断言不会自己变红**——它一直在红，只是没人跑**：P2 把卡池加到 78 张，Godot 侧 codex 断言改到 77，JS `test/campaign.js` 的「池子 75 张」与「连营 desc ≤34 字」却留着没动，整整一版都在失败。这轮跑 JS 全量才看见。**改卡池/改文案时两端测试要一起跑，别只跑 Godot。**
+
+47. **文件一移动，相对路径就集体错层，而且没有任何一处会「报错」**：把网页版归档进 `legacy/` 后，同一个「相对路径」要按引用者的深度分别算——`index.html` 在 `legacy/web/` 引用根 `js/` 是 `../../js/`，`ui.js` 里的立绘是 `../../godot/assets/cards/`，而 `css/style.css` 里的背景图还要多一层 `../../../`（css 在下一级目录）。第一次只改了前两处，页面照常打开、逻辑照常跑，只有**两张主将剪影是空的**（404 在控制台，肉眼像是「这张图本来就淡」）。判据：归档后必须真跑一遍浏览器验收（`legacy/checks/uicheck.js`），并且**让报错带上 URL**——只打印「资源加载失败」时你根本不知道丢的是哪个文件。
+48. **归档不是 `git mv` 完就完事**：验收脚本里写死的「卡池 45 张」跟着代码一起搬进 `legacy/`，跑起来一堆红，看起来像归档把功能弄坏了，其实全是三年前的数字。做法是把断言改成跟数据走（`Codex.cardStats(Data).total`），顺手把卡池口径统一到同一处——`Data.CARDS` 有 78 个键，图鉴/构筑只列 77 张（有一张不进池），两处各算一套就会差 1。**判据：归档目录能跑出「全部通过」，才算归档完成；跑到红就别急着说是历史遗留。**

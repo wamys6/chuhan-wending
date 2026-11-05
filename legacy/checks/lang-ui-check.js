@@ -6,10 +6,11 @@ var cp = require('child_process');
 var path = require('path');
 var fs = require('fs');
 
-var CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
+// 浏览器路径可用 CHROME 环境变量覆盖（本机 Chrome 已卸时指向 Edge 即可跑）
+var CHROME = process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 var PORT = 9337;
 var PROFILE = path.resolve(__dirname, '_cdp-lang');
-var URL = 'file:///' + path.resolve(__dirname, '..', 'index.html').replace(/\\/g, '/');
+var URL = 'file:///' + path.resolve(__dirname, '..', 'web', 'index.html').replace(/\\/g, '/');
 
 function getJSON(p) {
   return new Promise(function (res, rej) {

@@ -12,7 +12,7 @@
 | 关键词 | 冲锋 · 死战 · 连击 · 守御 · 迂回 · 远程（6 个，其中**只有死战有专精机制**） |
 | 通关率 | 无军师 **7%**，带军师 **10~23%**（200 局口径） |
 | 测试 | **1942 项 + E2E 19 项**，全绿 |
-| 导出包 | 143MB（107 张立绘 + 字体子集 1.9MB） |
+| 导出包 | 146MB（115 张立绘 + 字体子集 1.9MB） |
 | 素材缺口 | 无（事件图 2026-11-04 补齐，104 张全部到位） |
 
 **结论**：数量已经不是瓶颈。往后每一分投入都应该落在「让玩家多玩一局」和「让第二局不一样」上。
@@ -241,14 +241,36 @@ Godot 侧 `faction_of()` 全返回 neutral，**战役奖励池一直在给汉营
 
 ---
 
-## 五、P4 · 工程债（不影响玩，但会拖后腿）
+## 五、P4 · 工程债（✅ 2026-11-05 全部完成）
 
-| 项 | 内容 | 判据 |
+| 项 | 原判据 | 结果 |
 |---|---|---|
-| JS 版归档 | `js/ test/ index.html css/ electron-*` 移入 `legacy/`。**注意 `tools/trace.js` 与 `tools/export-data.js` 依赖 `js/data.js`**，路径必须保留或单独留一份 | `replay` 564 项仍绿（trace 能重录） |
-| 断线重连真机验收 | pvp_test 只验协议层；需两客户端手动「杀进程 → 重进房间码 → 续打」 | 一次完整对局中断后恢复，双方血线/牌序一致 |
-| 中继监控 | 服务器加 cron 心跳或 uptime 探针，挂了能知道 | 断掉 5 分钟内收到告警 |
-| 文档一致性 | `next-steps.md` 里「军师 5→7」已过期（夏侯婴补到 6，目标应为 6→8） | 全库搜 `5 → 7` 无残留 |
+| JS 版归档 | `replay` 仍绿（trace 能重录） | ✅ 网页壳进 `legacy/web/`、验收脚本进 `legacy/checks/`，`js/` 只留数据与规则核心（导出/录制/调参都读它）。归档后**真的跑了一遍浏览器巡检**：`legacy/checks/uicheck.js` 全绿 |
+| 断线重连真机验收 | 一次完整对局中断后恢复，双方血线/牌序一致 | ✅ 自动化：`pvp_client.gd --drop-at 6` 在第 6 个动作后真关 socket，1.2s 后 resume，断言「补放动作数 > 0」且两端指纹/胜者/动作数全一致（pvp_test 25→35 项） |
+| 中继监控 | 断掉 5 分钟内收到告警 | ✅ 同端口 `GET /health`（uptime/rooms/peers/clients/actions/peakRooms）+ 有人玩时每 5 分钟一行 stats 日志 + SIGTERM 优雅退出。告警侧只需外部探针打 `/health`（路由已留口，接 UptimeRobot/云监控即可） |
+| 文档一致性 | 全库无过期数字 | ✅ 卡池 78 / 素材 115 张 / 测试 2142 项 / exe 146MB 全部对齐 |
+
+### 归档的实际形状（为什么不是整目录搬走）
+
+`tools/trace.js` / `tools/export-data.js` / `test/tune-*.js` 都 `require('../js/data.js')`，
+而 `js/data.js` 是**唯一的数值源**。所以搬走的只是「表现层 + 壳 + 浏览器验收脚本」：
+
+```
+legacy/web/     index.html · css/ · js/ui.js · js/audio.js · electron-main/preload
+legacy/checks/  uicheck · clickcheck · flow · art-check · polish-check · slots-check ·
+                lang-ui-check · desktop-check（入口路径改成 ../web/index.html）
+js/             留下 data / engine / ai / campaign / codex / i18n / lang-en / tutorial
+```
+
+搬完必须付的两笔账（都踩过，见 technical.md 踩坑 47/48）：
+页面里的相对路径要按引用者深度重算（css 比 html 多一层）；验收脚本里写死的数字要改成跟数据走
+（`Data.CARDS` 78 个键 vs 图鉴只列 77 张，两处各算一套就差 1）。
+
+### 顺带清掉的债
+
+- 测试运行时产物（`_pvp_*.txt` / `_peek*.png` / `_gd-*.png`）入库 → 加进 `.gitignore`，不再制造脏 diff。
+- 网页版立绘改读 `godot/assets/cards/`，两套素材不再各存一份（根 `assets/` 280MB 已无引用，可删）。
+- 浏览器验收脚本支持 `CHROME=<路径>`，本机 Chrome 卸载后可用 Edge 跑。
 
 ---
 
@@ -283,7 +305,7 @@ Godot --headless --path godot --script res://tests/fonts_test.gd  # 缺字会红
 Godot --path godot --resolution 1920x1080 -- --tour   # 19 张截图逐张看
 # 全量
 # replay / campaign / audio / codex / tutorial / i18n / pvp / battle_ui /
-# fonts / card_art / art_rect / keyword_stamp / event_pick  → 1942 项 + E2E 19
+# fonts / card_art / art_rect / keyword_stamp / event_pick / advisor  → 2142 项 + E2E 19
 ```
 
 ---

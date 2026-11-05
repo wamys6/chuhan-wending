@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 // relay.js 冒烟测试：起服 → create/join → 动作互发 → 断线重连拉日志 → 离开销房
+//                → /health 运维口（监控探活用，同端口不额外开洞）
 // 运行：node tools/relay-smoke.js
 const { spawn } = require("child_process");
 const path = require("path");
+const http = require("http");
 const WebSocket = require("ws");
 
 const PORT = 27791;
@@ -23,6 +25,22 @@ function connect() {
       box.inbox.push(m);
       box.waiters = box.waiters.filter((w) => !w(m));
     });
+  });
+}
+
+/** 拉一次 /health（超时 2s，失败返回 null 而不是抛，便于断言打印原始情况） */
+function health() {
+  return new Promise((res) => {
+    const req = http.get(`http://127.0.0.1:${PORT}/health`, (r) => {
+      let body = "";
+      r.on("data", (c) => (body += c));
+      r.on("end", () => {
+        try { res({ status: r.statusCode, json: JSON.parse(body) }); }
+        catch (_) { res({ status: r.statusCode, json: null }); }
+      });
+    });
+    req.on("error", () => res({ status: 0, json: null }));
+    req.setTimeout(2000, () => { req.destroy(); res({ status: 0, json: null }); });
   });
 }
 function send(box, obj) { box.ws.send(JSON.stringify(obj)); }
@@ -78,6 +96,17 @@ function wait(box, pred, ms = 3000) {
     send(g2, { t: "action", a: { a: "skill" } });
     ok((await wait(host, (m) => m.t === "action")).a.a === "skill", "重连后继续转发动作");
 
+    // 运维口：同端口的 /health，监控与探活用
+    const h = await health();
+    ok(h.status === 200 && h.json && h.json.ok === true, "GET /health 返回 200 + ok:true");
+    ok(h.json && h.json.rooms === 1, "健康检查报出房间数", h.json && String(h.json.rooms));
+    ok(h.json && h.json.peers === 2, "健康检查报出在座人数", h.json && String(h.json.peers));
+    ok(h.json && h.json.actions === 3, "健康检查累计动作数", h.json && String(h.json.actions));
+    ok(h.json && h.json.peakRooms >= 1 && h.json.servedRooms >= 1, "健康检查带峰值/累计房间");
+    ok(h.json && typeof h.json.uptimeSec === "number" && h.json.uptimeSec >= 0, "健康检查带 uptime");
+    ok(h.json && h.json.clients === 2, "健康检查报出当前连接数",
+      h.json && String(h.json.clients));
+
     // 错误路径：满房 join / 假码
     const stranger = await connect();
     send(stranger, { t: "join", code: created.code });
@@ -90,6 +119,16 @@ function wait(box, pred, ms = 3000) {
     await new Promise((r) => setTimeout(r, 300));
     send(g2, { t: "action", a: { a: "end" } });
     ok((await wait(g2, (m) => m.t === "peer_left")).t === "peer_left", "房主离开通知对方");
+
+    // 优雅退出：收到 SIGTERM 先通知在座客户端再关，客户端不会看到「连接莫名其妙断了」
+    // Windows 上 child.kill() 是 TerminateProcess，没有信号语义可测，这条只在部署平台（Linux）跑
+    if (process.platform === "win32") {
+      console.log("  · 跳过「SIGTERM 优雅退出」：Windows 无信号语义（部署到 Linux 后由本脚本验证）");
+    } else {
+      srv.kill("SIGTERM");
+      const bye = await wait(g2, (m) => m.t === "error", 4000);
+      ok(bye.msg === "relay shutting down", "SIGTERM 先通知客户端再退出");
+    }
   } catch (e) {
     failed++;
     console.log("  ✗ 异常: " + e.message);

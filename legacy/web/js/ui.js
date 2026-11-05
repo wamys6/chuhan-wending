@@ -227,7 +227,7 @@
 
   /* ---------- 战斗特效辅助 ---------- */
 
-  function artOf(id) { return Data.ART[id] ? 'assets/cards/' + id + '.png' : null; }
+  function artOf(id) { return Data.ART[id] ? '../../godot/assets/cards/' + id + '.png' : null; }
 
   function flash() {
     var f = $('#fx-flash');
@@ -351,12 +351,12 @@
     /* 敌将专属头像（战役 meta.art）优先于英雄默认立绘 */
     if (artOverride && Data.UI_ART && Data.UI_ART.heroes[artOverride]) {
       el.classList.add('has-art');
-      el.style.backgroundImage = 'url(\'assets/cards/' + artOverride + '.png\')';
+      el.style.backgroundImage = 'url(\'../../godot/assets/cards/' + artOverride + '.png\')';
       return;
     }
     if (Data.HERO_ART[heroId]) {
       el.classList.add('has-art');
-      el.style.backgroundImage = 'url(\'assets/cards/' + heroId + '.png\')';
+      el.style.backgroundImage = 'url(\'../../godot/assets/cards/' + heroId + '.png\')';
     } else {
       el.classList.remove('has-art');
       el.style.backgroundImage = '';
@@ -773,7 +773,7 @@
 
   function advisorCardHTML(a) {
     var head = (Data.UI_ART && Data.UI_ART.advisors[a.id])
-      ? '<div class="adv-art" style="background-image:url(\'assets/cards/ad_' + a.id + '.png\')"></div>'
+      ? '<div class="adv-art" style="background-image:url(\'../../godot/assets/cards/ad_' + a.id + '.png\')"></div>'
       : '<div class="adv-glyph">' + a.glyph + '</div>';
     return '<div class="adv-card" data-id="' + a.id + '">' +
       head +
@@ -872,7 +872,7 @@
     var lore = $('#lore-screen');
     if (Data.UI_ART && Data.UI_ART.scenes[stage.id]) {
       lore.classList.add('lore-art');
-      lore.style.backgroundImage = 'url(\'assets/cards/sc_' + stage.id + '.png\')';
+      lore.style.backgroundImage = 'url(\'../../godot/assets/cards/sc_' + stage.id + '.png\')';
     } else {
       lore.classList.remove('lore-art');
       lore.style.backgroundImage = '';
@@ -977,7 +977,7 @@
     evGlyph.textContent = ev.glyph;
     if (Data.UI_ART && Data.UI_ART.events[ev.id]) {
       evGlyph.classList.add('has-art');
-      evGlyph.style.backgroundImage = 'url(\'assets/cards/ev_' + ev.id + '.png\')';
+      evGlyph.style.backgroundImage = 'url(\'../../godot/assets/cards/ev_' + ev.id + '.png\')';
     } else {
       evGlyph.classList.remove('has-art');
       evGlyph.style.backgroundImage = '';

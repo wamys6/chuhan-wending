@@ -18,6 +18,7 @@ godot/.godot/
 
 # ── CDP 浏览器调试档案（UI 测试启动 Chrome 留下的用户目录，纯垃圾）──
 test/_cdp-*/
+legacy/checks/_cdp-*/
 
 # ── 系统杂项 ──
 Thumbs.db
@@ -31,3 +32,5 @@ Desktop.ini
 godot/tests/_pvp_*.txt
 godot/tests/_peek*.png
 godot/tests/_gd-*.png
+legacy/checks/_*.png
+godot/tests/_peek*.png.import

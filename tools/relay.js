@@ -13,13 +13,27 @@
 //   C→S {t:"ping"}                          → S→C {t:"pong"}
 //   对端离开 → {t:"peer_left"}；房间销毁/码不存在/房间满 → {t:"error", msg}
 //
+// 运维接口（同端口 HTTP，不占额外端口）：
+//   GET /health → {ok, version, uptimeSec, rooms, peers, clients, actions, peakRooms}
+//   每 5 分钟一行 [relay] stats 日志；SIGINT/SIGTERM 会通知客户端后干净退出
+//
 // 用法：node tools/relay.js [端口]   （默认 27775）
 
 const PORT = Number(process.argv[2]) || 27775;
+const VERSION = "1.1.0";
+const STARTED_AT = Date.now();
 // 房间码字母表：去掉易混淆的 0/O/1/I/L
 const ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
 
+const http = require("http");
 const { WebSocketServer } = require("ws");
+
+/** 累计动作数（不随房间回收清零，用来判断「服务器是不是在干活」） */
+let totalActions = 0;
+/** 同时存在的房间数峰值（看容量水位） */
+let peakRooms = 0;
+/** 已服务过的房间数（含已销毁，用来估算负载） */
+let servedRooms = 0;
 
 /** @type {Map<string, Room>} */
 const rooms = new Map();
@@ -71,7 +85,35 @@ function dropFromRooms(ws) {
   return null;
 }
 
-const wss = new WebSocketServer({ port: PORT });
+const wss = new WebSocketServer({ noServer: true });
+
+// ── 运维口：同端口 HTTP，/health 给监控/负载均衡探活，其余路径 404 ──
+const httpServer = http.createServer((req, res) => {
+  if (req.url === "/health" || req.url === "/healthz") {
+    const body = JSON.stringify({
+      ok: true,
+      version: VERSION,
+      uptimeSec: Math.round((Date.now() - STARTED_AT) / 1000),
+      rooms: rooms.size,
+      peers: countPeers(),
+      clients: wss.clients.size,
+      actions: totalActions,
+      peakRooms,
+      servedRooms,
+    });
+    res.writeHead(200, {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
+    });
+    res.end(body);
+    return;
+  }
+  res.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
+  res.end("chuhan relay — GET /health\n");
+});
+httpServer.on("upgrade", (req, socket, head) => {
+  wss.handleUpgrade(req, socket, head, (ws) => wss.emit("connection", ws, req));
+});
 
 wss.on("connection", (ws) => {
   ws.isAlive = true;
@@ -93,6 +135,8 @@ wss.on("connection", (ws) => {
         const room = new Room(code, m.settings);
         room.host = ws;
         rooms.set(code, room);
+        servedRooms++;
+        if (rooms.size > peakRooms) peakRooms = rooms.size;
         ws.send(JSON.stringify({ t: "created", code }));
         return;
       }
@@ -126,6 +170,7 @@ wss.on("connection", (ws) => {
         const room = findRoomOf(ws);
         if (!room || !m.a || typeof m.a !== "object") return;
         room.log.push(m.a);
+        totalActions++;
         room.touched = Date.now();
         room.send(room.other(ws), { t: "action", a: m.a, seq: room.log.length });
         return;
@@ -160,6 +205,16 @@ function findRoomOf(ws) {
   return null;
 }
 
+/** 在座人数（房间里的槽位占用数，与「连上但没进房」的客户端区分开） */
+function countPeers() {
+  let n = 0;
+  for (const room of rooms.values()) {
+    if (room.host) n++;
+    if (room.guest) n++;
+  }
+  return n;
+}
+
 // 清扫：30 秒一次，踢掉 60 秒无心跳的连接、回收 2 小时无活动的房间
 setInterval(() => {
   wss.clients.forEach((ws) => {
@@ -173,4 +228,36 @@ setInterval(() => {
   }
 }, 30 * 1000);
 
-console.log(`[relay] listening on ws://0.0.0.0:${PORT}`);
+// 定期指标：有人玩的时候每 5 分钟一行，没人玩就静默（避免日志被空转刷满）
+setInterval(() => {
+  if (rooms.size === 0 && wss.clients.size === 0) return;
+  console.log("[relay] stats " + JSON.stringify({
+    uptimeSec: Math.round((Date.now() - STARTED_AT) / 1000),
+    rooms: rooms.size,
+    peers: countPeers(),
+    clients: wss.clients.size,
+    actions: totalActions,
+    peakRooms,
+  }));
+}, 5 * 60 * 1000);
+
+// 退出：先告诉客户端「不是我踢你，是服务器下线」，让它们停在断线界面而不是崩掉
+let closing = false;
+function shutdown(sig) {
+  if (closing) return;
+  closing = true;
+  console.log(`[relay] ${sig} 收到，通知 ${wss.clients.size} 个连接后退出`);
+  const msg = JSON.stringify({ t: "error", msg: "relay shutting down" });
+  wss.clients.forEach((ws) => {
+    try { ws.send(msg); } catch (_) {}
+    try { ws.close(1001, "server shutdown"); } catch (_) {}
+  });
+  httpServer.close(() => {});
+  setTimeout(() => process.exit(0), 200);
+}
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+
+httpServer.listen(PORT, () => {
+  console.log(`[relay] listening on ws://0.0.0.0:${PORT}  ·  health http://0.0.0.0:${PORT}/health`);
+});

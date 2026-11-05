@@ -135,7 +135,7 @@ Steam 上活下来的单人卡牌游戏几乎全是 PvE roguelike（杀戮尖塔
 - [x] Electron 壳：1440×900 可调窗口（最小 1100×700）、无边框菜单、外链走系统浏览器；`npm start` 开发（F12 开 DevTools）、`npm run dist` 打 win-x64 免安装目录（dist/楚汉问鼎-win32-x64/，约 500MB，Steam 直接上传该目录）
 - [x] 桌面桥（electron-preload.js）：contextIsolation 隔离，只暴露 `window.Desktop.{isDesktop, toggleFullscreen, fullscreenState}`；设置面板全屏按钮在桌面端走原生全屏、浏览器端仍走 Fullscreen API，一套代码两端兼容
 - [x] 后台不节流：`CalculateNativeWinOcclusion` 禁用 + `backgroundThrottling: false`，窗口被遮挡/最小化时 BGM 定时器不掉帧
-- [x] 验收：`test/desktop-check.js <port>` 对开发版与打包版各跑一遍（桌面桥注入、原生全屏进出、进对局、无 JS 报错）全部通过
+- [x] 验收：`legacy/checks/desktop-check.js <port>` 对开发版与打包版各跑一遍（桌面桥注入、原生全屏进出、进对局、无 JS 报错）全部通过
 - [ ] 应用图标 .ico（打包时 `--icon`，等 Steam 素材一起做）
 
 ### 阶段 4 · 上架工程与宣发（约 1-2 周 + 4-6 周等待）

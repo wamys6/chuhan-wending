@@ -1,4 +1,4 @@
-/* 界面检查：军师三选一 / 8 关地图 / 行军事件 / 选牌屏 / 45 张卡池 / 无 JS 报错 */
+/* 界面检查：军师三选一 / 8 关地图 / 行军事件 / 选牌屏 / 卡池规模与数据一致 / 无 JS 报错 */
 var http = require('http');
 var net = require('net');
 var crypto = require('crypto');
@@ -6,9 +6,10 @@ var cp = require('child_process');
 var path = require('path');
 var fs = require('fs');
 
-var CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
+// 浏览器路径可用 CHROME 环境变量覆盖（本机 Chrome 已卸时指向 Edge 即可跑）
+var CHROME = process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 var PORT = 9335;
-var URL = 'file:///' + path.resolve(__dirname, '..', 'index.html').replace(/\\/g, '/');
+var URL = 'file:///' + path.resolve(__dirname, '..', 'web', 'index.html').replace(/\\/g, '/');
 
 function getJSON(p) {
   return new Promise(function (res, rej) {
@@ -86,7 +87,9 @@ function check(label, cond, extra) {
       errors.push((msg.params.exceptionDetails.exception || {}).description || 'exception');
     }
     if (msg.method === 'Log.entryAdded' && msg.params.entry.level === 'error') {
-      errors.push(msg.params.entry.text);
+      var e = msg.params.entry;
+      // 报错里带上出问题的 URL：只写「资源加载失败」时根本不知道是哪个文件
+      errors.push(e.text + (e.url ? '  →  ' + e.url : ''));
     }
   });
   function cmd(method, params) {
@@ -191,7 +194,7 @@ function check(label, cond, extra) {
     "return {before:before,after:Campaign.load().deck.length};})()");
   check('删牌后牌组 -1', delRes && delRes.after === delRes.before - 1, delRes && (delRes.before + ' → ' + delRes.after));
 
-  console.log('\n⑨ 45 张卡池构筑');
+  console.log('\n⑨ 卡池构筑');
   await evalJS("document.getElementById('btn-camp-back').click()");
   await sleep(300);
   await evalJS("document.querySelector('.hero-card[data-hero=liubang]').click()");
@@ -199,7 +202,10 @@ function check(label, cond, extra) {
   await evalJS("document.getElementById('btn-deckbuilder').click()");
   await sleep(500);
   var pool = await evalJS("document.querySelectorAll('#deck-pool .deck-card').length");
-  check('卡池渲染 45 张', pool === 45, '实际 ' + pool);
+  // 卡池规模跟着数据走（写死过 45，扩池后一直假红）
+  // 用图鉴/构筑同一套筛选口径（Codex.cardStats 已排除不可进池的牌），避免两处各算一套
+  var poolN = await evalJS("Codex.cardStats(Data).total");
+  check('卡池渲染与数据一致（' + poolN + ' 张）', pool === poolN, '实际 ' + pool);
   var locked = await evalJS("document.querySelectorAll('#deck-pool .deck-card.locked').length");
   check('楚牌对汉将置灰（7 张以上）', locked >= 7, '实际 ' + locked);
   var added = await evalJS("(function(){" +
@@ -303,9 +309,9 @@ function check(label, cond, extra) {
   var codexVisible = await evalJS("!document.getElementById('codex-screen').classList.contains('hidden')");
   check('图鉴界面打开', codexVisible === true);
   var codexCount = await evalJS("document.querySelectorAll('#codex-grid .codex-card').length");
-  check('图鉴列出 45 张', codexCount === 45, '实际 ' + codexCount);
+  check('图鉴列出张数 = 卡池张数', codexCount === poolN, '图鉴 ' + codexCount + ' / 卡池 ' + poolN);
   var codexSub = await evalJS("document.getElementById('codex-sub').textContent");
-  check('副标题显示卡池构成', /卡池 45 张/.test(codexSub), codexSub);
+  check('副标题显示卡池构成', new RegExp('卡池 ' + poolN + ' 张').test(codexSub), codexSub);
   await shot('_ui-codex.png');
 
   var chu = await evalJS("(function(){document.querySelector('#codex-faction .filter-btn[data-v=chu]').click();" +

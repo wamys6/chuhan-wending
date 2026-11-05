@@ -23,6 +23,8 @@ func _run() -> void:
 	await _test_view_flip()
 	print("== PvP 中继全链路 E2E ==")
 	await _test_relay_e2e()
+	print("== PvP 断线重连（真 socket 断开）==")
+	await _test_reconnect()
 
 	print("")
 	print("pvp: 通过 %d 项，失败 %d 项" % [_pass, _fail])
@@ -169,7 +171,39 @@ func _test_view_flip() -> void:
 # ---------------- ③ 中继全链路 E2E ----------------
 
 func _test_relay_e2e() -> void:
-	var port := "27911"
+	var r: Dictionary = await _play_pair("27911", [], "整局锁步")
+	ok(str(r.get("fp_host", "")) != "" and str(r.get("fp_guest", "")) != "",
+		"两端都打完了", "host_err=%s guest_err=%s" % [r.get("err_host", ""), r.get("err_guest", "")])
+	if str(r.get("fp_host", "")) != "" and str(r.get("fp_guest", "")) != "":
+		ok(r["fp_host"] == r["fp_guest"], "整局锁步指纹一致")
+		ok(r["win_host"] == r["win_guest"] and str(r["win_host"]) != "",
+			"两端胜者一致", "%s vs %s" % [r["win_host"], r["win_guest"]])
+		ok(str(r.get("recon_guest", "0")) == "0", "常规对局不触发重连演练")
+
+# ---------------- ④ 断线重连（真服务器 + 真 socket 断开） ----------------
+
+## 加入方在第 6 个动作后真实断开 socket，1.2 秒后 resume；
+## 断线窗口里房主照常行动，重连方必须靠服务端日志把错过的动作补齐，
+## 整局结束时两端指纹仍然一致——这就是「断线重连真机验收」的自动化等价物
+func _test_reconnect() -> void:
+	var r: Dictionary = await _play_pair("27912",
+		["--drop-at", "6", "--drop-delay", "1200"], "断线重连")
+	ok(str(r.get("fp_host", "")) != "" and str(r.get("fp_guest", "")) != "",
+		"重连局两端都打完了",
+		"host_err=%s guest_err=%s" % [r.get("err_host", ""), r.get("err_guest", "")])
+	ok(str(r.get("recon_guest", "0")) == "1", "加入方完成 1 次重连", str(r.get("recon_guest", "")))
+	# 断线窗口必须是真断（错过了动作、靠日志补回来），否则这条只测到握手
+	ok(int(r.get("missed_guest", "0")) > 0,
+		"断线期间错过的动作 > 0（确实走了补放）", str(r.get("missed_guest", "")))
+	if str(r.get("fp_host", "")) != "" and str(r.get("fp_guest", "")) != "":
+		ok(r["fp_host"] == r["fp_guest"], "断线重连后两端指纹仍一致")
+		ok(r["win_host"] == r["win_guest"] and str(r["win_host"]) != "",
+			"断线重连后胜者一致", "%s vs %s" % [r["win_host"], r["win_guest"]])
+		ok(int(r.get("act_host", "0")) == int(r.get("act_guest", "0")),
+			"两端应用的动作数一致", "%s vs %s" % [r["act_host"], r["act_guest"]])
+
+## 起中继 + 两个 headless 客户端打一整局，返回两端写出的结果
+func _play_pair(port: String, guest_extra: Array, tag: String) -> Dictionary:
 	var host_out := ProjectSettings.globalize_path("res://tests/_pvp_host.txt")
 	var guest_out := ProjectSettings.globalize_path("res://tests/_pvp_guest.txt")
 	for p in [host_out, guest_out]:
@@ -177,19 +211,21 @@ func _test_relay_e2e() -> void:
 			DirAccess.remove_absolute(p)
 
 	# 起中继
-	var relay_pid := OS.create_process("node", [ProjectSettings.globalize_path("res://../tools/relay.js"), port])
+	var relay_pid := OS.create_process("node",
+		[ProjectSettings.globalize_path("res://../tools/relay.js"), port])
 	if relay_pid == -1:
-		ok(false, "无法启动中继进程（需要 node 在 PATH）")
-		return
+		ok(false, "[%s] 无法启动中继进程（需要 node 在 PATH）" % tag)
+		return {}
 	await create_timer(0.8).timeout
 
 	var exe := OS.get_executable_path()
 	var base := ProjectSettings.globalize_path("res://")
 	# 工程目录是 <project>/godot，tools 在上一层
 	var args_host: PackedStringArray = [exe, "--headless", "--path", base,
-		"--script", "res://tests/pvp_client.gd", "--", "--role", "host", "--seed", "42", "--port", port]
+		"--script", "res://tests/pvp_client.gd", "--", "--role", "host", "--seed", "42",
+		"--port", port]
 	var host_pid := OS.create_process(exe, _trim_exe(args_host))
-	ok(host_pid != -1, "房主客户端已启动")
+	ok(host_pid != -1, "[%s] 房主客户端已启动" % tag)
 
 	# 等房主写出房间码
 	var code := ""
@@ -197,13 +233,15 @@ func _test_relay_e2e() -> void:
 	while Time.get_ticks_msec() < deadline and code == "":
 		await create_timer(0.4).timeout
 		code = _read_key(host_out, "CODE")
-	ok(code != "", "拿到房间码", code)
+	ok(code != "", "[%s] 拿到房间码" % tag, code)
 
-	var args_guest: PackedStringArray = [exe, "--headless", "--path", base,
+	var gargs: PackedStringArray = [exe, "--headless", "--path", base,
 		"--script", "res://tests/pvp_client.gd", "--", "--role", "guest", "--seed", "42",
 		"--port", port, "--code", code]
-	var guest_pid := OS.create_process(exe, _trim_exe(args_guest))
-	ok(guest_pid != -1, "加入方客户端已启动")
+	for x in guest_extra:
+		gargs.append(str(x))
+	var guest_pid := OS.create_process(exe, _trim_exe(gargs))
+	ok(guest_pid != -1, "[%s] 加入方客户端已启动" % tag)
 
 	# 等两端打完（最长 150 秒）
 	deadline = Time.get_ticks_msec() + 150000
@@ -213,20 +251,18 @@ func _test_relay_e2e() -> void:
 				and _read_key(host_out, "FP") != "" and _read_key(guest_out, "FP") != "":
 			break
 
-	var fp_a := _read_key(host_out, "FP")
-	var fp_b := _read_key(guest_out, "FP")
-	var win_a := _read_key(host_out, "WIN")
-	var win_b := _read_key(guest_out, "WIN")
-	var err_a := _read_key(host_out, "ERR")
-	var err_b := _read_key(guest_out, "ERR")
-	ok(fp_a != "" and fp_b != "", "两端都打完了",
-		"host_err=" + err_a + " guest_err=" + err_b)
-	if fp_a != "" and fp_b != "":
-		ok(fp_a == fp_b, "整局锁步指纹一致")
-		ok(win_a == win_b and win_a != "", "两端胜者一致", win_a + " vs " + win_b)
-
+	var r := {
+		"fp_host": _read_key(host_out, "FP"), "fp_guest": _read_key(guest_out, "FP"),
+		"win_host": _read_key(host_out, "WIN"), "win_guest": _read_key(guest_out, "WIN"),
+		"err_host": _read_key(host_out, "ERR"), "err_guest": _read_key(guest_out, "ERR"),
+		"recon_guest": _read_key(guest_out, "RECON"),
+		"missed_guest": _read_key(guest_out, "MISSED"),
+		"act_host": _read_key(host_out, "ACTIONS"), "act_guest": _read_key(guest_out, "ACTIONS"),
+	}
 	if relay_pid != -1:
 		OS.kill(relay_pid)
+	await create_timer(0.3).timeout
+	return r
 
 func _trim_exe(args: PackedStringArray) -> PackedStringArray:
 	var out := PackedStringArray()

@@ -103,7 +103,7 @@ done
 
 - 界面新增中文：GDScript 里用 `I18n.T("...")` 包装，并在 `godot/data/lang-godot-en.json` 补英文键；
 - 数据层英文覆盖改 `js/lang-en.js` → `node tools/export-i18n.js`；
-- 完工后 `node test/lang-ui-check.js` 扫描英文模式是否残留中文（需 Chrome CDP）。
+- 完工后 `node legacy/checks/lang-ui-check.js` 扫描（`CHROME=` 指浏览器）英文模式是否残留中文（需 Chrome CDP）。
 
 ## 10. 出正式包
 

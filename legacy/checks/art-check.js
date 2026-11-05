@@ -6,9 +6,10 @@ var cp = require('child_process');
 var path = require('path');
 var fs = require('fs');
 
-var CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
+// 浏览器路径可用 CHROME 环境变量覆盖（本机 Chrome 已卸时指向 Edge 即可跑）
+var CHROME = process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 var PORT = 9336;
-var URL = 'file:///' + path.resolve(__dirname, '..', 'index.html').replace(/\\/g, '/');
+var URL = 'file:///' + path.resolve(__dirname, '..', 'web', 'index.html').replace(/\\/g, '/');
 
 function getJSON(p) {
   return new Promise(function (res, rej) {
@@ -114,7 +115,7 @@ function check(label, cond, extra) {
     "Object.keys(D.heroes).forEach(function(k){ids.push(k)});" +
     "return Promise.all(ids.map(function(n){return new Promise(function(r){var im=new Image();" +
     "im.onload=function(){r(n+':ok')};im.onerror=function(){r(n+':FAIL')};" +
-    "im.src='assets/cards/'+n+'.png';});})).then(function(a){return a.filter(function(x){return x.indexOf('FAIL')>=0}).join(',')||'all-ok';});})()");
+    "im.src='../../godot/assets/cards/'+n+'.png';});})).then(function(a){return a.filter(function(x){return x.indexOf('FAIL')>=0}).join(',')||'all-ok';});})()");
   check('全部素材图可加载', loadRes === 'all-ok', String(loadRes));
 
   console.log('\n② 军师三选一立绘');

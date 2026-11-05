@@ -42,7 +42,7 @@ legacy/
 - 页面：浏览器直接打开 `legacy/web/index.html`（file:// 即可，不需要服务器）。
   立绘路径已改成 `../../godot/assets/cards/`——**直接读 Godot 那份素材**，
   所以不会出现「网页版少几张新卡的图」这种两套素材不同步的问题。
-  （根目录的 `assets/` 已不再被任何代码引用，280MB 的重复拷贝，想省空间可以删。）
+  （根目录的 `assets/` 280MB 重复拷贝已于 2026-11-05 删除，页面完全不依赖它。）
 - 验收脚本：`node legacy/checks/uicheck.js`，会拉起本机浏览器走 CDP。
   浏览器路径默认是 Chrome，本机没装 Chrome 时用环境变量指到 Edge：
   `CHROME="C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" node legacy/checks/uicheck.js`
@@ -52,6 +52,8 @@ legacy/
 
 ## 什么时候可以删
 
-Steam 上架前若要彻底瘦身：删掉 `legacy/web/` + `legacy/checks/` + 根 `assets/` + `dist/`，
+Steam 上架前若要彻底瘦身：删掉 `legacy/web/` + `legacy/checks/`，
 但要**同时**把 `js/data.js`、`js/engine.js` 的数值搬进 `godot/data/`（或把 `export-data.js`
 改成读一份独立的 JSON），否则导出链路会断。在那之前，这份归档按「只读」对待即可。
+
+> 2026-11-05：根 `assets/`（280MB）与 `dist/`（501MB Electron 产物）已删除，共省 780MB。

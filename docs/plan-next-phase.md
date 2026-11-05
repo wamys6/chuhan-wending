@@ -269,7 +269,7 @@ js/             留下 data / engine / ai / campaign / codex / i18n / lang-en / 
 ### 顺带清掉的债
 
 - 测试运行时产物（`_pvp_*.txt` / `_peek*.png` / `_gd-*.png`）入库 → 加进 `.gitignore`，不再制造脏 diff。
-- 网页版立绘改读 `godot/assets/cards/`，两套素材不再各存一份（根 `assets/` 280MB 已无引用，可删）。
+- 网页版立绘改读 `godot/assets/cards/`，两套素材不再各存一份（根 `assets/` 280MB 已于 2026-11-05 删除，连同 `dist/` 501MB 共省 780MB）。
 - 浏览器验收脚本支持 `CHROME=<路径>`，本机 Chrome 卸载后可用 Edge 跑。
 
 ---

@@ -26,3 +26,8 @@ Desktop.ini
 
 # ── AI 工作日志（本地笔记，含部署细节，不入库）──
 .workbuddy/
+
+# ── 测试运行时产物（每次跑都会被覆盖，入库只会制造脏 diff）──
+godot/tests/_pvp_*.txt
+godot/tests/_peek*.png
+godot/tests/_gd-*.png

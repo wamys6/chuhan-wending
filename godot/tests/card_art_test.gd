@@ -3,11 +3,12 @@ extends SceneTree
 ##
 ## 运行：godot --headless --path godot --script res://tests/card_art_test.gd
 ##
-## 2026-11-03：卡池 70 张已全部有立绘，占位层退为「加卡不配图时的兜底」。
-## 所以这个测试**不再依赖「存在缺图卡」这个数据状态**——那样一补齐就集体失效。
-## 改成测两件事：
-##   ① `subtitle_of` 是纯函数，对全卡池在两种语言下都成立（与有没有图无关）；
-##   ② 有图时占位必须让位、没图时占位必须出现（CardView 的真实装配路径）。
+## 2026-11-05：卡池 78 张已全部有立绘（连击 8 张补齐），占位层退为「加卡不配图时的兜底」。
+## 所以这个测试**不依赖「存在缺图卡」这个数据状态**——那样一补齐就集体失效。
+## 改成测三件事：
+##   ① 全卡池必须齐全（缺一张就红：加卡忘配图当场暴露，而不是等美术巡检）；
+##   ② `subtitle_of` 是纯函数，对全卡池在两种语言下都成立（与有没有图无关）；
+##   ③ 有图时占位必须让位、没图时占位必须出现（CardView 的真实装配路径）。
 
 const UI_IDS := ["n_dun1", "n_cheng3", "n_zhengfa", "n_xiangyong"]
 ## 一张不存在的图 id，用来走「缺图」分支（卡数据本身是真的，避免 setup 崩）
@@ -33,12 +34,13 @@ func _run() -> void:
 	GameData.ensure_loaded()
 	var all_ids: Array = GameData.cards.keys()
 
-	# ---- 状态报告（不判失败）：还缺几张图，让人一眼看到 ----
+	# ---- 全池齐全：78 张卡一张不缺图（占位层只在「将来加卡还没画」时出场） ----
 	var missing: Array = []
 	for cid in all_ids:
 		if UiTheme.art_texture(str(cid)) == null:
 			missing.append(str(cid))
-	ok(missing.size() + (all_ids.size() - missing.size()) == all_ids.size(), "卡池遍历完整")
+	ok(all_ids.size() >= 78, "卡池规模不低于 78 张", str(all_ids.size()))
+	ok(missing.is_empty(), "卡池全部有立绘（缺 %d 张）" % missing.size(), ", ".join(missing))
 	if missing.is_empty():
 		print("· 卡池 %d 张全部有立绘，占位层仅作备用" % all_ids.size())
 	else:

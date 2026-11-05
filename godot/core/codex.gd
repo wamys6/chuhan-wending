@@ -86,6 +86,7 @@ static func empty_career() -> Dictionary:
 		"bestHpWin": -1, "fastestWin": -1,
 		"levels": {}, "heroes": {}, "advisors": {}, "events": {},
 		"clearedStages": {}, "clearedCount": 0,
+		"chubenClears": 0,
 		"maxStage": -1, "maxStageId": "", "maxDeck": 0,
 		"finished": false,
 		# 已通关的最高心魔等级（0 = 只通过常规）。解锁上限 = 本值 + 1
@@ -255,13 +256,16 @@ static func record_pvp(win: bool) -> void:
 	save()
 
 ## 首次通关某关。idx 从 0 起，total 为关卡总数
+## mode 为难度档位（"chuben" = 初阵），初阵首次通关单独计数
 static func record_clear(stage_id: String, idx: int, deck_size: int, total: int,
-		ascension_level: int = 0) -> Array:
+		ascension_level: int = 0, mode: String = "") -> Array:
 	ensure_loaded()
 	var cleared: Dictionary = _career["clearedStages"]
 	if not cleared.has(stage_id):
 		cleared[stage_id] = int(Time.get_unix_time_from_system())
 		_career["clearedCount"] = cleared.size()
+		if mode == "chuben":
+			_career["chubenClears"] = int(_career.get("chubenClears", 0)) + 1
 		if idx > int(_career["maxStage"]):
 			_career["maxStage"] = idx
 			_career["maxStageId"] = stage_id
@@ -332,6 +336,7 @@ static func summary() -> Dictionary:
 		"bestHpWin": int(_career["bestHpWin"]),
 		"fastestWin": int(_career["fastestWin"]),
 		"clearedCount": int(_career["clearedCount"]),
+		"chubenClears": int(_career.get("chubenClears", 0)),
 		"maxStage": int(_career["maxStage"]),
 		"maxDeck": int(_career["maxDeck"]),
 		"finished": bool(_career["finished"]),

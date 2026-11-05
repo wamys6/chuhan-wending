@@ -47,7 +47,7 @@ assert(C.STAGES.length === 8, '战役应为 8 关，实际：' + C.STAGES.length
 section('①b 卡池规模与数据完整性');
 (function () {
   var pool = Object.keys(D.CARDS).filter(function (id) { return id !== 's_xianji'; });
-  assert(pool.length === 75, '可构筑卡池应为 75 张（76 减去先机虎符），实际：' + pool.length);
+  assert(pool.length === 77, '可构筑卡池应为 77 张（78 减去先机虎符），实际：' + pool.length);
   pool.forEach(function (id) {
     var c = D.CARDS[id];
     assert(c.id === id, id + ' 的 id 字段不一致');
@@ -255,6 +255,42 @@ section('⑬ 敌方首回合额外军粮');
   assert(foe.turnsTaken === 1, '敌方应已进入第 1 回合');
   assert(foe.mana === foe.maxMana + 2, '敌方首回合金粮应 +2，实际：' + foe.mana + '/' + foe.maxMana);
   console.log('  敌方首回合金粮 ' + foe.mana + '/' + foe.maxMana + ' ✅');
+})();
+
+/* ⑭ 初阵档位（P3 难度宽容度） */
+section('⑭ 初阵档位');
+(function () {
+  var st0 = C.STAGES[0];
+  /* 默认常规：无加成，敌首回合 = 全局 1 */
+  var r0 = C.engineRules(st0, C.emptyProgress('liubang'));
+  assert(!r0.playerHpBonus || r0.playerHpBonus === 0, '常规档不应有生命加成');
+  assert((r0.enemyStartMana || 0) === 1, '常规档敌首回合应为全局 +1，实际：' + (r0.enemyStartMana || 0));
+  /* 初阵：+6 血、敌首回合 -1（叠加后为 0） */
+  var p1 = C.emptyProgress('liubang'); p1.mode = 'chuben';
+  var r1 = C.engineRules(st0, p1);
+  assert(r1.playerHpBonus === C.CHUBEN_HP, '初阵主将应 +' + C.CHUBEN_HP + ' 血，实际：' + r1.playerHpBonus);
+  assert((r1.enemyStartMana || 0) === 0, '初阵敌首回合应为 0（全局1-初阵1），实际：' + (r1.enemyStartMana || 0));
+  /* 与心魔绝境（敌首回合+1）叠加 → 1 */
+  var st3 = C.STAGES[2];
+  var p2 = C.emptyProgress('liubang'); p2.mode = 'chuben'; p2.ascension = 3;
+  var r2 = C.engineRules(st3, p2);
+  assert((r2.enemyStartMana || 0) >= 0, '初阵与心魔叠加后敌首回合不得为负，实际：' + (r2.enemyStartMana || 0));
+  /* 与霜降天时（敌首回合-1）叠加 → 最低 0 */
+  var p3 = C.emptyProgress('liubang'); p3.mode = 'chuben'; p3.tianShi = 'shuangjiang';
+  var r3 = C.engineRules(st0, p3);
+  assert((r3.enemyStartMana || 0) === 0, '初阵+霜降应为 0（不打折成负数），实际：' + (r3.enemyStartMana || 0));
+  /* start 落档位；未传 mode 一律 regular */
+  var run = C.start('liubang', Data.DECKS.han.slice(), null, 0, 'chuben');
+  assert(run.mode === 'chuben', 'start 应落 chuben 档');
+  assert(C.start('liubang', Data.DECKS.han.slice()).mode === 'regular', 'start 不传 mode 应为 regular');
+  /* 迁移：老存档无 mode → regular */
+  var old = C.migrate({ version: 1, cleared: [], deck: [] });
+  assert(old.mode === 'regular', '旧存档迁移后应为 regular');
+  assert(C.migrate({ cleared: [], deck: [], mode: 'chuben' }).mode === 'chuben', 'chuben 存档迁移保留');
+  /* 摘要带 mode */
+  C.save(run);
+  assert(C.slotSummary(C.activeSlot()).mode === 'chuben', '存档摘要应带 mode');
+  console.log('  初阵 +6 血 / 敌首回合 -1（下限 0）✅');
 })();
 
 console.log('\n通过 ' + passed + ' 项，失败 ' + failed + ' 项');

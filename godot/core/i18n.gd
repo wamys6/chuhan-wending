@@ -80,6 +80,10 @@ const RULES := [
 	["^战役已终 · ([0-9]+) 关全胜$", "Campaign complete · {1} stages taken"],
 	["^下一关　(.+)$", "Next　{1}"],
 	["^本局难度　(.+)$", "Difficulty　{1}"],
+	["^难度　　初阵$", "Difficulty　　Novice"],
+	# 初阵档位说明（数字由 Campaign.CHUBEN_* 生成，不写死）
+	["^初阵：主将 \\+([0-9]+) 血、敌军首回合 -([0-9]+) 军粮，适合新手$",
+		"Novice: commander +{1} HP, enemy starts {2} Provision short — for new players"],
 	["^心魔 ([0-9]+)$", "Demon {1}"],
 	["^牌组　　([0-9]+) 张$", "Deck　　{1} cards"],
 	["^军师　　(.+)$", "Strategist　　{1}"],

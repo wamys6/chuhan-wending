@@ -106,7 +106,7 @@
     /* 后段两张：上面 6 张最贵 3 费，第 5 关后抽到 1/2 小兵等于废牌（实测连击流 12%，与随机无异）。
        补两张 5 费，让"连击"在后半程也有牌可打。 */
     h_xiandeng:{ id: 'h_xiandeng', name: '将·先登', type: 'piece', cost: 5, col: 'front', atk: 5, hp: 5, glyph: '登', combo: { selfAtk: 2 }, desc: '连击：本回合已出过牌则自身 +2 攻。先登者赏，怯者斩。' },
-    s_lianying:{ id: 's_lianying', name: '计·连营', type: 'spell', cost: 4, glyph: '营', effect: { dmgCol: 'mid', amount: 2 }, combo: { dmgAll: 1 }, desc: '敌方中军列受 2 点伤害；连击：敌方全体再受 1 点。连营百里，一炬皆惊。' },
+    s_lianying:{ id: 's_lianying', name: '计·连营', type: 'spell', cost: 4, glyph: '营', effect: { dmgCol: 'mid', amount: 2 }, combo: { dmgAll: 1 }, desc: '敌方中军 2 伤；连击：敌方全体 1 伤。连营百里，一炬皆惊。' },
     /* ---- 楚 · 牌 ---- */
     s_fanzeng:{ id: 's_fanzeng', name: '范增·毒计', type: 'spell', cost: 2, glyph: '毒', effect: { dmgLowest: 3 }, desc: '对敌方血量最低的兵种造成 3 点伤害。竖子不足与谋！' },
     s_bawang:{ id: 's_bawang', name: '霸王枪法', type: 'spell', cost: 4, glyph: '枪', effect: { buffCol: 'front', atk: 3 }, desc: '己方前锋列全体 +3 攻。力拔山兮气盖世！' },

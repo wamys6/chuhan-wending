@@ -58,21 +58,41 @@ func _slot_card(index: int) -> Panel:
 
 	if bool(info["empty"]):
 		var empty := UiTheme.label("空 位", 26, UiTheme.INK_SOFT)
-		empty.position = Vector2(0, 150)
+		empty.position = Vector2(0, 120)
 		empty.size = Vector2(400, 40)
 		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		card.add_child(empty)
 
-		var tip := Widgets.subtitle("未开战", 15)
-		tip.position = Vector2(0, 196)
+		var tip := Widgets.subtitle("未开战 · 选难度", 15)
+		tip.position = Vector2(0, 164)
 		tip.size = Vector2(400, 24)
 		card.add_child(tip)
 
-		var start := UiTheme.button("开 新 战 役", true)
-		start.position = Vector2(90, 340)
-		start.size = Vector2(220, 52)
-		start.pressed.connect(func (): App.enter_slot(index))
+		# 初阵档位说明（数字必须从常量生成，别抄进文案）
+		var chuben := UiTheme.label(
+			"初阵：主将 +%d 血、敌军首回合 -%d 军粮，适合新手" %
+			[Campaign.CHUBEN_HP, -Campaign.CHUBEN_ENEMY_MANA], 14, UiTheme.INK_SOFT)
+		chuben.position = Vector2(24, 216)
+		chuben.clip_text = true
+		chuben.size = Vector2(352, 22)
+		card.add_child(chuben)
+
+		var regular := UiTheme.label("常规：标准难度", 14, UiTheme.INK_SOFT)
+		regular.position = Vector2(24, 242)
+		regular.size = Vector2(352, 22)
+		card.add_child(regular)
+
+		var start := UiTheme.button("初 阵 开 局", true)
+		start.position = Vector2(24, 356)
+		start.size = Vector2(170, 50)
+		start.pressed.connect(func (): App.enter_slot(index, "chuben"))
 		card.add_child(start)
+
+		var regular_btn := UiTheme.button("常 规 开 局")
+		regular_btn.position = Vector2(206, 356)
+		regular_btn.size = Vector2(170, 50)
+		regular_btn.pressed.connect(func (): App.enter_slot(index, "regular"))
+		card.add_child(regular_btn)
 		return card
 
 	# 已有进度
@@ -94,6 +114,8 @@ func _slot_card(index: int) -> Panel:
 	]
 	if str(info["advisor"]) != "":
 		lines.append("军师　　%s" % str(info["advisor"]))
+	if str(info.get("mode", "regular")) == "chuben":
+		lines.append("难度　　初阵")
 	if int(info["hpBonus"]) != 0:
 		lines.append("生命　　%+d" % int(info["hpBonus"]))
 	lines.append("保存　　%s" % _time_text(int(info["updatedAt"])))

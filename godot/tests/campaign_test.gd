@@ -27,6 +27,7 @@ func _initialize() -> void:
 	_test_events()
 	_test_ascension()
 	_test_tianshi()
+	_test_chuben()
 	_test_slots()
 
 	print("通过 %d 项，失败 %d 项" % [checks, failures])
@@ -383,6 +384,44 @@ func _test_events_batch2() -> void:
 		"%d vs 基线 %d" % [int(r_pos.get("enemyStartMana", 0)), base_enemy])
 	Campaign.consume_boosts(w)
 	ok(int(w["drawBonus"]) == 0 and int(w["enemyManaBonus"]) == 0, "一次性加成战后清零")
+	Campaign._wipe_all()
+
+func _test_chuben() -> void:
+	print("· 初阵档位")
+	var stages := Campaign.stages()
+	# 常规默认：无生命加成，敌首回合 = 全局 1
+	var p0 := Campaign.empty_progress("liubang")
+	p0["deck"] = (GameData.decks.get("han", []) as Array).duplicate()
+	var r0 := Campaign.engine_rules(stages[0], p0)
+	ok(int(r0.get("playerHpBonus", 0)) == 0, "常规档无生命加成")
+	ok(int(r0.get("enemyStartMana", 0)) == 1, "常规档敌首回合 = 全局 +1")
+	# 初阵：+6 血、敌首回合 0（全局1 - 初阵1）
+	var p1 := Campaign.empty_progress("liubang")
+	p1["deck"] = (p0["deck"] as Array).duplicate()
+	p1["mode"] = "chuben"
+	var r1 := Campaign.engine_rules(stages[0], p1)
+	ok(int(r1.get("playerHpBonus", 0)) == Campaign.CHUBEN_HP,
+		"初阵主将 +%d 血" % Campaign.CHUBEN_HP, str(r1.get("playerHpBonus", 0)))
+	ok(int(r1.get("enemyStartMana", 0)) == 0, "初阵敌首回合 0", str(r1.get("enemyStartMana", 0)))
+	# 与霜降天时（敌首回合-1）叠加：钳到 0，不为负
+	var p3 := Campaign.empty_progress("liubang")
+	p3["deck"] = (p0["deck"] as Array).duplicate()
+	p3["mode"] = "chuben"
+	p3["tianShi"] = "shuangjiang"
+	var r3 := Campaign.engine_rules(stages[0], p3)
+	ok(int(r3.get("enemyStartMana", 0)) == 0, "初阵+霜降钳到 0", str(r3.get("enemyStartMana", 0)))
+	# start_run 落档位；不传默认 regular
+	var run := Campaign.start_run("liubang", (p0["deck"] as Array).duplicate(), "", 0, "chuben")
+	ok(str(run["mode"]) == "chuben", "start_run 落 chuben")
+	ok(str(Campaign.start_run("liubang", (p0["deck"] as Array).duplicate(), "")["mode"]) == "regular",
+		"start_run 默认 regular")
+	# 迁移：老存档无 mode → regular；摘要带 mode
+	var old := Campaign.normalize({"cleared": [], "deck": []})
+	ok(str(old["mode"]) == "regular", "旧存档迁移后 regular")
+	ok(str(Campaign.normalize({"cleared": [], "deck": [], "mode": "chuben"})["mode"]) == "chuben",
+		"chuben 存档迁移保留")
+	Campaign.save_slot(0, run)
+	ok(str(Campaign.slot_summary(0)["mode"]) == "chuben", "存档摘要带 mode")
 	Campaign._wipe_all()
 
 func _test_ascension() -> void:

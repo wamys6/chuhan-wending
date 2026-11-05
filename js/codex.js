@@ -128,6 +128,7 @@
       events: {},                 /* 经历过的行军事件 */
       clearedStages: {},          /* 通关过的关卡（首次） */
       clearedCount: 0,
+      chubenClears: 0,            /* 初阵档位下首次通关的关卡数 */
       maxStage: -1,
       maxStageId: null,
       maxDeck: 0,
@@ -228,13 +229,15 @@
   }
 
   /* 首次通关某关。idx 从 0 起，total 为关卡总数 */
-  function recordClear(stageId, idx, deckSize, total) {
+  function recordClear(stageId, idx, deckSize, total, mode) {
     var c = current();
     if (!c.clearedStages) c.clearedStages = {};
     var first = !c.clearedStages[stageId];
     if (first) {
       c.clearedStages[stageId] = Date.now();
       c.clearedCount = Object.keys(c.clearedStages).length;
+      /* 初阵档位通关单独计数（P3），与常规合算的 clearedCount 分开看 */
+      if (mode === 'chuben') c.chubenClears = (c.chubenClears || 0) + 1;
       if (typeof idx === 'number' && idx > c.maxStage) {
         c.maxStage = idx;
         c.maxStageId = stageId;
@@ -276,6 +279,7 @@
       units: c.units, spells: c.spells,
       bestHpWin: c.bestHpWin, fastestWin: c.fastestWin,
       clearedCount: c.clearedCount || 0,
+      chubenClears: c.chubenClears || 0,
       maxStage: c.maxStage, maxStageId: c.maxStageId,
       maxDeck: c.maxDeck || 0,
       finished: !!c.finished,

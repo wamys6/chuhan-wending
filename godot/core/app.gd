@@ -30,6 +30,8 @@ var last_battle: Dictionary = {}
 var reward_cards: Array = []
 var pending_event: Dictionary = {}
 var advisor_choices: Array = []
+## 新战役待定的难度档位：空存档位点「初阵/常规」时暂存，拜军师（begin_run）时落进进度
+var pending_mode: String = "regular"
 ## 从战役里「看牌组」后返回用的标记
 var return_to := SCENE_MAP
 ## 被仪式页压住的成就横幅（天时揭晓结束后补播）
@@ -198,11 +200,12 @@ func settings_open() -> bool:
 
 # ---------------- 战役流程 ----------------
 
-## 进入某个存档位：有进度就回地图，空位就开新战役（先选军师）
-func enter_slot(index: int) -> void:
+## 进入某个存档位：有进度就回地图，空位就开新战役（先选难度档，再选军师）
+func enter_slot(index: int, mode: String = "regular") -> void:
 	Campaign.use_slot(index)
 	progress = Campaign.load_slot(index)
 	if progress.is_empty():
+		pending_mode = "chuben" if mode == "chuben" else "regular"
 		advisor_choices = Campaign.roll_advisors(3)
 		go(SCENE_ADVISOR)
 		return
@@ -212,10 +215,13 @@ func enter_slot(index: int) -> void:
 ## 选定军师 → 正式开新战役（ascension = 心魔等级，0 为常规）
 ## 天时在这里才落定（roll_tian_shi），所以「揭晓」必须在拜师之后：先选人，再看天。
 ## 新局多一屏仪式，成就横幅让位给它，等仪式结束时补播。
-func begin_run(advisor_id: String, ascension_level: int = 0) -> void:
+func begin_run(advisor_id: String, ascension_level: int = 0, mode: String = "") -> void:
 	var hero := "liubang"
 	var deck: Array = (GameData.decks.get("han", []) as Array).duplicate()
-	progress = Campaign.start_run(hero, deck, advisor_id, ascension_level)
+	if mode == "":
+		mode = pending_mode
+	pending_mode = "regular"
+	progress = Campaign.start_run(hero, deck, advisor_id, ascension_level, mode)
 	stage = Campaign.next_stage(progress)
 	var ach := Codex.record_advisor(advisor_id)
 	if str(progress.get("tianShi", "")) != "":
@@ -316,7 +322,7 @@ func _after_reward() -> void:
 				idx = i
 		announce(Codex.record_clear(str(stage["id"]), idx,
 			(progress.get("deck", []) as Array).size(), all.size(),
-			int(progress.get("ascension", 0))))
+			int(progress.get("ascension", 0)), str(progress.get("mode", "regular"))))
 	if Campaign.is_finished(progress):
 		# 八关全破 → 结局画面收束（不再有事件/地图）
 		pending_event = {}

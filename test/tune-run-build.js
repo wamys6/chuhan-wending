@@ -77,6 +77,8 @@ function runOne() {
   const prog = C.emptyProgress('liubang');
   prog.deck = D.DECKS.han.slice();
   prog.advisor = ADVISOR;
+  /* CH_MODE=chuben 走初阵档位（主将 +6 血 / 敌首回合 -1 军粮），默认常规 */
+  prog.mode = process.env.CH_MODE === 'chuben' ? 'chuben' : 'regular';
   const stages = [];
   for (let i = 0; i < C.STAGES.length; i++) {
     const stage = C.STAGES[i];

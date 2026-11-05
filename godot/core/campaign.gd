@@ -70,6 +70,7 @@ static func empty_progress(hero_id: String) -> Dictionary:
 		"enemyManaBonus": 0,
 		"ascension": 0,
 		"tianShi": "",
+		"mode": "regular",
 		"events": [],
 		"eventLog": [],
 		"startedAt": Time.get_unix_time_from_system(),
@@ -96,17 +97,22 @@ static func normalize(p) -> Dictionary:
 	out["ascension"] = clampi(int(out.get("ascension", 0)), 0, ascension_max())
 	if not out.has("tianShi") or typeof(out["tianShi"]) != TYPE_STRING:
 		out["tianShi"] = ""
+	# 初阵档位（P3）：老存档没有 mode，一律按常规难度
+	if str(out.get("mode", "")) != "chuben":
+		out["mode"] = "regular"
 	out["hero"] = str(out.get("hero", "liubang"))
 	return out
 
 ## 开新战役：清空进度，牌组用该英雄的官方预组
 ## ascension 为心魔等级（0 = 常规），天时在开局时随机决定
+## mode 为难度档位："regular"（常规，默认）| "chuben"（初阵宽容档），整条战役跟随存档
 static func start_run(hero_id: String, preset_deck: Array, advisor_id: String = "",
-		ascension_level: int = 0) -> Dictionary:
+		ascension_level: int = 0, mode: String = "regular") -> Dictionary:
 	var p := empty_progress(hero_id)
 	p["deck"] = preset_deck.duplicate()
 	p["advisor"] = advisor_id
 	p["ascension"] = clampi(ascension_level, 0, ascension_max())
+	p["mode"] = "chuben" if mode == "chuben" else "regular"
 	var ts := roll_tian_shi()
 	p["tianShi"] = str(ts.get("id", ""))
 	save_slot(active_slot(), p)
@@ -208,6 +214,12 @@ static func run_mods(progress: Dictionary) -> Dictionary:
 ## 用这个把基线压回个位数。为什么不是预置部队：那是最强杠杆，一加就 0%（实测）。
 const GLOBAL_ENEMY_MANA := 1
 
+## 初阵档位（P3 难度宽容度）：新建战役时可选的宽容档，给不熟卡牌对战的玩家。
+## 跟存档走（progress.mode），中途不变；与心魔/天时叠加；
+## 敌方首回合军粮最低到 0（1 全局 - 1 初阵 - 1 霜降天时），不会为负。
+const CHUBEN_HP := 6
+const CHUBEN_ENEMY_MANA := -1
+
 # 死战专精（1.2）：牌组里死战牌的张数决定死战召唤物的强度增幅。
 # 1.1 的结论是「死战路线靠卡堆起不来」；1.2 量出原因不是选不到（专精玩家已经
 # 拿到 7.6 张、浓度 27%），而是每多一张只值 1~2 点属性、不产生质变。所以这里
@@ -260,6 +272,10 @@ static func engine_rules(stage: Dictionary, progress: Dictionary) -> Dictionary:
 		r["lastStandAtk"] = int(lsb[0])
 		r["lastStandHp"] = int(lsb[1])
 		var hp_bonus := int(progress.get("hpBonus", 0))
+		# 初阵档位：主将 +6 血、敌军首回合 -1 军粮，与心魔/天时叠加
+		if str(progress.get("mode", "")) == "chuben":
+			hp_bonus += CHUBEN_HP
+			r["enemyStartMana"] = int(r.get("enemyStartMana", 0)) + CHUBEN_ENEMY_MANA
 		var mana_bonus := int(progress.get("manaBonus", 0))
 		if mana_bonus != 0:
 			r["playerStartMana"] = int(r.get("playerStartMana", 0)) + mana_bonus
@@ -280,6 +296,9 @@ static func engine_rules(stage: Dictionary, progress: Dictionary) -> Dictionary:
 		hp_bonus += int(mods.get("playerHpBonus", 0))
 		if hp_bonus != 0:
 			r["playerHpBonus"] = hp_bonus
+	# 敌首回合加成钳到 ≥0：初阵(-1)与霜降天时(-1)叠加时把全局(+1)抵穿，按 0 算
+	if r.has("enemyStartMana") and int(r["enemyStartMana"]) < 0:
+		r["enemyStartMana"] = 0
 	return r
 
 ## 一次性加成用完即清（每场战斗开打时调用）
@@ -574,6 +593,7 @@ static func slot_summary(index: int) -> Dictionary:
 	var adv := advisor_by_id(str(p.get("advisor", "")))
 	out["advisor"] = str(adv.get("name", ""))
 	out["hpBonus"] = int(p.get("hpBonus", 0))
+	out["mode"] = str(p.get("mode", "regular"))
 	out["finished"] = is_finished(p)
 	return out
 

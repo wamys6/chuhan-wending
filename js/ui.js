@@ -953,7 +953,7 @@
     Campaign.clearStage(prog, stage.id, cardId || null);
     Campaign.consumeBoosts(prog);       /* 一次性加成只作用于刚打完的这一战 */
     noteAchievements(Codex.recordClear(stage.id, Campaign.stageIndex(stage.id),
-      prog.deck.length, Campaign.STAGES.length).unlocked);
+      prog.deck.length, Campaign.STAGES.length, prog.mode).unlocked);
     SFX.play('win');
     /* 后面还有关卡 → 进入行军事件；最后一关 → 直接收兵回地图 */
     if (Campaign.needsEvent(prog, stage)) {
@@ -1102,14 +1102,20 @@
     var active = s.active ? ' active' : '';
     var badge = s.active ? '<span class="slot-badge">' + T('当前') + '</span>' : '';
     if (s.empty) {
+      var chubenDesc = T('主将 +{hp} 血、敌军首回合 -{mana} 军粮，适合新手',
+        { hp: Campaign.CHUBEN_HP, mana: -Campaign.CHUBEN_ENEMY_MANA });
       return '<div class="slot-row empty' + active + '" data-i="' + s.index + '">' +
         '<div class="slot-no">' + SLOT_CN[s.index] + '</div>' +
         '<div class="slot-body">' +
           '<div class="slot-title">' + T('存档位 {n}', { n: slotNo(s.index) }) + badge + '</div>' +
           '<div class="slot-info">' + T('空存档位') + '</div>' +
-          '<div class="slot-meta">' + T('进入即从「沛县起兵」开一局新战役') + '</div>' +
+          '<div class="slot-meta">' + T('初阵：{d}', { d: chubenDesc }) + '</div>' +
+          '<div class="slot-meta">' + T('常规：标准难度') + '</div>' +
         '</div>' +
-        '<div class="slot-actions"><button class="slot-btn primary" data-act="new">' + T('新建战役') + '</button></div>' +
+        '<div class="slot-actions">' +
+          '<button class="slot-btn primary" data-act="new-chuben">' + T('初阵开局') + '</button>' +
+          '<button class="slot-btn" data-act="new">' + T('常规开局') + '</button>' +
+        '</div>' +
       '</div>';
     }
     var hero = Data.HEROES[s.hero] || Data.HEROES.liubang;
@@ -1119,6 +1125,7 @@
       (s.finished ? ' · ' + T('已问鼎') : (next ? ' · ' + T('下一关：{n}', { n: next.name }) : ''));
     var meta = T('牌组 {n} 张', { n: s.deckSize });
     if (adv) meta += ' · ' + T('军师 {n}', { n: adv.name });
+    if (s.mode === 'chuben') meta += ' · ' + T('初阵档');
     if (s.hpBonus) meta += ' · ' + T('生命上限 {v}', { v: (s.hpBonus > 0 ? '+' : '') + s.hpBonus });
     if (s.updatedAt) meta += ' · ' + fmtSlotTime(s.updatedAt);
     return '<div class="slot-row' + active + '" data-i="' + s.index + '">' +
@@ -1147,10 +1154,10 @@
     setMusic('map');
   }
 
-  function newCampaignInSlot(i) {
+  function newCampaignInSlot(i, mode) {
     Campaign.useSlot(i);
     Campaign.clearSlot(i);
-    var prog = Campaign.start('liubang', Data.DECKS.han.slice());
+    var prog = Campaign.start('liubang', Data.DECKS.han.slice(), null, 0, mode);
     showToast(T('存档位 {n} 开新局：请择一军师', { n: slotNo(i) }));
     openAdvisor(prog);
   }
@@ -1170,7 +1177,8 @@
     var i = parseInt(row.getAttribute('data-i'), 10);
     var act = btn.getAttribute('data-act');
     if (act === 'enter') enterSlot(i);
-    else if (act === 'new') newCampaignInSlot(i);
+    else if (act === 'new-chuben') newCampaignInSlot(i, 'chuben');
+    else if (act === 'new') newCampaignInSlot(i, 'regular');
     else if (act === 'clear') {
       if (!confirm(T('清空存档位 {n}？该位的关卡进度、军师与牌组都会消失（成就业绩保留）。', { n: slotNo(i) }))) return;
       Campaign.clearSlot(i);
@@ -1829,6 +1837,8 @@
     html += '<div class="career-block"><h3>' + T('战 役') + '</h3>' +
       '<div class="career-row"><span>' + T('最远抵达') + '</span><b>' + stageDisp + '</b></div>' +
       '<div class="career-row"><span>' + T('通关关卡') + '</span><b>' + s.clearedCount + ' / ' + chapters + '</b></div>' +
+      (s.chubenClears ? '<div class="career-row"><span>' + T('初阵通关') + '</span><b>' +
+        T('{n} 关', { n: s.chubenClears }) + '</b></div>' : '') +
       '<div class="career-row"><span>' + T('最大牌组') + '</span><b>' + (s.maxDeck || 20) + T('张') + '</b></div>' +
       '<div class="career-row"><span>' + T('用过军师') + '</span><b>' + s.advisors + '</b></div>' +
       '<div class="career-row"><span>' + T('行军事件') + '</span><b>' + s.events + '</b></div>' +

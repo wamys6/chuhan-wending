@@ -509,7 +509,7 @@
     return {
       version: 2, hero: heroId || null, cleared: [], deck: [],
       advisor: null, hpBonus: 0, manaBonus: 0, drawBonus: 0, enemyManaBonus: 0,
-      ascension: 0, tianShi: null,
+      ascension: 0, tianShi: null, mode: 'regular',
       events: [], eventLog: []
     };
   }
@@ -544,6 +544,8 @@
     if (typeof p.ascension !== 'number') p.ascension = 0;
     p.ascension = Math.max(0, Math.min(ASCENSION.length, p.ascension | 0));
     if (typeof p.tianShi !== 'string') p.tianShi = null;
+    /* 初阵档位（P3）：老存档没有 mode，一律按常规难度 */
+    if (p.mode !== 'chuben') p.mode = 'regular';
     return p;
   }
 
@@ -624,6 +626,7 @@
       deckSize: p.deck.length,
       advisor: p.advisor || null,
       hpBonus: p.hpBonus || 0,
+      mode: p.mode === 'chuben' ? 'chuben' : 'regular',
       updatedAt: cell.updatedAt || null
     };
   }
@@ -685,12 +688,14 @@
     return progress.cleared.indexOf(prev) >= 0 ? 'open' : 'locked';
   }
 
-  /* 开新战役：清空进度，牌组用该英雄的官方预组 */
-  function start(heroId, presetDeck, advisorId, ascension) {
+  /* 开新战役：清空进度，牌组用该英雄的官方预组。
+     mode = 'chuben'（初阵，宽容档）| 'regular'（常规），整条战役跟随存档 */
+  function start(heroId, presetDeck, advisorId, ascension, mode) {
     var p = emptyProgress(heroId);
     p.deck = (presetDeck || []).slice();
     p.advisor = advisorId || null;
     p.ascension = Math.max(0, Math.min(ASCENSION.length, (ascension || 0) | 0));
+    p.mode = mode === 'chuben' ? 'chuben' : 'regular';
     p.tianShi = rollTianShi().id;
     save(p);
     return p;
@@ -771,6 +776,12 @@
     return tier > 0 ? LAST_STAND_BONUS[tier - 1] : [0, 0];
   }
 
+  /* 初阵档位（P3 难度宽容度）：新建战役时可选的宽容档，给不熟卡牌对战的玩家。
+     跟存档走（progress.mode），中途不变；与心魔/天时叠加；
+     敌方首回合军粮最低到 0（1 全局 - 1 初阵 - 1 霜降天时），不会为负。 */
+  var CHUBEN_HP = 6;
+  var CHUBEN_ENEMY_MANA = -1;
+
   function engineRules(stage, progress) {
     var r = {};
     for (var k in stage.rules) r[k] = stage.rules[k];
@@ -787,6 +798,11 @@
       r.lastStandAtk = lsb[0];
       r.lastStandHp = lsb[1];
       var hpBonus = progress.hpBonus || 0;
+      /* 初阵档位：主将 +6 血、敌军首回合 -1 军粮，与心魔/天时叠加 */
+      if (progress.mode === 'chuben') {
+        hpBonus += CHUBEN_HP;
+        r.enemyStartMana = (r.enemyStartMana || 0) + CHUBEN_ENEMY_MANA;
+      }
       if (progress.manaBonus) r.playerStartMana = (r.playerStartMana || 0) + progress.manaBonus;
       if (progress.drawBonus) r.openingDraw = (r.openingDraw || 0) + progress.drawBonus;
       if (progress.enemyManaBonus) r.enemyStartMana = (r.enemyStartMana || 0) + progress.enemyManaBonus;
@@ -801,6 +817,8 @@
       });
       if (hpBonus) r.playerHpBonus = hpBonus;
     }
+    /* 加成钳到 ≥0：初阵(-1)与霜降天时(-1)叠加时把全局(+1)抵穿，按 0 算 */
+    if (typeof r.enemyStartMana === 'number' && r.enemyStartMana < 0) r.enemyStartMana = 0;
     return r;
   }
 
@@ -1020,6 +1038,8 @@
     lastStandBonus: lastStandBonus,
     LAST_STAND_RATIO: LAST_STAND_RATIO,
     LAST_STAND_BONUS: LAST_STAND_BONUS,
+    CHUBEN_HP: CHUBEN_HP,
+    CHUBEN_ENEMY_MANA: CHUBEN_ENEMY_MANA,
     rewardPool: rewardPool,
     engineRules: engineRules,
     consumeBoosts: consumeBoosts,

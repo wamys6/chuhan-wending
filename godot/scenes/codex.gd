@@ -303,6 +303,9 @@ func _render_stats() -> void:
 		["最低血量取胜", ("%d 点" % s["bestHpWin"]) if int(s["bestHpWin"]) >= 0 else "—", "越少越险"],
 		["通关进度", "%d / %d" % [s["clearedCount"], Campaign.stages().size()],
 			"问鼎中原" if bool(s["finished"]) else "尚未抵达垓下"],
+		["初阵通关", (("%d 关" % int(s.get("chubenClears", 0)))
+			if int(s.get("chubenClears", 0)) > 0 else "—"),
+			"宽容档下的战绩，另算不混评"],
 		["最大牌组", "%d 张" % s["maxDeck"], "初始 20 张"],
 		["累计伤害", str(s["dmg"]), "其中直击主将 %d" % s["heroDmg"]],
 		["累计出兵", str(s["units"]), "用计 %d 次" % s["spells"]],

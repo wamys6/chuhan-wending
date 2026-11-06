@@ -472,9 +472,19 @@ func _make_hero_bar(pid: String) -> Dictionary:
 	sb_off.set_corner_radius_all(5)
 
 	var mana_label := UiTheme.label("", FS_SMALL, Color("#33555e"))
-	mana_label.position = Vector2(312, 46)
+	# y=40 而不是 46：Label 实际最小高 23px（字号被行高钳制），46 会压到下方牌库行
+	mana_label.position = Vector2(312, 40)
 	mana_label.size = Vector2(136, 20)
 	holder.add_child(mana_label)
+
+	# 牌库余量 / 疲劳告警：疲劳在实测里三成战役战斗、近六成单场会真实生效，
+	# 但此前战斗里双方牌库数完全不可见，玩家无法把「牌库厚度」纳入决策。
+	# 双方都显示——对手牌库是公开信息（实体牌局数得出来）。
+	# y=64：行高 23 → 底 87，贴着血条框内缘（框高 88）
+	var deck_label := UiTheme.label("", FS_MICRO, UiTheme.INK_SOFT)
+	deck_label.position = Vector2(312, 64)
+	deck_label.size = Vector2(136, 16)
+	holder.add_child(deck_label)
 
 	# 敌方主将可点（攻击目标）：提示放右栏顶部，与点阵、军粮数字分行
 	if not is_player:
@@ -509,7 +519,7 @@ func _make_hero_bar(pid: String) -> Dictionary:
 	holder.add_child(danger)
 
 	return {"holder": holder, "hp": hp_label, "mana": mana_label, "avatar": avatar,
-		"name": name_label, "pips": pips, "danger": danger,
+		"name": name_label, "pips": pips, "danger": danger, "deck": deck_label,
 		"sb_on": sb_on, "sb_spent": sb_spent, "sb_off": sb_off}
 
 # ---------------- 状态同步 ----------------
@@ -781,6 +791,17 @@ func _sync_hero_bars() -> void:
 			pip.add_theme_stylebox_override("panel", sb)
 		if int(p["hp"]) <= int(p["maxHp"]) * 0.3:
 			bar["hp"].add_theme_color_override("font_color", Color("#c0261c"))
+		# 牌库余量 / 疲劳：牌库越薄越接近疲劳，≤3 张转琥珀色；抽空后显示下一跳疲劳伤
+		var dl: Label = bar["deck"]
+		var deck_n: int = (p["deck"] as Array).size()
+		if deck_n > 0:
+			dl.text = I18n.T("牌库 %d" % deck_n)
+			# 深琥珀而不是 UiTheme.GOLD：12px 金字在宣纸底上对比度不够（截图上几乎看不见）
+			dl.add_theme_color_override("font_color",
+				Color("#8a6416") if deck_n <= 3 else UiTheme.INK_SOFT)
+		else:
+			dl.text = I18n.T("疲劳 %d 伤" % (int(p["fatigue"]) + 1))
+			dl.add_theme_color_override("font_color", UiTheme.SEAL)
 
 	_sync_skill_btn()
 	_sync_adv_btn()

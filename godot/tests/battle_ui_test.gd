@@ -61,6 +61,7 @@ func _run() -> void:
 	await _test_unit_click(scene)
 	await _test_layout(scene)
 	await _test_threat(scene)
+	await _test_deck_label(scene)
 
 	scene.queue_free()
 	await process_frame
@@ -636,6 +637,53 @@ func _test_threat(scene: Control) -> void:
 	scene.state["current"] = "p1"
 	scene._sync_all()
 	await create_timer(0.6).timeout
+
+## 牌库余量 / 疲劳告警标签：余量如实显示、抽空转疲劳态、布局不压血条右栏既有元素
+func _test_deck_label(scene: Control) -> void:
+	for pid in ["p1", "p2"]:
+		var p: Dictionary = scene.state["players"][pid]
+		var bar: Dictionary = scene.hero_bars[pid]
+		var dl: Label = bar["deck"]
+		var n: int = (p["deck"] as Array).size()
+		ok(dl.text == "牌库 %d" % n, "%s 牌库余量如实显示" % pid, dl.text)
+		# 不压血条右栏既有元素（军粮数字 / 军粮圆点 / 险印）
+		var dr: Rect2 = dl.get_global_rect()
+		ok(not dr.intersects((bar["mana"] as Control).get_global_rect()),
+			"%s 牌库标签不压军粮数字" % pid,
+			"deck=%s mana=%s" % [dr, (bar["mana"] as Control).get_global_rect()])
+		ok(not dr.intersects((bar["pips"][0] as Control).get_global_rect()),
+			"%s 牌库标签不压军粮圆点" % pid)
+		ok(not dr.intersects((bar["danger"] as Control).get_global_rect()),
+			"%s 牌库标签不压险印" % pid)
+		# 在血条框内
+		var holder: Control = bar["holder"]
+		ok(holder.get_global_rect().encloses(dr), "%s 牌库标签在血条框内" % pid,
+			"deck=%s holder=%s" % [dr, holder.get_global_rect()])
+
+	# 抽空 → 疲劳态：显示下一跳伤害（fatigue + 1），朱砂色
+	var me: Dictionary = scene.state["players"]["p1"]
+	var bar1: Dictionary = scene.hero_bars["p1"]
+	var dl1: Label = bar1["deck"]
+	var keep: Array = (me["deck"] as Array).duplicate()
+	(me["deck"] as Array).clear()
+	me["fatigue"] = 2
+	scene._sync_all()
+	await process_frame
+	ok(dl1.text == I18n.T("疲劳 3 伤"), "牌库抽空显示下一跳疲劳伤（已跳 2 → 3）", dl1.text)
+	ok(dl1.get_theme_color("font_color") == UiTheme.SEAL, "疲劳态用朱砂色")
+	# 少量余量 → 琥珀警示
+	(me["deck"] as Array).append_array(keep.slice(0, 2))
+	scene._sync_all()
+	await process_frame
+	ok(dl1.text == "牌库 2", "余量 ≤3 显示牌库数", dl1.text)
+	ok(dl1.get_theme_color("font_color") == Color("#8a6416"), "余量 ≤3 用深琥珀警示色")
+	# 恢复
+	(me["deck"] as Array).clear()
+	(me["deck"] as Array).append_array(keep)
+	me["fatigue"] = 0
+	scene._sync_all()
+	await process_frame
+	ok(dl1.text == "牌库 %d" % keep.size(), "恢复后余量如实显示", dl1.text)
 
 # ---------------- 文件工具 ----------------
 

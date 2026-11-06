@@ -38,6 +38,20 @@ func _run() -> void:
 	await create_timer(0.7).timeout
 	_shot(scene, "_gd-threat-hero.png")
 
+	# 牌库/疲劳标签：正常余量 → 抽空转疲劳态
+	me["hp"] = 30
+	me["fatigue"] = 2
+	(me["deck"] as Array).clear()
+	scene._sync_all()
+	await create_timer(0.7).timeout
+	_shot(scene, "_gd-deck-fatigue.png")
+	me["fatigue"] = 0
+	(me["deck"] as Array).append(RulesEngine.new_instance("n_bing2"))
+	(me["deck"] as Array).append(RulesEngine.new_instance("n_shi1"))
+	scene._sync_all()
+	await create_timer(0.7).timeout
+	_shot(scene, "_gd-deck-low.png")
+
 	quit(0)
 
 func _shot(scene: Node, fname: String) -> void:

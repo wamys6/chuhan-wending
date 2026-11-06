@@ -33,7 +33,7 @@ if (!captured) {
    对应英文模板写在 godot/core/log_text.gd 里，这里不导。 */
 const keep = [
   'ui', 'cards', 'heroes', 'ranks', 'stages', 'advisors',
-  'events', 'ascension', 'tianshi',
+  'events', 'ascension', 'tianshi', 'unlocks',
   'achievements', 'groups', 'keywords', 'keywordList', 'glyphs', 'reasons',
 ];
 

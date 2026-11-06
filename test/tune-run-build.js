@@ -40,6 +40,8 @@ function resetRng(i) { rng = mulberry32(SEED_BASE + i * 7919); }
 
 /* CH_NO_ADV=1：关掉军师主动技（同种子 A/B 量它值多少） */
 if (process.env.CH_NO_ADV === '1' && C.setAdvisorActive) C.setAdvisorActive(false);
+/* CH_EVENT_POOL=base：事件走解锁式 meta 的初始池（量新玩家口径的难度） */
+const EVENT_POOL = process.env.CH_EVENT_POOL === 'base' ? C.baseEvents() : null;
 
 /* 第 7 个参数：奖励倾斜开关（0 = 关掉，用来分离"双亡语"与"奖励倾斜"各自值多少） */
 const BIAS_ON = (process.argv[7] || '1') !== '0';
@@ -110,7 +112,7 @@ function runOne() {
     }
     C.clearStage(prog, stage.id, reward);
     C.consumeBoosts(prog);
-    if (C.needsEvent(prog, stage)) applyEventSim(prog, C.pickEvent(prog));
+    if (C.needsEvent(prog, stage)) applyEventSim(prog, C.pickEvent(prog, EVENT_POOL));
   }
   return { cleared: C.STAGES.length, stages: stages };
 }

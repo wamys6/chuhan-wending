@@ -39,6 +39,8 @@ func _run() -> void:
 	_test_persist()
 	print("· 心魔解锁")
 	_test_ascension_unlock()
+	print("· 解锁式 meta")
+	_test_run_unlocks()
 	_restore_career_file(backup)
 	print("通过 %d 项，失败 %d 项" % [checks, failures])
 	quit(1 if failures > 0 else 0)
@@ -96,7 +98,7 @@ func _test_shape() -> void:
 		ok(str(a["glyph"]).length() == 1, "成就「%s」徽记为单字" % str(a["id"]))
 		ok(Codex.GROUP_NAMES.has(str(a["group"])), "成就「%s」分组合法" % str(a["id"]))
 	ok(ids.size() == 19, "成就 id 唯一")
-	for key in ["battles", "wins", "losses", "streak", "bestStreak", "dmg", "ach", "clearedStages"]:
+	for key in ["battles", "wins", "losses", "streak", "bestStreak", "dmg", "ach", "clearedStages", "runWins", "ascensionBest", "finished"]:
 		ok(c.has(key), "空档含字段 " + key)
 	ok(int(c["battles"]) == 0 and Codex.unlocked_count() == 0, "空档战绩清零")
 	ok(int(c["bestHpWin"]) == -1 and int(c["fastestWin"]) == -1, "空档用 -1 表示「暂无」")
@@ -369,3 +371,83 @@ func _test_ascension_unlock() -> void:
 	for i in stages.size():
 		Codex.record_clear(str(stages[i]["id"]), i, 27, stages.size(), 3)
 	ok(Codex.ascension_unlocked() == 3, "解锁封顶在心魔 3", str(Codex.ascension_unlocked()))
+
+
+# ---------------- 解锁式 meta ----------------
+
+## 解锁梯：runWins / ascensionBest 推高梯级，军师与事件分批入场
+func _test_run_unlocks() -> void:
+	fresh()
+	var st := Codex.unlock_state()
+	ok(int(st["advisors"].size()) == 4, "初始军师 4 位", str(st["advisors"].size()))
+	ok(int(st["events"].size()) == 10, "初始事件 10 个", str(st["events"].size()))
+	ok(int(st["level"]) == 0, "梯级 0")
+	ok(not ("hanxin" in st["advisors"]), "韩信未解锁")
+	ok(not ("dujiang" in st["events"]), "渡河沉舟未解锁")
+	ok("pofu" in st["events"], "破釜沉舟在初始池（配平：它是强事件，锁外面会让新玩家难度上浮）")
+
+	var stages := Campaign.stages()
+	# 第一轮全通 → 韩信 + 破釜沉舟/渡河沉舟
+	for i in stages.size():
+		Codex.record_clear(str(stages[i]["id"]), i, 22, stages.size(), 0)
+	st = Codex.unlock_state()
+	ok(int(Codex.run_wins()) == 1, "整轮通关计 1 次", str(Codex.run_wins()))
+	ok(int(st["level"]) == 1, "梯级 1")
+	ok("hanxin" in st["advisors"], "韩信入场")
+	ok(("dujiang" in st["events"]) and ("qishu" in st["events"]), "两个新事件入场")
+	ok(int(st["events"].size()) == 12, "事件池 12", str(st["events"].size()))
+	ok(not ("chenping" in st["advisors"]), "陈平还没到")
+
+	# 第二轮全通 → 陈平
+	for i in stages.size():
+		Codex.record_clear(str(stages[i]["id"]), i, 24, stages.size(), 0)
+	st = Codex.unlock_state()
+	ok(int(st["level"]) == 2 and "chenping" in st["advisors"], "两次通关解锁陈平")
+
+	# 心魔 1 通关 → 周勃；心魔 2 通关 → 郦食其（全解锁）
+	for i in stages.size():
+		Codex.record_clear(str(stages[i]["id"]), i, 24, stages.size(), 1)
+	st = Codex.unlock_state()
+	ok(int(st["level"]) == 3 and "zhoubo" in st["advisors"], "心魔一通关解锁周勃")
+	ok(int(st["events"].size()) == 16, "事件池满 16", str(st["events"].size()))
+	for i in stages.size():
+		Codex.record_clear(str(stages[i]["id"]), i, 24, stages.size(), 2)
+	st = Codex.unlock_state()
+	ok(int(st["level"]) == 4 and "liyiji" in st["advisors"], "心魔二通关解锁郦食其")
+	ok(int(st["advisors"].size()) == 8, "军师全解锁", str(st["advisors"].size()))
+
+	# 梯级内容与数据一致：每一级恰好声明自己的军师与事件
+	var ladder := Campaign.unlock_ladder()
+	ok(int(ladder.size()) == 4, "解锁梯 4 级")
+	var declared := {}
+	for u in ladder:
+		var aid := str(u.get("advisor", ""))
+		if aid != "":
+			declared[aid] = true
+		for eid in (u.get("events", []) as Array):
+			declared[str(eid)] = true
+	ok(declared.size() == 4 + 6, "梯级共声明 4 军师 + 6 事件", str(declared.size()))
+
+	# 抽取函数认池：初始池抽不出韩信；池空参数 = 全部
+	var rolled := Campaign.roll_advisors(3, st["advisors"])
+	ok(int(rolled.size()) == 3, "全解锁可抽 3")
+	var base_roll := Campaign.roll_advisors(3, Campaign.base_advisors())
+	for a in base_roll:
+		ok(str(a["id"]) in Campaign.base_advisors(), "初始池只出初始军师 %s" % str(a["id"]))
+
+	# 事件抽取认池：base 池永远抽不到 pofu
+	var prog := Campaign.start_run("liubang", [], "zhangliang", 0, "regular")
+	for i in 40:
+		var ev := Campaign.pick_event(prog, Campaign.base_events())
+		ok(str(ev["id"]) in Campaign.base_events(), "事件只从已解锁池出 %s" % str(ev["id"]))
+
+	# 老存档迁移：通关过但没记次数 → 按 1 次算。
+	# 先 reset（删旧档 + 置空内存），再写一份「老格式」档，关缓存标志逼它真读盘
+	Codex.reset()
+	var f := FileAccess.open(Codex.PATH, FileAccess.WRITE)
+	f.store_string(JSON.stringify({"version": 1, "finished": true, "ascensionBest": 1}, "\t"))
+	f.close()
+	Codex._loaded = false  # 迁移路径必须真的从磁盘重读
+	Codex.ensure_loaded()
+	ok(int(Codex.run_wins()) == 1, "老存档迁移：finished → runWins 1", str(Codex.run_wins()))
+	fresh()

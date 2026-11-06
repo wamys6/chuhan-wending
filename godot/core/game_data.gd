@@ -15,6 +15,7 @@ static var advisors: Array = []
 static var events: Array = []
 static var ascension: Array = []
 static var tianshi: Array = []
+static var unlocks: Dictionary = {}
 static var constants: Dictionary = {}
 static var art: Dictionary = {}
 static var faction: Dictionary = {}
@@ -42,6 +43,7 @@ static func ensure_loaded() -> void:
 	events = parsed["events"]
 	ascension = parsed.get("ascension", [])
 	tianshi = parsed.get("tianshi", [])
+	unlocks = parsed.get("unlocks", {})
 	constants = parsed["constants"]
 	art = parsed.get("art", {})
 	faction = parsed.get("faction", {})

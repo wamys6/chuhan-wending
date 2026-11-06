@@ -42,7 +42,12 @@ var out = {
   advisors: strip(C.ADVISORS),
   events: strip(C.EVENTS),
   ascension: strip(C.ASCENSION),
-  tianshi: strip(C.TIANSHI)
+  tianshi: strip(C.TIANSHI),
+  unlocks: {
+    baseAdvisors: C.baseAdvisors(),
+    baseEvents: C.baseEvents(),
+    ladder: C.unlockLadder()
+  }
 };
 
 var dest = path.join(ROOT, 'godot/data/game.json');
@@ -58,4 +63,5 @@ console.log('  卡牌 ' + Object.keys(out.cards).length +
   ' / 军师 ' + Object.keys(out.advisors).length +
   ' / 事件 ' + Object.keys(out.events).length +
   ' / 心魔 ' + out.ascension.length +
+  ' / 解锁梯 ' + out.unlocks.ladder.length +
   ' / 天时 ' + out.tianshi.length);

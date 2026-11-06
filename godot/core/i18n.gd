@@ -545,6 +545,20 @@ static func apply_data() -> void:
 			elif za2.has(f):
 				a2[f] = za2[f]
 
+	# 解锁梯按序号对齐（表里没有 id，顺序即梯级）
+	var zh_unl: Array = _zh.get("unlocks", [])
+	var en_unl: Array = _en.get("unlocks", [])
+	var unl_ladder: Array = GameData.unlocks.get("ladder", [])
+	for i in unl_ladder.size():
+		var u2: Dictionary = unl_ladder[i]
+		var zu2: Dictionary = zh_unl[i] if i < zh_unl.size() else {}
+		var eu2 = en_unl[i] if i < en_unl.size() else null
+		for f in ["desc"]:
+			if en and eu2 != null and eu2 is Dictionary and eu2.has(f):
+				u2[f] = eu2[f]
+			elif zu2.has(f):
+				u2[f] = zu2[f]
+
 	for i in GameData.tianshi.size():
 		var t2: Dictionary = GameData.tianshi[i]
 		var zt2: Dictionary = _find_by_id(_zh["tianshi"], str(t2.get("id", "")))

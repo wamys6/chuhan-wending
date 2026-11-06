@@ -110,6 +110,47 @@
     { id: 'xingbian', name: '天时·星变', desc: '妖星示警：敌军首回合 +1 军粮', mods: { enemyStartMana: 1 } }
   ];
 
+  /* ------------------------------------------------------------------
+     解锁式 meta：军师与事件按生涯进度分批解锁（通关不再只是「更难」）。
+     career = { runWins: 整轮通关次数, ascensionBest: 已通关的最高心魔 }，
+     两个字段都缺按 0 处理；不给 career（老调用/调参工具）= 全解锁。
+     初始池刻意放被动最简单的四位军师；破釜沉舟/夜闻楚歌这些后期剧情
+     事件留到二周目之后，让「再打一局」真的有新东西。
+  ------------------------------------------------------------------ */
+  var BASE_ADVISORS = ['zhangliang', 'xiaohe', 'fankuai', 'xiangying'];
+  var BASE_EVENTS = ['liumin', 'liangdao', 'pofu', 'jiangjiang', 'yiqing',
+    'laozu', 'jisi', 'qiaofu', 'jieqi', 'shibing'];
+  var UNLOCK_LADDER = [
+    { level: 1, cond: { runWins: 1 }, advisor: 'hanxin',
+      events: ['dujiang', 'qishu'], desc: '整轮通关 1 次' },
+    { level: 2, cond: { runWins: 2 }, advisor: 'chenping',
+      events: ['chuge', 'guren'], desc: '整轮通关 2 次' },
+    { level: 3, cond: { ascensionBest: 1 }, advisor: 'zhoubo',
+      events: ['qiufeng', 'honggou'], desc: '通关心魔一' },
+    { level: 4, cond: { ascensionBest: 2 }, advisor: 'liyiji',
+      events: [], desc: '通关心魔二' }
+  ];
+
+  /* 生涯进度 → 解锁状态。advisors/events 为已解锁 id 表，level 为已达梯级 */
+  function unlockState(career) {
+    var runWins = (career && career.runWins) || 0;
+    var ascBest = (career && career.ascensionBest) || 0;
+    var advisors = BASE_ADVISORS.slice(), events = BASE_EVENTS.slice(), level = 0;
+    UNLOCK_LADDER.forEach(function (u) {
+      var need = u.cond.runWins || 0, needAsc = u.cond.ascensionBest || 0;
+      if (runWins >= need && ascBest >= needAsc) {
+        if (advisors.indexOf(u.advisor) < 0) advisors.push(u.advisor);
+        u.events.forEach(function (id) { if (events.indexOf(id) < 0) events.push(id); });
+        level = Math.max(level, u.level);
+      }
+    });
+    return { advisors: advisors, events: events, level: level };
+  }
+
+  function baseAdvisors() { return BASE_ADVISORS.slice(); }
+  function baseEvents() { return BASE_EVENTS.slice(); }
+  function unlockLadder() { return UNLOCK_LADDER; }
+
   function ascensionLevels() { return ASCENSION; }
 
   function ascensionById(level) {
@@ -1014,9 +1055,11 @@
     return null;
   }
 
-  /* 随机抽 n 个军师供玩家挑选 */
-  function rollAdvisors(n) {
-    var copy = ADVISORS.slice(), out = [];
+  /* 随机抽 n 个军师供玩家挑选；pool 传已解锁 id 表（缺省 = 全部，调参工具用） */
+  function rollAdvisors(n, pool) {
+    var src = ADVISORS;
+    if (pool) src = ADVISORS.filter(function (a) { return pool.indexOf(a.id) >= 0; });
+    var copy = src.slice(), out = [];
     for (var i = 0; i < (n || 3) && copy.length > 0; i++) {
       var k = Math.floor(Math.random() * copy.length);
       out.push(copy[k]);
@@ -1031,10 +1074,12 @@
   }
 
   /* 抽一个本局还没触发过的事件；都触发完了就从剩下的里随便挑（第二圈） */
-  function pickEvent(progress) {
+  function pickEvent(progress, unlockedIds) {
     var used = (progress && progress.events) || [];
-    var fresh = EVENTS.filter(function (e) { return used.indexOf(e.id) < 0; });
-    var pool = fresh.length ? fresh : EVENTS;
+    var all = EVENTS;
+    if (unlockedIds) all = EVENTS.filter(function (e) { return unlockedIds.indexOf(e.id) >= 0; });
+    var fresh = all.filter(function (e) { return used.indexOf(e.id) < 0; });
+    var pool = fresh.length ? fresh : all;
     return pool[Math.floor(Math.random() * pool.length)];
   }
 
@@ -1092,6 +1137,10 @@
     eventById: eventById,
     rollAdvisors: rollAdvisors,
     pickEvent: pickEvent,
+    unlockState: unlockState,
+    baseAdvisors: baseAdvisors,
+    baseEvents: baseEvents,
+    unlockLadder: unlockLadder,
     needsEvent: needsEvent,
     applyEvent: applyEvent,
     rarityOf: rarityOf,

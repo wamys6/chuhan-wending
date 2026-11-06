@@ -618,6 +618,14 @@
       { name: 'Inner Demon: Last Stand', desc: 'Enemy +1 Provision on turn 1' }
     ],
 
+    /* 解锁梯：按序号对齐（第 1 项 = 梯级 1） */
+    unlocks: [
+      { desc: 'Finish one full campaign' },
+      { desc: 'Finish two full campaigns' },
+      { desc: 'Clear Inner Demon I' },
+      { desc: 'Clear Inner Demon II' }
+    ],
+
     /* 天时：每局随机一个，八关全程生效 */
     tianshi: {
       qingfeng: { name: 'Fate: Fair Wind', desc: 'You gain +1 Provision on turn 1' },

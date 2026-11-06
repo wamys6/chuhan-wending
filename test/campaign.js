@@ -320,5 +320,64 @@ section('⑮ 重整机会');
   console.log('  每关 1 次 · 再败即终局 · 终结清当前槽 ✅');
 })();
 
+/* ⑯ 解锁式 meta：军师/事件按生涯进度分批入场 */
+section('⑯ 解锁式 meta');
+(function () {
+  var st0 = C.unlockState({});
+  assert(st0.advisors.length === 4, '初始军师 4 位，实际：' + st0.advisors.length);
+  assert(st0.events.length === 10, '初始事件 10 个，实际：' + st0.events.length);
+  assert(st0.level === 0, '初始梯级 0');
+  assert(st0.advisors.indexOf('hanxin') < 0, '韩信不在初始池');
+  assert(st0.events.indexOf('dujiang') < 0, '渡河沉舟不在初始池');
+  assert(st0.events.indexOf('pofu') >= 0, '破釜沉舟在初始池（强度配平）');
+  assert(st0.events.indexOf('liumin') >= 0, '流民归附在初始池');
+
+  /* 阶梯单调：进度只增不减，解锁只多不少 */
+  var prev = st0;
+  [[{runWins:1},1,5,12],[{runWins:2},2,6,14],[{runWins:2,ascensionBest:1},3,7,16],
+   [{runWins:5,ascensionBest:2},4,8,16]].forEach(function (step) {
+    var st = C.unlockState(step[0]);
+    assert(st.level === step[1], '进度 ' + JSON.stringify(step[0]) + ' → 梯级 ' + step[1] + '，实际：' + st.level);
+    assert(st.advisors.length === step[2], '军师 ' + step[2] + ' 位，实际：' + st.advisors.length);
+    assert(st.events.length === step[3], '事件 ' + step[3] + ' 个，实际：' + st.events.length);
+    for (var i = 0; i < prev.advisors.length; i++)
+      assert(st.advisors.indexOf(prev.advisors[i]) >= 0, '梯级推进不回收军师 ' + prev.advisors[i]);
+    for (var j = 0; j < prev.events.length; j++)
+      assert(st.events.indexOf(prev.events[j]) >= 0, '梯级推进不回收事件 ' + prev.events[j]);
+    prev = st;
+  });
+  assert(prev.advisors.length === C.ADVISORS.length, '全通后 8 位军师全解锁');
+
+  /* 梯级声明与全量数据一致：每个 id 都真实存在，无拼错 */
+  var ladder = C.unlockLadder();
+  assert(ladder.length === 4, '解锁梯 4 级');
+  var seenAdv = {}, seenEv = {};
+  ladder.forEach(function (u) {
+    if (u.advisor) { seenAdv[u.advisor] = 1; assert(C.advisorById(u.advisor) !== null, '梯级军师 id 有效：' + u.advisor); }
+    u.events.forEach(function (id) {
+      seenEv[id] = 1; assert(C.eventById(id) !== null, '梯级事件 id 有效：' + id);
+    });
+  });
+  assert(Object.keys(seenAdv).length === 4 && Object.keys(seenEv).length === 6,
+    '梯级共声明 4 军师 + 6 事件');
+
+  /* 抽取函数认池：带池抽不出未解锁内容；不带池 = 全部（调参工具口径） */
+  for (var k = 0; k < 30; k++) {
+    C.rollAdvisors(3, st0.advisors).forEach(function (a) {
+      assert(st0.advisors.indexOf(a.id) >= 0, '初始池只出初始军师：' + a.id);
+    });
+    var ev = C.pickEvent({ events: [] }, st0.events);
+    assert(st0.events.indexOf(ev.id) >= 0, '事件只从已解锁池出：' + ev.id);
+  }
+  assert(C.rollAdvisors(3).length === 3, '不带池照常抽 3（兼容老调用）');
+
+  /* 第二圈也只在已解锁池里转：用过的占满 fresh 时回退不越界 */
+  var usedAll = st0.events.slice();
+  var ev2 = C.pickEvent({ events: usedAll }, st0.events);
+  assert(st0.events.indexOf(ev2.id) >= 0, '第二圈回退也在池内：' + ev2.id);
+
+  console.log('  初始 4+10 · 阶梯单调 · 池约束抽放 ✅');
+})();
+
 console.log('\n通过 ' + passed + ' 项，失败 ' + failed + ' 项');
 if (failed > 0) process.exit(1);

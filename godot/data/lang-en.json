@@ -1132,6 +1132,20 @@
       "desc": "Enemy +1 Provision on turn 1"
     }
   },
+  "unlocks": [
+    {
+      "desc": "Finish one full campaign"
+    },
+    {
+      "desc": "Finish two full campaigns"
+    },
+    {
+      "desc": "Clear Inner Demon I"
+    },
+    {
+      "desc": "Clear Inner Demon II"
+    }
+  ],
   "achievements": {
     "first_win": {
       "name": "First Blood",

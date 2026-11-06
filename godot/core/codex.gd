@@ -91,6 +91,8 @@ static func empty_career() -> Dictionary:
 		"finished": false,
 		# 已通关的最高心魔等级（0 = 只通过常规）。解锁上限 = 本值 + 1
 		"ascensionBest": 0,
+		# 整轮通关次数（解锁式 meta 的梯级货币：军师/事件分批解锁靠它）
+		"runWins": 0,
 		"ach": {},
 		"firstPlayed": 0, "lastPlayed": 0,
 	}
@@ -111,6 +113,9 @@ static func ensure_loaded() -> void:
 		if d.has(k):
 			_career[k] = d[k]
 	_career["version"] = 1
+	# 老存档迁移：通关过但没记过次数 → 按 1 次算（解锁状态只多不少）
+	if bool(_career.get("finished", false)) and int(_career.get("runWins", 0)) == 0:
+		_career["runWins"] = 1
 
 static func save() -> void:
 	ensure_loaded()
@@ -273,6 +278,7 @@ static func record_clear(stage_id: String, idx: int, deck_size: int, total: int,
 	# 通过一次之后 8 关全在 clearedStages 里，再打心魔就永远进不来。
 	if total > 0 and cleared.size() >= total:
 		_career["finished"] = true
+		_career["runWins"] = int(_career.get("runWins", 0)) + 1
 		if ascension_level > int(_career.get("ascensionBest", 0)):
 			_career["ascensionBest"] = ascension_level
 	if deck_size > int(_career["maxDeck"]):
@@ -313,6 +319,20 @@ static func ascension_unlocked() -> int:
 	if not bool(_career.get("finished", false)):
 		return 0
 	return clampi(ascension_best() + 1, 0, Campaign.ascension_max())
+
+# ---------------- 解锁式 meta ----------------
+
+static func run_wins() -> int:
+	ensure_loaded()
+	return int(_career.get("runWins", 0))
+
+## 当前解锁状态（advisors/events = 已解锁 id 表，level = 已达梯级）
+static func unlock_state() -> Dictionary:
+	ensure_loaded()
+	return Campaign.unlock_state({
+		"runWins": int(_career.get("runWins", 0)),
+		"ascensionBest": int(_career.get("ascensionBest", 0)),
+	})
 
 # ---------------- 摘要 ----------------
 

@@ -2304,5 +2304,72 @@
     "enemyStartMana": 1
    }
   }
- ]
+ ],
+ "unlocks": {
+  "baseAdvisors": [
+   "zhangliang",
+   "xiaohe",
+   "fankuai",
+   "xiangying"
+  ],
+  "baseEvents": [
+   "liumin",
+   "liangdao",
+   "pofu",
+   "jiangjiang",
+   "yiqing",
+   "laozu",
+   "jisi",
+   "qiaofu",
+   "jieqi",
+   "shibing"
+  ],
+  "ladder": [
+   {
+    "level": 1,
+    "cond": {
+     "runWins": 1
+    },
+    "advisor": "hanxin",
+    "events": [
+     "dujiang",
+     "qishu"
+    ],
+    "desc": "整轮通关 1 次"
+   },
+   {
+    "level": 2,
+    "cond": {
+     "runWins": 2
+    },
+    "advisor": "chenping",
+    "events": [
+     "chuge",
+     "guren"
+    ],
+    "desc": "整轮通关 2 次"
+   },
+   {
+    "level": 3,
+    "cond": {
+     "ascensionBest": 1
+    },
+    "advisor": "zhoubo",
+    "events": [
+     "qiufeng",
+     "honggou"
+    ],
+    "desc": "通关心魔一"
+   },
+   {
+    "level": 4,
+    "cond": {
+     "ascensionBest": 2
+    },
+    "advisor": "liyiji",
+    "events": [],
+    "desc": "通关心魔二"
+   }
+  ]
+ }
 }

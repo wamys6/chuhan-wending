@@ -208,7 +208,7 @@ func enter_slot(index: int, mode: String = "regular") -> void:
 	progress = Campaign.load_slot(index)
 	if progress.is_empty():
 		pending_mode = "chuben" if mode == "chuben" else "regular"
-		advisor_choices = Campaign.roll_advisors(3)
+		advisor_choices = Campaign.roll_advisors(3, Codex.unlock_state()["advisors"])
 		go(SCENE_ADVISOR)
 		return
 	stage = Campaign.next_stage(progress)
@@ -337,9 +337,12 @@ func _after_reward() -> void:
 		for i in all.size():
 			if str(all[i]["id"]) == str(stage["id"]):
 				idx = i
+		var prev_level := int(Codex.unlock_state().get("level", 0))
 		announce(Codex.record_clear(str(stage["id"]), idx,
 			(progress.get("deck", []) as Array).size(), all.size(),
 			int(progress.get("ascension", 0)), str(progress.get("mode", "regular"))))
+		# 解锁式 meta：整轮通关可能推高解锁梯级（新军师/新事件），单独播一条
+		announce_unlocks(prev_level)
 	if Campaign.is_finished(progress):
 		# 八关全破 → 结局画面收束（不再有事件/地图）
 		pending_event = {}
@@ -347,7 +350,7 @@ func _after_reward() -> void:
 		go(SCENE_ENDING)
 		return
 	if Campaign.needs_event(progress, stage):
-		pending_event = Campaign.pick_event(progress)
+		pending_event = Campaign.pick_event(progress, Codex.unlock_state()["events"])
 		go(SCENE_EVENT)
 		return
 	pending_event = {}
@@ -466,6 +469,61 @@ func announce(list: Array) -> void:
 	tw.tween_callback(layer.queue_free)
 	Audio.sfx("win")
 
+## 解锁横幅：梯级推高时播「新解锁：军师/事件名」。unlocks 的 desc 来自数据
+## （i18n 按序号合并英文），这里只报内容名。
+func announce_unlocks(prev_level: int) -> void:
+	var st: Dictionary = Codex.unlock_state()
+	if int(st.get("level", 0)) <= prev_level:
+		return
+	# 每一梯级给的东西就写在 ladder 项里（advisor + events），直接取，不用做差集
+	var names: Array = []
+	var cur: Dictionary = {}
+	for u in Campaign.unlock_ladder():
+		if int(u.get("level", 0)) == int(st.get("level", 0)):
+			cur = u
+	var adv_id := str(cur.get("advisor", ""))
+	if adv_id != "":
+		var def := Campaign.advisor_by_id(adv_id)
+		names.append(str(def.get("name", adv_id)) + "·" + str(def.get("active", {}).get("name", "")))
+	for eid in (cur.get("events", []) as Array):
+		var ev := Campaign.event_by_id(str(eid))
+		names.append(str(ev.get("name", eid)))
+	if names.is_empty():
+		return
+	var layer := CanvasLayer.new()
+	layer.layer = 120
+	add_child(layer)
+	var box := PanelContainer.new()
+	box.add_theme_stylebox_override("panel", UiTheme.panel_style(UiTheme.SEAL, UiTheme.INK, 10, 3))
+	var w := 460.0
+	var h := 88.0
+	box.position = Vector2((Widgets.viewport_size().x - w) * 0.5, -h - 20.0)
+	box.size = Vector2(w, h)
+	box.custom_minimum_size = Vector2(w, h)
+	layer.add_child(box)
+	var pad := MarginContainer.new()
+	pad.add_theme_constant_override("margin_left", 22)
+	pad.add_theme_constant_override("margin_right", 22)
+	pad.add_theme_constant_override("margin_top", 12)
+	pad.add_theme_constant_override("margin_bottom", 12)
+	box.add_child(pad)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 4)
+	pad.add_child(col)
+	var head := UiTheme.label(I18n.T("新 解 锁"), 15, UiTheme.PAPER)
+	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(head)
+	var cond := I18n.T(str(cur.get("desc", "")))
+	var line := UiTheme.label(I18n.T("、".join(names)) + "\n（" + cond + "）", 14, Color(1, 0.96, 0.9))
+	line.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(line)
+	var tw := create_tween()
+	tw.tween_property(box, "position:y", 26.0, 0.35).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(2.6)
+	tw.tween_property(box, "position:y", -h - 20.0, 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tw.tween_callback(layer.queue_free)
+	Audio.sfx("win")
+
 # ---------------- 开发用：全流程截图巡览 ----------------
 ## 用法：Godot --path godot -- --tour
 ## 依次走 主菜单 → 存档位 → 地图 → 过场 → 对战 → 奖励 → 事件，每屏存一张 png。
@@ -521,6 +579,18 @@ func _tour() -> void:
 		codex._switch_tab("ach")
 		await get_tree().create_timer(0.9).timeout
 		_shot("_gd-codex-ach.png")
+		codex._switch_tab("unlocks")
+		await get_tree().create_timer(0.9).timeout
+		_shot("_gd-codex-unlocks.png")
+
+	# 解锁横幅：临时把生涯推到梯级 1（韩信 + 两个事件），拍完立刻还原内存档。
+	# 只动内存不动磁盘——tour 是验收工具，不该改玩家的真实生涯。
+	var career_backup: Dictionary = Codex.current().duplicate(true)
+	Codex._career["runWins"] = maxi(int(Codex._career.get("runWins", 0)), 1)
+	announce_unlocks(0)
+	await get_tree().create_timer(1.0).timeout
+	_shot("_gd-unlock-banner.png")
+	Codex._career = career_backup
 
 	progress = Campaign.load_slot(0)
 	go(SCENE_MAP)
@@ -585,7 +655,7 @@ func _tour() -> void:
 	await get_tree().create_timer(1.4).timeout
 	_shot("_gd-reward.png")
 
-	pending_event = Campaign.pick_event(progress)
+	pending_event = Campaign.pick_event(progress, Codex.unlock_state()["events"])
 	go(SCENE_EVENT)
 	await get_tree().create_timer(1.4).timeout
 	_shot("_gd-event.png")

@@ -430,27 +430,77 @@ static func roll_rewards(stage: Dictionary, hero_faction: String, n: int, deck: 
 static func advisor_by_id(advisor_id: String) -> Dictionary:
 	return GameData.advisor_by_id(advisor_id)
 
-## 随机抽 n 个军师供玩家挑选
-static func roll_advisors(n: int = 3) -> Array:
-	var copy: Array = (GameData.advisors as Array).duplicate(true)
+## 随机抽 n 个军师供玩家挑选；unlocked 传已解锁 id 表（空 = 全部，调参工具/老测试用）
+static func roll_advisors(n: int = 3, unlocked: Array = []) -> Array:
+	var src: Array = GameData.advisors
+	if not unlocked.is_empty():
+		var filtered: Array = []
+		for a in src:
+			if str(a["id"]) in unlocked:
+				filtered.append(a)
+		src = filtered
+	var copy: Array = src.duplicate(true)
 	var out: Array = []
 	while out.size() < n and copy.size() > 0:
 		out.append(copy.pop_at(randi() % copy.size()))
 	return out
+
+# ---------------- 解锁式 meta ----------------
+
+## 解锁表（与 js/campaign.js 的 UNLOCK_LADDER 同构，单源是 JS，这里只读数据）
+static func base_advisors() -> Array:
+	GameData.ensure_loaded()
+	return (GameData.unlocks.get("baseAdvisors", []) as Array).duplicate()
+
+static func base_events() -> Array:
+	GameData.ensure_loaded()
+	return (GameData.unlocks.get("baseEvents", []) as Array).duplicate()
+
+static func unlock_ladder() -> Array:
+	GameData.ensure_loaded()
+	return (GameData.unlocks.get("ladder", []) as Array).duplicate()
+
+## 生涯进度 → 解锁状态。career = { runWins, ascensionBest }（缺按 0）
+## 与 js unlockState 同构：advisors/events 为已解锁 id 表，level 为已达梯级
+static func unlock_state(career: Dictionary) -> Dictionary:
+	var run_wins := int(career.get("runWins", 0))
+	var asc_best := int(career.get("ascensionBest", 0))
+	var advisors: Array = base_advisors()
+	var events: Array = base_events()
+	var level := 0
+	for u in unlock_ladder():
+		var cond: Dictionary = u.get("cond", {})
+		if run_wins >= int(cond.get("runWins", 0)) and asc_best >= int(cond.get("ascensionBest", 0)):
+			var aid := str(u.get("advisor", ""))
+			if aid != "" and not (aid in advisors):
+				advisors.append(aid)
+			for eid in (u.get("events", []) as Array):
+				if not (str(eid) in events):
+					events.append(str(eid))
+			level = maxi(level, int(u.get("level", 0)))
+	return {"advisors": advisors, "events": events, "level": level}
 
 # ---------------- 行军事件 ----------------
 
 static func event_by_id(event_id: String) -> Dictionary:
 	return GameData.event_by_id(event_id)
 
-## 抽一个本局还没触发过的事件；都触发完了就从头再来一圈
-static func pick_event(progress: Dictionary) -> Dictionary:
+## 抽一个本局还没触发过的事件；都触发完了就从头再来一圈。
+## unlocked 传已解锁 id 表（空 = 全部）——第二圈也只在已解锁池里转
+static func pick_event(progress: Dictionary, unlocked: Array = []) -> Dictionary:
 	var used: Array = progress.get("events", [])
+	var all: Array = GameData.events
+	if not unlocked.is_empty():
+		var filtered: Array = []
+		for e in all:
+			if str(e["id"]) in unlocked:
+				filtered.append(e)
+		all = filtered
 	var fresh: Array = []
-	for e in GameData.events:
+	for e in all:
 		if not (str(e["id"]) in used):
 			fresh.append(e)
-	var pool: Array = fresh if fresh.size() > 0 else (GameData.events as Array)
+	var pool: Array = fresh if fresh.size() > 0 else all
 	return pool[randi() % pool.size()]
 
 ## 通关后、且后面还有关卡 → 需要一个事件节点

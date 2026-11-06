@@ -9,6 +9,7 @@ const TABS := [
 	{"id": "cards", "label": "卡牌图鉴"},
 	{"id": "stats", "label": "战 绩"},
 	{"id": "ach", "label": "成 就"},
+	{"id": "unlocks", "label": "解 锁"},
 ]
 const FACTION_FILTERS := [
 	{"id": "all", "label": "全部阵营"},
@@ -99,6 +100,7 @@ func _render_body() -> void:
 		"cards": _render_cards()
 		"stats": _render_stats()
 		"ach": _render_achievements()
+		"unlocks": _render_unlocks()
 
 # ---------------- 卡牌图鉴 ----------------
 
@@ -339,6 +341,76 @@ func _render_stats() -> void:
 		note.position = Vector2(20, 72)
 		card.add_child(note)
 		Widgets.rise_in(card, 0.03 * i, 10.0)
+
+# ---------------- 渐进解锁 ----------------
+
+## 解锁梯一览：4 个梯级各一张卡，写明条件与内容；已达成的亮、没达成的暗
+func _render_unlocks() -> void:
+	var st: Dictionary = Codex.unlock_state()
+	var cur_level := int(st.get("level", 0))
+	var scroll := ScrollContainer.new()
+	scroll.position = Vector2(320, 0)
+	scroll.size = Vector2(800, 704)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_body.add_child(scroll)
+
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 10)
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(col)
+
+	var head := UiTheme.label(I18n.T("渐进解锁"), 18, UiTheme.SEAL)
+	col.add_child(head)
+	var intro := UiTheme.label(I18n.T("整轮通关与心魔推进都会带新军师、新事件入场"), 13, UiTheme.INK_SOFT)
+	col.add_child(intro)
+
+	var ladder := Campaign.unlock_ladder()
+	for u in ladder:
+		var lv := int(u.get("level", 0))
+		var got := lv <= cur_level
+		var card := Panel.new()
+		card.custom_minimum_size = Vector2(760, 88)
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		card.add_theme_stylebox_override("panel", UiTheme.panel_style(
+			Color(1, 1, 1, 0.72) if got else Color(1, 1, 1, 0.34),
+			UiTheme.SEAL if got else UiTheme.INK_SOFT, 6, 1 if got else 0))
+		col.add_child(card)
+
+		var mark := UiTheme.label("一二三四"[mini(lv - 1, 3)] if got else "·", 26, UiTheme.SEAL if got else UiTheme.INK_SOFT)
+		mark.position = Vector2(28, 28)
+		card.add_child(mark)
+
+		var names: Array = []
+		var adv_id := str(u.get("advisor", ""))
+		if adv_id != "":
+			var def := Campaign.advisor_by_id(adv_id)
+			var fmt := "%s (%s %d)" if I18n.is_en() else "%s（%s %d）"
+			names.append(fmt % [str(def.get("name", adv_id)),
+				str(def.get("active", {}).get("name", "")), int(def.get("active", {}).get("cost", 0))])
+		for eid in (u.get("events", []) as Array):
+			names.append(str(Campaign.event_by_id(str(eid)).get("name", eid)))
+		# 分隔符与括号都按语言走：中文「、」「（）」，英文 ", " 与半角括号。
+		# 不交给 I18n.T —— 它只查汉字区，「、」在英文下会原样放行。
+		var sep := ", " if I18n.is_en() else "、"
+		# 英文军师名 + 两个事件比中文长一大截：小一号字才装得进 570px
+		var title := UiTheme.label(sep.join(names) if not names.is_empty() else "—",
+			15 if I18n.is_en() else 17, UiTheme.INK if got else UiTheme.INK_SOFT)
+		title.position = Vector2(64, 18)
+		# 长标题（英文军师名 + 两个事件）会压到右侧状态标签，截断而不是换行
+		title.size = Vector2(570, 26)
+		title.clip_text = true
+		card.add_child(title)
+
+		var cond := UiTheme.label(I18n.T(str(u.get("desc", ""))),
+			14, UiTheme.SEAL if got else UiTheme.INK_SOFT)
+		cond.position = Vector2(64, 50)
+		card.add_child(cond)
+
+		var tag := UiTheme.label(I18n.T("已解锁") if got else I18n.T("未解锁"),
+			14, UiTheme.SEAL if got else UiTheme.INK_SOFT)
+		tag.position = Vector2(660, 32)
+		card.add_child(tag)
+		# 不要 rise_in：它 tween 的是 position，会盖掉 VBox 的布局（4 张卡挤回原点）
 
 # ---------------- 成就 ----------------
 

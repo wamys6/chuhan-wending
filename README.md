@@ -1,6 +1,6 @@
 # 楚汉·问鼎
 
-楚汉争霸主题的水墨卡牌对战游戏。炉石式骨架 + 三列军阵的原创玩法，含 8 关 PvE 战役、快速对战与好友联机。当前版本 **v0.9.4**（开发中）。
+楚汉争霸主题的水墨卡牌对战游戏。炉石式骨架 + 三列军阵的原创玩法，含 8 关 PvE 战役、快速对战与好友联机。当前版本 **v0.9.5**（开发中）。
 
 ![截图](docs/screenshot-1104-event-honggou.png)
 
@@ -47,10 +47,10 @@ Godot 侧（headless）：
 
 ```bash
 Godot --headless --path godot --script res://tests/replay.gd        # 双端等价性 629 项
-Godot --headless --path godot --script res://tests/campaign_test.gd # 战役 168 项
+Godot --headless --path godot --script res://tests/campaign_test.gd # 战役 181 项
 Godot --headless --path godot --script res://tests/pvp_test.gd      # 联机 35 项（含真断线重连）
 # 其余：audio / codex / tutorial / i18n / battle_ui / fonts / card_art /
-#       art_rect / keyword_stamp / event_pick / advisor …共 2142 项 + E2E 19 项（-- --flow）
+#       art_rect / keyword_stamp / event_pick / advisor / scene_smoke …共 2211 项 + E2E 24 项（-- --flow）
 # 中继自测：node tools/relay-smoke.js（20 项）
 ```
 

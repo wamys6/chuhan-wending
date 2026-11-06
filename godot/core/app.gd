@@ -32,6 +32,8 @@ var pending_event: Dictionary = {}
 var advisor_choices: Array = []
 ## 新战役待定的难度档位：空存档位点「初阵/常规」时暂存，拜军师（begin_run）时落进进度
 var pending_mode: String = "regular"
+## 本局终结的提示（清档回存档位时显示一次，读完即清）
+var run_end_notice: String = ""
 ## 从战役里「看牌组」后返回用的标记
 var return_to := SCENE_MAP
 ## 被仪式页压住的成就横幅（天时揭晓结束后补播）
@@ -231,6 +233,10 @@ func begin_run(advisor_id: String, ascension_level: int = 0, mode: String = "") 
 	announce(ach)
 	go(SCENE_MAP)
 
+## 本关还剩几次重整（结算面板与过场页都要用；返回 0 表示再败即终局）
+func stage_retry_left() -> int:
+	return Campaign.retry_left(progress, str(stage.get("id", "")))
+
 ## 点关卡 → 过场
 func open_stage(stage_id: String) -> void:
 	if Campaign.status_of(progress, stage_id) != "open":
@@ -279,8 +285,19 @@ func finish_battle(win: bool, info: Dictionary = {}) -> void:
 		go(SCENE_MENU, 0.1)
 		return
 	if not win:
-		# 败仗不推进进度，回地图可以重打（战役的容错设计）
-		go(SCENE_MAP, 0.1)
+		# 败仗不推进进度。每关只有 RETRY_PER_STAGE 次重整机会：
+		# 用完还败 → 本局终结，清档回存档位（成就与生涯是独立存档，不受影响）
+		var sid := str(stage.get("id", ""))
+		if Campaign.take_retry(progress, sid):
+			go(SCENE_MAP, 0.1)
+			return
+		Campaign.end_run()
+		run_end_notice = "重整机会已尽，大军溃散 · 本局终结"
+		progress = {}
+		stage = {}
+		pending_event = {}
+		reward_cards = []
+		go(SCENE_SLOTS, 0.1)
 		return
 	go(SCENE_REWARD, 0.1)
 
@@ -718,6 +735,31 @@ func _flow_test() -> void:
 	sc = get_tree().current_scene
 	_fok(sc != null and sc.scene_file_path == SCENE_ENDING, "八关全破进入结局画面")
 	_fok(Campaign.is_finished(Campaign.load_slot(0)), "全通进度已落盘")
+
+	# 重整用尽 → 本局终结（P5）：同一关两连败，清档回存档位
+	Campaign._wipe_all()
+	progress = Campaign.start_run("liubang",
+		(GameData.decks.get("han", []) as Array).duplicate(), "", 0, "regular")
+	stage = Campaign.next_stage(progress)
+	open_stage(str(stage.get("id", "")))
+	await get_tree().create_timer(0.6).timeout
+	launch_stage()
+	await get_tree().create_timer(0.8).timeout
+	finish_battle(false)
+	await get_tree().create_timer(1.2).timeout
+	_fok(get_tree().current_scene.scene_file_path == SCENE_MAP, "首败仍可重整（回地图，不终结）")
+	_fok(int(Campaign.retry_left(Campaign.load_slot(0), str(stage.get("id", "")))) == 0,
+		"首败已消耗本关重整机会")
+	# 同一关再败一次 → 本局终结
+	open_stage(str(stage.get("id", "")))
+	await get_tree().create_timer(0.6).timeout
+	launch_stage()
+	await get_tree().create_timer(0.8).timeout
+	finish_battle(false)
+	await get_tree().create_timer(1.2).timeout
+	_fok(get_tree().current_scene.scene_file_path == SCENE_SLOTS, "同一关二败 → 回存档位")
+	_fok(bool(Campaign.slot_summary(0)["empty"]), "本局终结后存档位已清空")
+	_fok(run_end_notice == "", "终局提示只在存档页显示一次")
 	Campaign._wipe_all()
 	progress = {}
 	stage = {}

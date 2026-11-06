@@ -22,6 +22,14 @@ func _build() -> void:
 	sub.size = Vector2(1440, 26)
 	add_child(sub)
 
+	# 本局终结的提示（重整机会用尽）：只显示一次，读完即清
+	if App.run_end_notice != "":
+		var notice := Widgets.chip(App.run_end_notice, UiTheme.SEAL, UiTheme.PAPER)
+		notice.position = Vector2(720 - notice.size.x * 0.5, 176)
+		add_child(notice)
+		Widgets.fade_in(notice, 0.05, 0.4)
+		App.run_end_notice = ""
+
 	var card_w := 400.0
 	var gap := 40.0
 	var total := Campaign.slot_count() * card_w + (Campaign.slot_count() - 1) * gap

@@ -421,7 +421,7 @@
     advisors: {
       zhangliang: {
         name: 'Zhang Liang', title: 'Grand Strategist',
-        desc: 'The first Stratagem you play each turn draws a card and refunds 1 Provision.',
+        desc: 'The first Stratagem you play each turn draws a card.',
         flavor: 'Planning inside the tent; victory a thousand li away.'
       },
       xiaohe: {
@@ -466,9 +466,9 @@
         name: 'Refugees Join',
         text: 'Famine in Guanzhong; thousands of refugees, old and young, follow the army. The grain will hold only to next month, and the road ahead is long.',
         options: [
-          { label: 'Open the granaries', hint: 'Max Health +3' },
+          { label: 'Open the granaries', hint: 'Gain two Infantry cards; -1 Provision turn 1 next battle' },
           { label: 'Enlist them', hint: 'Gain a random Infantry card' },
-          { label: 'Turn them away', hint: 'No complications' }
+          { label: 'Turn them away', hint: '+1 Provision turn 1 next battle' }
         ]
       },
       liangdao: {
@@ -476,8 +476,8 @@
         text: 'Chu outriders have cut the grain road; nothing will come from Aocang for three days. Men have begun slaughtering the horses.',
         options: [
           { label: 'Escort the grain', hint: 'Gain a fine card; -1 Provision turn 1 next battle' },
-          { label: 'Abandon it, travel light', hint: 'Max Health -2' },
-          { label: 'Eat the horses', hint: 'Max Health -1, gain a random Infantry card' }
+          { label: 'Abandon it, travel light', hint: 'A random card is removed from your deck' },
+          { label: 'Eat the horses', hint: 'Gain a random Infantry card; -1 opening card next battle' }
         ]
       },
       qishu: {
@@ -485,7 +485,7 @@
         text: 'Digging along the march route, you uncover a bundle of bamboo slips—old military texts, most characters eaten away, a few strategies still legible.',
         options: [
           { label: 'Read by lamplight', hint: 'Pick 1 of 3 Stratagems' },
-          { label: 'Burn them', hint: 'Max Health +2' }
+          { label: 'Burn them', hint: '+1 Provision turn 1 next battle; a random card is lost' }
         ]
       },
       jiangjiang: {
@@ -493,8 +493,8 @@
         text: 'A Chu officer surrenders with his troops, saying his family are in Guanzhong. Your generals smell a ruse.',
         options: [
           { label: 'Take him in', hint: 'Gain a random card' },
-          { label: 'Send him home', hint: 'Max Health +2' },
-          { label: 'Execute him as warning', hint: 'Max Health -1, gain a fine card' }
+          { label: 'Send him home', hint: '-1 Provision turn 1 for the enemy next battle' },
+          { label: 'Execute him as warning', hint: 'Gain a fine card; a random card is lost' }
         ]
       },
       yiqing: {
@@ -502,7 +502,7 @@
         text: 'The summer rains have not stopped for months, and sickness seeps through the camp. The physician says: cut off the arm to save the body, or spend everything you have.',
         options: [
           { label: 'Isolate the sick', hint: 'A random card is removed from your deck' },
-          { label: 'Spare no cost', hint: 'Max Health -3, deck untouched' }
+          { label: 'Spare no cost', hint: 'Deck untouched; -2 Provisions turn 1 next battle' }
         ]
       },
       laozu: {
@@ -510,32 +510,32 @@
         text: 'An old soldier who has followed you since Pei kneels before the tent. His legs are failing him, he says; he cannot march any farther.',
         options: [
           { label: 'Let him go home', hint: 'Remove a card from your deck (you choose)' },
-          { label: 'Keep him in the ranks', hint: 'Max Health -2' },
-          { label: 'Reward him richly, then release', hint: 'Max Health -1, remove two cards' }
+          { label: 'Keep him in the ranks', hint: '-1 opening card next battle' },
+          { label: 'Reward him richly, then release', hint: 'Remove two cards; -1 Provision turn 1 next battle' }
         ]
       },
       jisi: {
         name: 'Sacrifice to the River',
         text: 'The army must cross. Old custom demands sinking a jade disc for the river god. The shamans say: the god is displeased, the boats must not launch.',
         options: [
-          { label: 'Sink the jade', hint: '+2 Provisions turn 1 next battle' },
-          { label: 'Skip the rite, save the jade', hint: 'Max Health +1' }
+          { label: 'Sink the jade', hint: '+2 Provisions turn 1 next battle; -1 opening card' },
+          { label: 'Skip the rite, save the jade', hint: '+1 Provision turn 1 next battle' }
         ]
       },
       qiaofu: {
         name: 'The Woodcutter\u2019s Path',
         text: 'A woodcutter in the hills says there is a small path that loops behind the enemy—rugged going, and the baggage train may have to be abandoned.',
         options: [
-          { label: 'Take the small path', hint: '+1 Provision and +1 opening card next battle' },
-          { label: 'March the high road', hint: 'Safe and steady' }
+          { label: 'Take the small path', hint: '+2 Provisions and +1 opening card next battle; a random card is lost' },
+          { label: 'March the high road', hint: '+1 Provision turn 1 next battle' }
         ]
       },
       pofu: {
         name: 'Break the Kettles',
         text: 'A strong enemy ahead, no retreat behind. Your generals ask: smash the cooking pots now, or keep them just in case?',
         options: [
-          { label: 'Sink the boats, smash the pots', hint: 'Max Health -5, gain two cards' },
-          { label: 'Keep the baggage train', hint: 'Steady, as planned' }
+          { label: 'Sink the boats, smash the pots', hint: 'Remove two cards, gain three' },
+          { label: 'Keep the baggage train', hint: '+1 opening card next battle' }
         ]
       },
       chuge: {
@@ -543,17 +543,17 @@
         text: 'At midnight, songs of Chu drift in from beyond the pickets—sweet and desolate to the bone. Soldiers rise all around the camp; some weep.',
         options: [
           { label: 'Teach the camp the songs', hint: 'Enemy -1 Provision turn 1 next battle' },
-          { label: 'Flog the troublemakers', hint: 'Max Health -1, gain a random card' },
-          { label: 'Comfort the soldiers', hint: 'Max Health +1' }
+          { label: 'Flog the troublemakers', hint: 'Gain a random card; -1 opening card next battle' },
+          { label: 'Comfort the soldiers', hint: '+1 opening card next battle' }
         ]
       },
       jieqi: {
         name: 'Borrowing from the People',
         text: 'Xingyang is encircled and the granaries are empty. The village elders gather outside the gate: they will lend thirty thousand bushels, if you remit their taxes for three years after the war.',
         options: [
-          { label: 'Sign the bond', hint: '+3 Provision turn 1 next battle, Max Health -2' },
-          { label: 'Requisition the grain', hint: 'Max Health -1, gain a random unit card' },
-          { label: 'Split the army to farm', hint: 'Draw two extra opening cards next battle, Max Health -1' }
+          { label: 'Sign the bond', hint: '+3 Provisions turn 1 next battle; -1 opening card' },
+          { label: 'Requisition the grain', hint: 'Gain an Infantry card; -1 opening card next battle' },
+          { label: 'Split the army to farm', hint: '+2 opening cards next battle; -1 Provision turn 1' }
         ]
       },
       guren: {
@@ -561,16 +561,16 @@
         text: 'Near midnight someone knocks at the gate: Xiang Bo, the Hegemon\'s own uncle. Years ago at Xiapi you saved his life. He says the Hegemon will lead the iron cavalry himself tomorrow.',
         options: [
           { label: 'Send him off with gifts', hint: 'Enemy -2 Provision turn 1 next battle' },
-          { label: 'Beg him to soften the blow', hint: 'Max Health +4, -1 Provision turn 1 next battle' },
-          { label: 'Refuse him the gate', hint: 'Owe him nothing' }
+          { label: 'Beg him to soften the blow', hint: '-1 Provision turn 1 for the enemy; +1 opening card' },
+          { label: 'Refuse him the gate', hint: '+1 Provision turn 1 next battle' }
         ]
       },
       shibing: {
         name: 'Homesick Men',
         text: 'Three years since you entered the pass. Every night someone hums a Pei County tune. The provost brings the muster roll and asks: give them an answer, or there will be trouble.',
         options: [
-          { label: 'Promise them home', hint: 'Max Health +3, draw one fewer opening card next battle' },
-          { label: 'Crack down on mutiny', hint: 'Gain two cards, Max Health -3' },
+          { label: 'Promise them home', hint: '+2 Provisions turn 1 next battle; -1 opening card' },
+          { label: 'Crack down on mutiny', hint: 'Gain two cards; a random card is lost' },
           { label: 'Rest in place', hint: 'Draw one extra opening card next battle' }
         ]
       },
@@ -580,24 +580,24 @@
         options: [
           { label: 'Lighten and cross', hint: '+2 Provision turn 1 next battle, lose a random card from your deck' },
           { label: 'Wait for the water', hint: 'Draw two extra opening cards next battle, Enemy +1 Provision turn 1' },
-          { label: 'Follow the bank', hint: 'Max Health +2' }
+          { label: 'Follow the bank', hint: '+1 Provision turn 1 next battle' }
         ]
       },
       qiufeng: {
         name: 'The False King',
         text: 'A messenger rides in from Qi: Han Xin has taken the kingdom and asks to be made its "acting king." For a moment no one in the tent speaks.',
         options: [
-          { label: 'Make him king in truth', hint: 'Gain two cards, Max Health -2' },
+          { label: 'Make him king in truth', hint: 'Gain two cards; -1 opening card next battle' },
           { label: 'Send an envoy to placate him', hint: 'Draw one extra opening card next battle' },
-          { label: 'Rebuke his presumption', hint: 'Max Health +3' }
+          { label: 'Rebuke his presumption', hint: '+1 Provision turn 1 next battle' }
         ]
       },
       honggou: {
         name: 'The Hong Canal Truce',
         text: 'Xiang Yu returns your father and your wife, and proposes to divide the realm at the Hong Canal. Your officers all say: at last, we can rest.',
         options: [
-          { label: 'Make the truce', hint: 'Max Health +5, draw one fewer opening card next battle' },
-          { label: 'Pursue and strike', hint: 'Max Health -4, gain three cards' },
+          { label: 'Make the truce', hint: '-2 Provisions turn 1 for the enemy; -1 opening card' },
+          { label: 'Pursue and strike', hint: 'Gain three cards; a random card is lost' },
           { label: 'Feign agreement', hint: '+2 Provision turn 1 next battle' }
         ]
       }

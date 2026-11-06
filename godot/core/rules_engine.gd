@@ -25,6 +25,7 @@ const ADV_ZHOUBO_BUFF := 1      ## 周勃：每回合给最高攻兵种 +N/+N（
 const ADV_ZHOUBO_CAP := 1       ## 周勃：每场战斗成长次数上限（2 次实测 31% 超带）
 const ADV_LIYIJI_DOWN := 1      ## 郦食其：每轮削敌方最高攻兵种 -N 攻（控场）
 const ADV_LIYIJI_CAP := 1       ## 郦食其：每场战斗削减次数上限（3 次 45%、2 次 30%）
+const ADV_ZHANGLIANG_REFUND := 0 ## 张良：每回合首张计谋返还 N 军粮（实测过强已归零；文案由常量生成）
 
 ## 全局实例号：每局从 0 开始（与 JS 版一致，保证 uid 序列相同）
 static var uid_seq: int = 0
@@ -545,11 +546,13 @@ static func play_card(state: Dictionary, pid: String, uid: int) -> Dictionary:
 		state["stats"][pid]["spells"] += 1
 		_log(state, "spell", {"side": pid, "name": card["name"]})
 		resolve_effect(state, pid, card["effect"], card)
-		# 军师被动：张良——每回合第一张计谋牌额外抽一张（原先还返还 1 军粮，实测过强已去掉）
+		# 军师被动：张良——每回合第一张计谋牌额外抽一张（返还力实测过强，已归零）
 		if pid == "p1" and str(rules.get("advisor", "")) == "zhangliang" and int(p["spellPlayed"]) == 0:
 			p["spellPlayed"] = 1
 			_log(state, "adv_zhangliang")
 			draw_card(state, pid)
+			if ADV_ZHANGLIANG_REFUND > 0:
+				p["mana"] += ADV_ZHANGLIANG_REFUND
 
 	if combo_active and card["combo"] != null:
 		_log(state, "combo", {"side": pid, "name": card["name"]})

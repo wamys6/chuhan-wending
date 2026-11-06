@@ -210,6 +210,16 @@ func _test_data_and_text() -> void:
 		"郦食其文案次数与 ADV_LIYIJI_CAP 一致", ly_desc)
 	ok(xy_desc.contains("至多额外发动%s次" % cn.get(RulesEngine.ADV_XIANGYING_CAP, "?")),
 		"夏侯婴文案次数与 ADV_XIANGYING_CAP 一致", xy_desc)
+	# 张良是同类坑的第二例：返还力被砍到 0，文案却还写着「并返还 1 点军粮」，
+	# 玩家照着文案规划费用会亏。判据由常量生成——返粮 > 0 就必须写数额，= 0 就必须不提军粮。
+	var zl_desc := str(GameData.advisor_by_id("zhangliang").get("desc", ""))
+	ok(zl_desc.contains("额外抽一张牌"), "张良文案写明抽牌", zl_desc)
+	if RulesEngine.ADV_ZHANGLIANG_REFUND > 0:
+		ok(zl_desc.contains("返还 %d 点军粮" % RulesEngine.ADV_ZHANGLIANG_REFUND),
+			"张良文案返还数额与 ADV_ZHANGLIANG_REFUND 一致", zl_desc)
+	else:
+		ok(not zl_desc.contains("军粮"),
+			"张良已不返粮，文案不得再提军粮", zl_desc)
 
 	# 英文：advisor_field 只在 EN 模式下取值。注意 apply_data() 会把 GameData.advisors
 	# 本身覆盖成英文，所以中文快照必须在切语言**之前**取，否则两边都是英文、断言假绿。

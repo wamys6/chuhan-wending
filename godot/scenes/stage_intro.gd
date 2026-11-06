@@ -42,8 +42,17 @@ func _build() -> void:
 	panel.add_child(lore)
 
 	var goal_chip := Widgets.chip("本关目标 · " + str(st.get("goalText", "")), UiTheme.PAPER_DEEP, UiTheme.SEAL)
-	goal_chip.position = Vector2(30, 240)
+	goal_chip.position = Vector2(30, 236)
 	panel.add_child(goal_chip)
+
+	# 重整机会：出征前必须知道「这一仗还有没有第二次机会」
+	# 文案不写次数，写「有没有」——玩家关心的是还有没有退路，不是余量数字
+	var retry_line := "本关重整：尚有一次" if App.stage_retry_left() > 0 else "本关重整：已用完 · 再败即终局"
+	var retry_label := UiTheme.label(retry_line, 13, UiTheme.INK_SOFT)
+	retry_label.position = Vector2(30, 272)
+	retry_label.clip_text = true
+	retry_label.size = Vector2(660, 20)
+	panel.add_child(retry_label)
 
 	# 本局的两条全局规则（心魔 / 天时）：出征前必须让玩家看到
 	var run_line := _run_rules_text()

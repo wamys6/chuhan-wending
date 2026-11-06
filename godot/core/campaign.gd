@@ -73,6 +73,7 @@ static func empty_progress(hero_id: String) -> Dictionary:
 		"mode": "regular",
 		"events": [],
 		"eventLog": [],
+		"retried": [],
 		"startedAt": Time.get_unix_time_from_system(),
 	}
 
@@ -88,7 +89,7 @@ static func normalize(p) -> Dictionary:
 	for key in ["hpBonus", "manaBonus", "drawBonus", "enemyManaBonus"]:
 		if typeof(out.get(key, 0)) != TYPE_FLOAT and typeof(out.get(key, 0)) != TYPE_INT:
 			out[key] = 0
-	for key in ["events", "eventLog"]:
+	for key in ["events", "eventLog", "retried"]:
 		if not (out.get(key, null) is Array):
 			out[key] = []
 	if typeof(out.get("advisor", "")) != TYPE_STRING:
@@ -219,6 +220,11 @@ const GLOBAL_ENEMY_MANA := 1
 ## 敌方首回合军粮最低到 0（1 全局 - 1 初阵 - 1 霜降天时），不会为负。
 const CHUBEN_HP := 6
 const CHUBEN_ENEMY_MANA := -1
+
+## 每关的重整机会（P5）：同一关兵败第二次即本局终结。
+## 依据：无穷重试让「19% 通关率」对真人等于 100%，run 毫无风险；
+## 给一次机会后理论上限 ≈ p×1.35（+5pp），不破坏难度曲线。
+const RETRY_PER_STAGE := 1
 
 # 死战专精（1.2）：牌组里死战牌的张数决定死战召唤物的强度增幅。
 # 1.1 的结论是「死战路线靠卡堆起不来」；1.2 量出原因不是选不到（专精玩家已经
@@ -572,6 +578,38 @@ static func clear_slot(index: int) -> void:
 	_write_store(store)
 
 ## 存档位摘要（界面用）
+# ---------------- 重整机会（P5） ----------------
+# 每关 1 次：第一次兵败回地图可再战；同一关第二次兵败 → 本局终结。
+# 放弃本局与兵败同等消耗（否则玩家会在必败时退出躲惩罚）。
+
+static func retry_left(progress: Dictionary, stage_id: String) -> int:
+	if progress.is_empty() or stage_id == "":
+		return 0
+	var used := 0
+	for sid in (progress.get("retried", []) as Array):
+		if str(sid) == stage_id:
+			used += 1
+	return maxi(0, RETRY_PER_STAGE - used)
+
+static func can_retry(progress: Dictionary, stage_id: String) -> bool:
+	return retry_left(progress, stage_id) > 0
+
+## 消耗一次重整；返回 false 表示已用完（调用方应终结本局）
+static func take_retry(progress: Dictionary, stage_id: String) -> bool:
+	if not can_retry(progress, stage_id):
+		return false
+	var arr: Array = (progress.get("retried", []) as Array).duplicate()
+	arr.append(stage_id)
+	progress["retried"] = arr
+	save_slot(active_slot(), progress)
+	return true
+
+## 本局终结：清空当前存档位（成就/生涯是独立存档，不受影响）
+static func end_run() -> int:
+	var i := int(active_slot())
+	clear_slot(i)
+	return i
+
 static func slot_summary(index: int) -> Dictionary:
 	var store := _read_store()
 	var entry = store["slots"][index]
@@ -594,6 +632,7 @@ static func slot_summary(index: int) -> Dictionary:
 	out["advisor"] = str(adv.get("name", ""))
 	out["hpBonus"] = int(p.get("hpBonus", 0))
 	out["mode"] = str(p.get("mode", "regular"))
+	out["retries"] = (p.get("retried", []) as Array).size()
 	out["finished"] = is_finished(p)
 	return out
 

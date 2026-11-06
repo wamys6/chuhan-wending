@@ -1533,8 +1533,10 @@ func _show_result() -> void:
 	if campaign:
 		if win:
 			sub_text = "「%s」已破" % str(App.battle_config.get("stageName", ""))
+		elif App.stage_retry_left() > 0:
+			sub_text = "此战失利，尚可重整一次 · 目标：%s" % goal_txt
 		else:
-			sub_text = "此战失利，可回师再战 · 目标：%s" % goal_txt
+			sub_text = "重整机会已尽，大军溃散 · 目标：%s" % goal_txt
 	if sub_text != "":
 		var sub := UiTheme.label(sub_text, 15, UiTheme.INK_SOFT)
 		sub.position = Vector2(0, 104)
@@ -1569,7 +1571,9 @@ func _show_result() -> void:
 		menu.pressed.connect(func (): App.pvp_leave_to_menu())
 		panel.add_child(menu)
 	elif campaign:
-		var btn := UiTheme.button("继 续 行 军" if win else "重 整 再 战", true)
+		var out_of_retry := not win and App.stage_retry_left() <= 0
+		var btn_text := "继 续 行 军" if win else ("收 兵 回 营" if out_of_retry else "重 整 再 战")
+		var btn := UiTheme.button(btn_text, true)
 		btn.position = Vector2(170, 220)
 		btn.size = Vector2(200, 54)
 		var did_win := win
@@ -1695,7 +1699,7 @@ func _open_pause() -> void:
 	var note_text := ""
 	if is_campaign:
 		quit_text = "放弃本局"
-		note_text = "放弃本局视为战败，进度不变、可卷土重来"
+		note_text = "放弃本局视为战败，同样消耗一次重整机会"
 	elif pvp:
 		quit_text = "认输离场"
 		note_text = "认输视为本局战败，生涯只记 PvP 负场"

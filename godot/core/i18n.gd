@@ -55,6 +55,8 @@ const RULES := [
 	["^「(.+)」已破$", "“{1}” Taken"],
 	["^「(.+)」(.+)$", "“{1}” {2}"],
 	["^此战失利，可回师再战 · 目标：(.+)$", "Defeat — regroup and try again · Objective: {1}"],
+	["^此战失利，尚可重整一次 · 目标：(.+)$", "Defeat — one rally left · Objective: {1}"],
+	["^重整机会已尽，大军溃散 · 目标：(.+)$", "No rally left — the host scatters · Objective: {1}"],
 	# —— 战绩数字 ——
 	["^造成伤害 ([0-9]+)　直击主将 ([0-9]+)　出兵 ([0-9]+)　用计 ([0-9]+)$",
 		"Damage {1}　Commander {2}　Deployed {3}　Spells {4}"],

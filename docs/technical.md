@@ -114,8 +114,9 @@ js/lang-en.js ──node tools/export-i18n.js──▶ godot/data/lang-godot-en.
 | 脚本 | 项数 | 测什么 |
 |---|---|---|
 | `replay.gd` | 629 | 跨语言等价性（规则引擎没走样；20 个场景，含 8 位军师） |
-| `campaign_test.gd` | 168 | 战役闭环（进度/存档/奖励/删牌/军师/事件/心魔/天时/死战专精） |
-| `campaign_test.gd --flow` | 19 | 全流程 E2E（真实点击流） |
+| `campaign_test.gd` | 181 | 战役闭环（进度/存档/奖励/删牌/军师/事件/心魔/天时/死战专精/**重整机会**）；含「事件的代价不得再用生命上限」守卫 |
+| `campaign_test.gd --flow` | 24 | 全流程 E2E（真实点击流）；含**同一关两连败 → 本局终结回存档位** |
+| `scene_smoke_test.gd` | 54 | 全场景装配冒烟：13 个 `.tscn` 都 load 得起来、instantiate 出节点、**挂得上脚本且脚本解析通过**（堵「脚本 Parse Error 但 E2E 仍绿」这类假绿） |
 | `audio_test.gd` | 89 | 音频总线/变速/设置持久化 |
 | `codex_test.gd` | 148 | 图鉴/成就/PvP 战绩/心魔解锁 |
 | `tutorial_test.gd` | 160 | 新手引导/暂停菜单/军粮点条/阵亡特效 |
@@ -126,7 +127,7 @@ js/lang-en.js ──node tools/export-i18n.js──▶ godot/data/lang-godot-en.
 | `card_art_test.gd` | 416 | 缺图卡面的占位：`subtitle_of` 对**全卡池**在两种语言下都成立（EN 不许留汉字）、占位节点结构与可辨识名、**有图时占位必须让位 / 无图时必须出现**（走 CardView 真实装配路径） |
 | `keyword_stamp_test.gd` | 76 | 卡面关键词小印：六个字段的判据（false/null 不算）、双关键词的排列顺序、三档印面（朱砂/墨/靛）的色相与深底、字号随 `box` 走、CardView / UnitView / 图鉴大卡三处装配且不出界不压费用圆、全卡池印数与数据一致、切语言不换字 |
 | `art_rect_test.gd` | 51 | 立绘矩形：`UiTheme.texture_rect` 收口（size 不被纹理/切片最小尺寸顶回）、事件页圆图真的铺满 144、主菜单侧立绘 520×900、结局页最后一行不被面板边框切；宽屏舞台对齐：`fill_screen`/`bleed_x` 几何与 `bleed` 标记、每屏都有铺满整屏的底；**卡名 Label 不被文本宽度顶回**（29 字符的英文名必须真的放得下）；**8 位军师全部有立绘**且方窗 160×160 按比例铺满，缺图兜底改用合成军师测（不依赖真实数据） |
-| `advisor_test.gd` | 37 | 军师被动：周勃只加我方/只加一个/上限生效/生命上限同步/无兵不空耗；郦食其只削敌方/只削一个/削不到负数/零攻时不空耗次数；其他军师局数值完全不动；8 位数据与中英战报 key 齐全；**文案里的「至多 N 次」必须与 ADV_*_CAP 常量同步**（中文数字 + 英文 at most 各钉一遍） |
+| `advisor_test.gd` | 39 | 军师被动：周勃只加我方/只加一个/上限生效/生命上限同步/无兵不空耗；郦食其只削敌方/只削一个/削不到负数/零攻时不空耗次数；其他军师局数值完全不动；8 位数据与中英战报 key 齐全；**文案里的「至多 N 次」必须与 ADV_*_CAP 常量同步**（中文数字 + 英文 at most 各钉一遍） |
 | `event_pick_test.gd` | 35 | 事件选牌层：`CardPicker` 的多张选择（选满替换、取消选中、无取消回调时只留确认且居中、缩放随张数自适应不越面板）、事件得牌真进牌组且是要求的那一类、事件删牌真删且同名只删一张、一次删两张、牌组到下限不开删牌层 |
 | `anim_peek.gd` | 调试工具 | 抓攻击/阵亡动画帧截图 |
 
@@ -143,7 +144,7 @@ js/lang-en.js ──node tools/export-i18n.js──▶ godot/data/lang-godot-en.
 CHROME="C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" node legacy/checks/uicheck.js
 ```
 
-**改规则/数值的最小回归集**：`replay.gd` + `campaign_test.gd` + `pvp_test.gd`（锁步最敏感）；动界面再补 `battle_ui_test.gd`。大改动才跑全部。
+**改规则/数值的最小回归集**：`replay.gd` + `campaign_test.gd` + `pvp_test.gd`（锁步最敏感）；动界面再补 `battle_ui_test.gd`；**动任何场景脚本都加跑 `scene_smoke_test.gd`**（解析错误只有它抓得到）。大改动才跑全部。
 
 ## 七、构建与导出（Windows exe）
 
@@ -253,3 +254,6 @@ CHROME="C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" node legac
 
 47. **文件一移动，相对路径就集体错层，而且没有任何一处会「报错」**：把网页版归档进 `legacy/` 后，同一个「相对路径」要按引用者的深度分别算——`index.html` 在 `legacy/web/` 引用根 `js/` 是 `../../js/`，`ui.js` 里的立绘是 `../../godot/assets/cards/`，而 `css/style.css` 里的背景图还要多一层 `../../../`（css 在下一级目录）。第一次只改了前两处，页面照常打开、逻辑照常跑，只有**两张主将剪影是空的**（404 在控制台，肉眼像是「这张图本来就淡」）。判据：归档后必须真跑一遍浏览器验收（`legacy/checks/uicheck.js`），并且**让报错带上 URL**——只打印「资源加载失败」时你根本不知道丢的是哪个文件。
 48. **归档不是 `git mv` 完就完事**：验收脚本里写死的「卡池 45 张」跟着代码一起搬进 `legacy/`，跑起来一堆红，看起来像归档把功能弄坏了，其实全是三年前的数字。做法是把断言改成跟数据走（`Codex.cardStats(Data).total`），顺手把卡池口径统一到同一处——`Data.CARDS` 有 78 个键，图鉴/构筑只列 77 张（有一张不进池），两处各算一套就会差 1。**判据：归档目录能跑出「全部通过」，才算归档完成；跑到红就别急着说是历史遗留。**
+
+49. **脚本解析失败时，E2E 照样能绿**：在 `stage_intro.gd` 里新加一行，变量名与已有的 `rl` 重复 → 整个脚本 Parse Error，过场页变成空壳；但 `--flow` 断言的是 `current_scene.scene_file_path == SCENE_INTRO`，**路径当然还是对的**，24 项 E2E 全过。发现路径是靠截图脚本 load 场景时报错。修法：`scene_smoke_test.gd` 对每个 `.tscn` 做「load → instantiate → `get_script() != null`」，54 项；故意把重复变量注入回去验证它会红（否则又是假绿）。**判据：断言只能看"我关心的那件事"，路径对≠页面在。**
+50. **代价货币要先验证它真的值钱**：事件系统原先大量用「生命上限 ±N」当代价/收益，看着是取舍，实测血量 ±6 在噪声内（第 4 关 +0/+4/+8/+12/+16 血：28/40/40/26/34%），而一张牌值 3~6pp、删两张废牌值 +26pp——等于事件在收假币，所有选项退化成「选给牌最多的那项」。改法：全部换成军粮/起手/敌粮/牌，并加数据层守卫「事件的代价不得再用生命上限」，防止长回来。**判据：任何被当作代价/收益的资源，先单独测出它值多少 pp，再拿去设计选择。**

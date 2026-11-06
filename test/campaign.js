@@ -293,5 +293,32 @@ section('⑭ 初阵档位');
   console.log('  初阵 +6 血 / 敌首回合 -1（下限 0）✅');
 })();
 
+/* ⑮ 重整机会（P5）：把「无限重试」改成每关 1 次，第二次兵败本局终结 */
+section('⑮ 重整机会');
+(function () {
+  var sid = C.STAGES[0].id;
+  var run = C.start('liubang', Data.DECKS.han.slice(), null, 0, 'regular');
+  assert(C.retryLeft(run, sid) === C.RETRY_PER_STAGE,
+    '新局每关应有 ' + C.RETRY_PER_STAGE + ' 次重整，实际：' + C.retryLeft(run, sid));
+  assert(C.canRetry(run, sid) === true, '首败前应可重整');
+  assert(C.takeRetry(run, sid) === true, '第一次重整应消耗成功');
+  assert(C.retryLeft(run, sid) === 0, '用完后剩余应为 0');
+  assert(C.takeRetry(run, sid) === false, '第二次 takeRetry 应返回 false（不能无限重试）');
+  assert(C.retryLeft(run, C.STAGES[1].id) === C.RETRY_PER_STAGE, '别的关卡不应占用重整次数');
+  var reloaded = C.load();
+  assert(C.retryLeft(reloaded, sid) === 0, '重整记录应随存档持久化（读档不能刷新次数）');
+  assert(C.slotSummary(C.activeSlot()).retries === 1, '存档摘要应带兵败次数');
+  var old = C.migrate({ version: 1, cleared: [], deck: [] });
+  assert(Array.isArray(old.retried) && old.retried.length === 0, '旧存档迁移后 retried 应为空');
+  /* 本局终结：只清当前槽位，别的槽不受影响 */
+  var other = C.start('liubang', Data.DECKS.han.slice(), null, 0, 'regular');
+  C.useSlot(2); C.save(other); C.useSlot(0);
+  C.endRun();
+  assert(C.slotSummary(0).empty === true, '本局终结后当前槽应清空');
+  assert(C.slotSummary(2).empty === false, '别的存档位不应受影响');
+  C.clearSlot(2);
+  console.log('  每关 1 次 · 再败即终局 · 终结清当前槽 ✅');
+})();
+
 console.log('\n通过 ' + passed + ' 项，失败 ' + failed + ' 项');
 if (failed > 0) process.exit(1);

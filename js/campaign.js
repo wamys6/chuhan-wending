@@ -17,7 +17,7 @@
   var ADVISORS = [
     {
       id: 'zhangliang', name: '张良', title: '运筹帷幄', glyph: '张',
-      desc: '每回合第一次打出计谋牌时，额外抽一张牌并返还 1 点军粮。',
+      desc: '每回合第一次打出计谋牌时，额外抽一张牌。',
       flavor: '运筹帷幄之中，决胜千里之外。'
     },
     {
@@ -131,9 +131,9 @@
       id: 'liumin', name: '流民归附', glyph: '民',
       text: '关中大饥，流民数千携老幼随军而行。军中粮草只够吃到下月，而前面的路还长。',
       options: [
-        { label: '开仓赈济', hint: '生命上限 +3', fx: { hp: 3 } },
+        { label: '开仓赈济', hint: '得两张兵种牌，下一战首回合 -1 军粮', fx: { card: 'piece', cardCount: 2, mana: -1 } },
         { label: '编入行伍', hint: '得一张随机兵种牌', fx: { card: 'piece' } },
-        { label: '闭门不纳', hint: '不生事端', fx: {} }
+        { label: '闭门不纳', hint: '下一战首回合 +1 军粮', fx: { mana: 1 } }
       ]
     },
     {
@@ -141,8 +141,8 @@
       text: '楚军游骑截断粮道，敖仓之粟三日不至。军中已有人开始杀马。',
       options: [
         { label: '派兵护粮', hint: '得一张精良牌，下一战首回合 -1 军粮', fx: { card: 'any', mana: -1 } },
-        { label: '弃粮轻行', hint: '生命上限 -2', fx: { hp: -2 } },
-        { label: '杀马充饥', hint: '生命上限 -1，得一张随机兵种牌', fx: { hp: -1, card: 'piece' } }
+        { label: '弃粮轻行', hint: '随机失去牌组一张牌', fx: { removeRandom: 1 } },
+        { label: '杀马充饥', hint: '得一张兵种牌，下一战起手少摸一张', fx: { card: 'piece', draw: -1 } }
       ]
     },
     {
@@ -150,7 +150,7 @@
       text: '行军途中掘得竹简一束，似是兵家旧籍，字迹大半漫灭，唯余数策可辨。',
       options: [
         { label: '展卷夜读', hint: '三选一计谋牌', fx: { card: 'spell' } },
-        { label: '付之一炬', hint: '生命上限 +2', fx: { hp: 2 } }
+        { label: '付之一炬', hint: '下一战首回合 +1 军粮，随机失去一张牌', fx: { mana: 1, removeRandom: 1 } }
       ]
     },
     {
@@ -158,8 +158,8 @@
       text: '一名楚军校尉率部来降，言其家小皆在关中。诸将疑其诈。',
       options: [
         { label: '收为帐下', hint: '得一张随机牌', fx: { card: 'any' } },
-        { label: '遣归故里', hint: '生命上限 +2', fx: { hp: 2 } },
-        { label: '斩之以立威', hint: '生命上限 -1，得一张精良牌', fx: { hp: -1, card: 'any' } }
+        { label: '遣归故里', hint: '下一战敌军首回合 -1 军粮', fx: { enemyMana: -1 } },
+        { label: '斩之以立威', hint: '得一张精良牌，随机失去一张牌', fx: { card: 'any', removeRandom: 1 } }
       ]
     },
     {
@@ -167,7 +167,7 @@
       text: '夏雨连月，营中疫气弥漫。医者说：要么断臂求生，要么倾尽全力。',
       options: [
         { label: '隔离病卒', hint: '随机失去牌组一张牌', fx: { removeRandom: 1 } },
-        { label: '倾力救治', hint: '生命上限 -3，牌组无损', fx: { hp: -3 } }
+        { label: '倾力救治', hint: '牌组无损，下一战首回合 -2 军粮', fx: { mana: -2 } }
       ]
     },
     {
@@ -175,32 +175,32 @@
       text: '一名从沛县起就跟着你的老卒跪在帐前，说腿疾已重，走不动了。',
       options: [
         { label: '准其归乡', hint: '从牌组移除一张牌（你来挑）', fx: { remove: 1 } },
-        { label: '强留军中', hint: '生命上限 -2', fx: { hp: -2 } },
-        { label: '厚赐遣归', hint: '生命上限 -1，移除两张牌', fx: { hp: -1, remove: 2 } }
+        { label: '强留军中', hint: '下一战起手少摸一张', fx: { draw: -1 } },
+        { label: '厚赐遣归', hint: '移除两张牌，下一战首回合 -1 军粮', fx: { remove: 2, mana: -1 } }
       ]
     },
     {
       id: 'jisi', name: '河神祭祀', glyph: '祭',
       text: '大军将渡河，军中旧俗要沉璧祭河。巫祝说：河神不悦，舟不可行。',
       options: [
-        { label: '沉璧祭河', hint: '下一战首回合 +2 军粮', fx: { mana: 2 } },
-        { label: '撤祭省费', hint: '生命上限 +1', fx: { hp: 1 } }
+        { label: '沉璧祭河', hint: '下一战首回合 +2 军粮，起手少摸一张', fx: { mana: 2, draw: -1 } },
+        { label: '撤祭省费', hint: '下一战首回合 +1 军粮', fx: { mana: 1 } }
       ]
     },
     {
       id: 'qiaofu', name: '樵夫指路', glyph: '路',
       text: '山中有樵夫言：有条小道可绕至敌后，只是崎岖难行，辎重怕是要丢。',
       options: [
-        { label: '从小道进兵', hint: '下一战首回合 +1 军粮、起手多摸一张', fx: { mana: 1, draw: 1 } },
-        { label: '依大道行军', hint: '稳当', fx: {} }
+        { label: '从小道进兵', hint: '下一战 +2 军粮、起手多摸一张，随机失去一张牌', fx: { mana: 2, draw: 1, removeRandom: 1 } },
+        { label: '依大道行军', hint: '下一战首回合 +1 军粮', fx: { mana: 1 } }
       ]
     },
     {
       id: 'pofu', name: '破釜沉舟', glyph: '釜',
       text: '前有强敌，后无退路。诸将问：是把锅砸了，还是留着万一？',
       options: [
-        { label: '沉船破釜', hint: '生命上限 -5，得两张牌', fx: { hp: -5, card: 'any', cardCount: 2 } },
-        { label: '保全辎重', hint: '按部就班', fx: {} }
+        { label: '沉船破釜', hint: '删两张牌，换三张牌', fx: { remove: 2, card: 'any', cardCount: 3 } },
+        { label: '保全辎重', hint: '下一战起手多摸一张', fx: { draw: 1 } }
       ]
     },
     {
@@ -208,8 +208,8 @@
       text: '夜半，营外传来楚地歌声，凄婉入骨。士卒皆起，有泣下者。',
       options: [
         { label: '令军中习楚歌', hint: '下一战敌军首回合 -1 军粮', fx: { enemyMana: -1 } },
-        { label: '杖责惑众者', hint: '生命上限 -1，得一张随机牌', fx: { hp: -1, card: 'any' } },
-        { label: '抚慰士卒', hint: '生命上限 +1', fx: { hp: 1 } }
+        { label: '杖责惑众者', hint: '得一张随机牌，下一战起手少摸一张', fx: { card: 'any', draw: -1 } },
+        { label: '抚慰士卒', hint: '下一战起手多摸一张', fx: { draw: 1 } }
       ]
     },
 
@@ -220,9 +220,9 @@
       id: 'jieqi', name: '借粮于民', glyph: '借',
       text: '荥阳被围，敖仓之粟已尽。本地父老聚在辕门外，说愿借粮三万石，只求战后免其三年赋税。',
       options: [
-        { label: '立券借粮', hint: '下一战首回合 +3 军粮，生命上限 -2', fx: { mana: 3, hp: -2 } },
-        { label: '强征军粮', hint: '生命上限 -1，得一张随机兵种牌', fx: { hp: -1, card: 'piece' } },
-        { label: '分兵屯田', hint: '下一战起手多摸两张，生命上限 -1', fx: { draw: 2, hp: -1 } }
+        { label: '立券借粮', hint: '下一战首回合 +3 军粮，起手少摸一张', fx: { mana: 3, draw: -1 } },
+        { label: '强征军粮', hint: '得一张兵种牌，下一战起手少摸一张', fx: { card: 'piece', draw: -1 } },
+        { label: '分兵屯田', hint: '下一战起手多摸两张，首回合 -1 军粮', fx: { draw: 2, mana: -1 } }
       ]
     },
     {
@@ -230,16 +230,16 @@
       text: '夜半有人叩营门，是项羽的季父项伯。当年在下邳，你曾救过他一命。他说：明日霸王要亲率铁骑冲阵。',
       options: [
         { label: '厚赠遣归', hint: '下一战敌军首回合 -2 军粮', fx: { enemyMana: -2 } },
-        { label: '恳其缓颊', hint: '生命上限 +4，下一战首回合 -1 军粮', fx: { hp: 4, mana: -1 } },
-        { label: '闭门不见', hint: '不欠这个人情', fx: {} }
+        { label: '恳其缓颊', hint: '敌军首回合 -1 军粮，起手多摸一张', fx: { enemyMana: -1, draw: 1 } },
+        { label: '闭门不见', hint: '下一战首回合 +1 军粮', fx: { mana: 1 } }
       ]
     },
     {
       id: 'shibing', name: '士卒思归', glyph: '思',
       text: '入关已三年，营中夜夜有人低唱沛县小调。军正捧着名册来问：再不给个说法，怕要出事。',
       options: [
-        { label: '许诺还乡', hint: '生命上限 +3，下一战起手少摸一张', fx: { hp: 3, draw: -1 } },
-        { label: '严防哗变', hint: '得两张牌，生命上限 -3', fx: { hp: -3, card: 'any', cardCount: 2 } },
+        { label: '许诺还乡', hint: '下一战首回合 +2 军粮，起手少摸一张', fx: { mana: 2, draw: -1 } },
+        { label: '严防哗变', hint: '得两张牌，随机失去一张牌', fx: { card: 'any', cardCount: 2, removeRandom: 1 } },
         { label: '就地休整', hint: '下一战起手多摸一张', fx: { draw: 1 } }
       ]
     },
@@ -249,24 +249,24 @@
       options: [
         { label: '减装急渡', hint: '下一战首回合 +2 军粮，随机失去牌组一张牌', fx: { mana: 2, removeRandom: 1 } },
         { label: '等水退去', hint: '下一战起手多摸两张，敌军首回合 +1 军粮', fx: { draw: 2, enemyMana: 1 } },
-        { label: '沿河缓行', hint: '生命上限 +2', fx: { hp: 2 } }
+        { label: '沿河缓行', hint: '下一战首回合 +1 军粮', fx: { mana: 1 } }
       ]
     },
     {
       id: 'qiufeng', name: '假王之举', glyph: '封',
       text: '使者自齐地来，说韩信已定齐，遣人求为「假齐王」。帐中一时无人作声。',
       options: [
-        { label: '立封齐王', hint: '得两张牌，生命上限 -2', fx: { hp: -2, card: 'any', cardCount: 2 } },
+        { label: '立封齐王', hint: '得两张牌，下一战起手少摸一张', fx: { card: 'any', cardCount: 2, draw: -1 } },
         { label: '遣使安抚', hint: '下一战起手多摸一张', fx: { draw: 1 } },
-        { label: '斥其僭越', hint: '生命上限 +3', fx: { hp: 3 } }
+        { label: '斥其僭越', hint: '下一战首回合 +1 军粮', fx: { mana: 1 } }
       ]
     },
     {
       id: 'honggou', name: '鸿沟之约', glyph: '和',
       text: '项羽送还太公与吕后，请以鸿沟为界，中分天下。诸将都说：可以歇兵了。',
       options: [
-        { label: '就此约和', hint: '生命上限 +5，下一战起手少摸一张', fx: { hp: 5, draw: -1 } },
-        { label: '追而击之', hint: '生命上限 -4，得三张牌', fx: { hp: -4, card: 'any', cardCount: 3 } },
+        { label: '就此约和', hint: '下一战敌军首回合 -2 军粮，起手少摸一张', fx: { enemyMana: -2, draw: -1 } },
+        { label: '追而击之', hint: '得三张牌，随机失去一张牌', fx: { card: 'any', cardCount: 3, removeRandom: 1 } },
         { label: '虚与委蛇', hint: '下一战首回合 +2 军粮', fx: { mana: 2 } }
       ]
     }
@@ -510,7 +510,7 @@
       version: 2, hero: heroId || null, cleared: [], deck: [],
       advisor: null, hpBonus: 0, manaBonus: 0, drawBonus: 0, enemyManaBonus: 0,
       ascension: 0, tianShi: null, mode: 'regular',
-      events: [], eventLog: []
+      events: [], eventLog: [], retried: []
     };
   }
 
@@ -546,6 +546,8 @@
     if (typeof p.tianShi !== 'string') p.tianShi = null;
     /* 初阵档位（P3）：老存档没有 mode，一律按常规难度 */
     if (p.mode !== 'chuben') p.mode = 'regular';
+    /* 重整记录（P5）：老存档视为一次都没用过 */
+    if (!Array.isArray(p.retried)) p.retried = [];
     return p;
   }
 
@@ -627,6 +629,7 @@
       advisor: p.advisor || null,
       hpBonus: p.hpBonus || 0,
       mode: p.mode === 'chuben' ? 'chuben' : 'regular',
+      retries: (p.retried || []).length,
       updatedAt: cell.updatedAt || null
     };
   }
@@ -653,6 +656,34 @@
     store.slots[i] = null;
     writeStore();
     return true;
+  }
+
+  /* ---------------- 重整机会（P5） ----------------
+     每关 1 次：第一次兵败回地图可再战；同一关第二次兵败 → 本局终结。
+     放弃本局与兵败同等消耗（否则玩家会在必败时退出躲惩罚）。 */
+
+  function retryLeft(progress, stageId) {
+    if (!progress || !stageId) return 0;
+    var used = 0, arr = progress.retried || [];
+    for (var i = 0; i < arr.length; i++) if (arr[i] === stageId) used++;
+    return Math.max(0, RETRY_PER_STAGE - used);
+  }
+
+  function canRetry(progress, stageId) { return retryLeft(progress, stageId) > 0; }
+
+  /* 消耗一次重整；返回 false 表示已用完（调用方应终结本局） */
+  function takeRetry(progress, stageId) {
+    if (!canRetry(progress, stageId)) return false;
+    progress.retried = (progress.retried || []).concat([stageId]);
+    save(progress);
+    return true;
+  }
+
+  /* 本局终结：清空当前存档位（成就/生涯是独立存档，不受影响） */
+  function endRun() {
+    var i = activeSlot();
+    if (typeof i === 'number' && i >= 0) clearSlot(i);
+    return i;
   }
 
   /* 开始新战役写进当前存档位（会覆盖该位） */
@@ -781,6 +812,11 @@
      敌方首回合军粮最低到 0（1 全局 - 1 初阵 - 1 霜降天时），不会为负。 */
   var CHUBEN_HP = 6;
   var CHUBEN_ENEMY_MANA = -1;
+
+  /* 每关的重整机会：同一关兵败第二次即本局终结（牌组、进度一起作废）。
+     判据：无穷重试让「19% 通关率」对真人等于 100%，run 一点风险都没有；
+     给一次机会后，理论上限 = Π(1−(1−p)²) ≈ p×1.35，只抬高约 5pp，不破坏难度曲线。 */
+  var RETRY_PER_STAGE = 1;
 
   function engineRules(stage, progress) {
     var r = {};
@@ -1040,6 +1076,11 @@
     LAST_STAND_BONUS: LAST_STAND_BONUS,
     CHUBEN_HP: CHUBEN_HP,
     CHUBEN_ENEMY_MANA: CHUBEN_ENEMY_MANA,
+    RETRY_PER_STAGE: RETRY_PER_STAGE,
+    retryLeft: retryLeft,
+    canRetry: canRetry,
+    takeRetry: takeRetry,
+    endRun: endRun,
     rewardPool: rewardPool,
     engineRules: engineRules,
     consumeBoosts: consumeBoosts,

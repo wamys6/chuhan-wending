@@ -26,7 +26,8 @@
     zhouboCap: 1,       /* 周勃：每场战斗成长次数上限（2 次实测 31% 超带，砍到 1 次） */
     liyijiDown: 1,      /* 郦食其：每轮削敌方最高攻兵种 -N 攻（控场） */
     liyijiCap: 1,       /* 郦食其：每场战斗削减次数上限（3 次 45%、2 次 30%，只有 1 次才进带） */
-    fankuaiHp: 1        /* 樊哙：本场第一个兵种 +N 血 */
+    fankuaiHp: 1,       /* 樊哙：本场第一个兵种 +N 血 */
+    zhangliangRefund: 0 /* 张良：每回合首张计谋返还 N 军粮（实测过强已归零，文案由常量生成） */
   };
 
   function other(pid) { return pid === 'p1' ? 'p2' : 'p1'; }
@@ -436,6 +437,8 @@
         p.spellPlayed = 1;
         log(state, '军师张良运筹，锦囊既出，再添一策');
         drawCard(state, pid);
+        /* 返还力实测过强，已归零；保留常量是为了让文案能跟着数值走（踩坑：文案写返还、实现已删） */
+        if (ADV.zhangliangRefund > 0) p.mana += ADV.zhangliangRefund;
       }
     }
     if (comboActive && card.combo) {

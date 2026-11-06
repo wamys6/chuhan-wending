@@ -744,7 +744,7 @@
     "zhangliang": {
       "name": "Zhang Liang",
       "title": "Grand Strategist",
-      "desc": "The first Stratagem you play each turn draws a card and refunds 1 Provision.",
+      "desc": "The first Stratagem you play each turn draws a card.",
       "flavor": "Planning inside the tent; victory a thousand li away."
     },
     "xiaohe": {
@@ -797,7 +797,7 @@
       "options": [
         {
           "label": "Open the granaries",
-          "hint": "Max Health +3"
+          "hint": "Gain two Infantry cards; -1 Provision turn 1 next battle"
         },
         {
           "label": "Enlist them",
@@ -805,7 +805,7 @@
         },
         {
           "label": "Turn them away",
-          "hint": "No complications"
+          "hint": "+1 Provision turn 1 next battle"
         }
       ]
     },
@@ -819,11 +819,11 @@
         },
         {
           "label": "Abandon it, travel light",
-          "hint": "Max Health -2"
+          "hint": "A random card is removed from your deck"
         },
         {
           "label": "Eat the horses",
-          "hint": "Max Health -1, gain a random Infantry card"
+          "hint": "Gain a random Infantry card; -1 opening card next battle"
         }
       ]
     },
@@ -837,7 +837,7 @@
         },
         {
           "label": "Burn them",
-          "hint": "Max Health +2"
+          "hint": "+1 Provision turn 1 next battle; a random card is lost"
         }
       ]
     },
@@ -851,11 +851,11 @@
         },
         {
           "label": "Send him home",
-          "hint": "Max Health +2"
+          "hint": "-1 Provision turn 1 for the enemy next battle"
         },
         {
           "label": "Execute him as warning",
-          "hint": "Max Health -1, gain a fine card"
+          "hint": "Gain a fine card; a random card is lost"
         }
       ]
     },
@@ -869,7 +869,7 @@
         },
         {
           "label": "Spare no cost",
-          "hint": "Max Health -3, deck untouched"
+          "hint": "Deck untouched; -2 Provisions turn 1 next battle"
         }
       ]
     },
@@ -883,11 +883,11 @@
         },
         {
           "label": "Keep him in the ranks",
-          "hint": "Max Health -2"
+          "hint": "-1 opening card next battle"
         },
         {
           "label": "Reward him richly, then release",
-          "hint": "Max Health -1, remove two cards"
+          "hint": "Remove two cards; -1 Provision turn 1 next battle"
         }
       ]
     },
@@ -897,11 +897,11 @@
       "options": [
         {
           "label": "Sink the jade",
-          "hint": "+2 Provisions turn 1 next battle"
+          "hint": "+2 Provisions turn 1 next battle; -1 opening card"
         },
         {
           "label": "Skip the rite, save the jade",
-          "hint": "Max Health +1"
+          "hint": "+1 Provision turn 1 next battle"
         }
       ]
     },
@@ -911,11 +911,11 @@
       "options": [
         {
           "label": "Take the small path",
-          "hint": "+1 Provision and +1 opening card next battle"
+          "hint": "+2 Provisions and +1 opening card next battle; a random card is lost"
         },
         {
           "label": "March the high road",
-          "hint": "Safe and steady"
+          "hint": "+1 Provision turn 1 next battle"
         }
       ]
     },
@@ -925,11 +925,11 @@
       "options": [
         {
           "label": "Sink the boats, smash the pots",
-          "hint": "Max Health -5, gain two cards"
+          "hint": "Remove two cards, gain three"
         },
         {
           "label": "Keep the baggage train",
-          "hint": "Steady, as planned"
+          "hint": "+1 opening card next battle"
         }
       ]
     },
@@ -943,11 +943,11 @@
         },
         {
           "label": "Flog the troublemakers",
-          "hint": "Max Health -1, gain a random card"
+          "hint": "Gain a random card; -1 opening card next battle"
         },
         {
           "label": "Comfort the soldiers",
-          "hint": "Max Health +1"
+          "hint": "+1 opening card next battle"
         }
       ]
     },
@@ -957,15 +957,15 @@
       "options": [
         {
           "label": "Sign the bond",
-          "hint": "+3 Provision turn 1 next battle, Max Health -2"
+          "hint": "+3 Provisions turn 1 next battle; -1 opening card"
         },
         {
           "label": "Requisition the grain",
-          "hint": "Max Health -1, gain a random unit card"
+          "hint": "Gain an Infantry card; -1 opening card next battle"
         },
         {
           "label": "Split the army to farm",
-          "hint": "Draw two extra opening cards next battle, Max Health -1"
+          "hint": "+2 opening cards next battle; -1 Provision turn 1"
         }
       ]
     },
@@ -979,11 +979,11 @@
         },
         {
           "label": "Beg him to soften the blow",
-          "hint": "Max Health +4, -1 Provision turn 1 next battle"
+          "hint": "-1 Provision turn 1 for the enemy; +1 opening card"
         },
         {
           "label": "Refuse him the gate",
-          "hint": "Owe him nothing"
+          "hint": "+1 Provision turn 1 next battle"
         }
       ]
     },
@@ -993,11 +993,11 @@
       "options": [
         {
           "label": "Promise them home",
-          "hint": "Max Health +3, draw one fewer opening card next battle"
+          "hint": "+2 Provisions turn 1 next battle; -1 opening card"
         },
         {
           "label": "Crack down on mutiny",
-          "hint": "Gain two cards, Max Health -3"
+          "hint": "Gain two cards; a random card is lost"
         },
         {
           "label": "Rest in place",
@@ -1019,7 +1019,7 @@
         },
         {
           "label": "Follow the bank",
-          "hint": "Max Health +2"
+          "hint": "+1 Provision turn 1 next battle"
         }
       ]
     },
@@ -1029,7 +1029,7 @@
       "options": [
         {
           "label": "Make him king in truth",
-          "hint": "Gain two cards, Max Health -2"
+          "hint": "Gain two cards; -1 opening card next battle"
         },
         {
           "label": "Send an envoy to placate him",
@@ -1037,7 +1037,7 @@
         },
         {
           "label": "Rebuke his presumption",
-          "hint": "Max Health +3"
+          "hint": "+1 Provision turn 1 next battle"
         }
       ]
     },
@@ -1047,11 +1047,11 @@
       "options": [
         {
           "label": "Make the truce",
-          "hint": "Max Health +5, draw one fewer opening card next battle"
+          "hint": "-2 Provisions turn 1 for the enemy; -1 opening card"
         },
         {
           "label": "Pursue and strike",
-          "hint": "Max Health -4, gain three cards"
+          "hint": "Gain three cards; a random card is lost"
         },
         {
           "label": "Feign agreement",

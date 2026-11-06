@@ -28,6 +28,7 @@ func _initialize() -> void:
 	_test_ascension()
 	_test_tianshi()
 	_test_chuben()
+	_test_retry()
 	_test_slots()
 
 	print("通过 %d 项，失败 %d 项" % [checks, failures])
@@ -271,10 +272,13 @@ func _test_events() -> void:
 	var p := Campaign.start_run("liubang", (GameData.decks.get("han", []) as Array).duplicate(), "zhangliang")
 	var ev := Campaign.event_by_id("liumin")
 	ok(not ev.is_empty(), "事件存在")
-	# 开仓赈济：hp +3
+	# 开仓赈济（P5 改成真货币）：得两张兵种牌，下一战首回合 -1 军粮
 	var res := Campaign.apply_event(p, "liumin", 0)
 	ok(bool(res.get("ok", false)), "结算成功")
-	ok(int(p["hpBonus"]) == 3, "生命上限 +3")
+	ok(int(p["manaBonus"]) == -1, "开仓赈济：下一战首回合 -1 军粮（实际 %d）" % int(p["manaBonus"]))
+	var liumin_fx: Dictionary = (res.get("fx", {}) as Dictionary)
+	ok(str(liumin_fx.get("card", "")) == "piece" and int(liumin_fx.get("cardCount", 1)) == 2,
+		"开仓赈济：给两张兵种牌")
 	ok(p["events"].size() == 1 and str(p["events"][0]) == "liumin", "事件已记录")
 	ok((p["eventLog"] as Array).size() == 1, "行军记有日志")
 	# 重复结算同一事件：不再重复记录
@@ -289,15 +293,15 @@ func _test_events() -> void:
 	var added: String = str(p["deck"][p["deck"].size() - 1])
 	ok(GameData.card(added)["type"] == "piece" and GameData.faction_of(added) != "chu",
 		"发的是中立/汉营兵种牌")
-	# 疫病：选项 0 删 1 张牌；选项 1 扣血 3（压到下限 -8）
-	p["hpBonus"] = -7
+	# 疫病：选项 0 删 1 张牌；选项 1 用军粮抵（生命上限已不再作为代价货币）
 	var plague := Campaign.event_by_id("yiqing")
 	ok(not plague.is_empty(), "疫病事件存在")
 	var deck_before := (p["deck"] as Array).size()
 	Campaign.apply_event(p, "yiqing", 0)
 	ok((p["deck"] as Array).size() == deck_before - 1, "隔离病卒：随机删 1 张")
+	var mana_before := int(p["manaBonus"])
 	Campaign.apply_event(p, "yiqing", 1)
-	ok(int(p["hpBonus"]) == -8, "倾力救治：血线触底 -8（实际 %d）" % int(p["hpBonus"]))
+	ok(int(p["manaBonus"]) == mana_before - 2, "倾力救治：下一战首回合 -2 军粮（实际 %d）" % int(p["manaBonus"]))
 	# needs_event：最后一关不需要事件
 	ok(not Campaign.needs_event(p, Campaign.stage_by_id("gaixia")), "垓下后无事件")
 	ok(Campaign.needs_event(p, Campaign.stage_by_id("peixian")), "沛县后有事件")
@@ -317,6 +321,14 @@ func _test_events_batch2() -> void:
 		"remove", "removeRandom"]
 	var ids := {}
 	var bad_key := ""
+	# P5 设计判据：生命上限不是有效难度杠杆（实测 ±6 在噪声内），
+	# 所以事件里任何「用血量换东西」的选项都是假取舍。这条守卫盯住它别再长回来。
+	var hp_users: Array = []
+	for ev in all_events:
+		for opt in (ev.get("options", []) as Array):
+			if (opt.get("fx", {}) as Dictionary).has("hp"):
+				hp_users.append("%s/%s" % [str(ev.get("id", "")), str(opt.get("label", ""))])
+	ok(hp_users.is_empty(), "事件的代价不得再用生命上限（假货币）", ", ".join(hp_users))
 	var short_opt := ""
 	for e in all_events:
 		var eid := str(e["id"])
@@ -367,8 +379,8 @@ func _test_events_batch2() -> void:
 	# 一次性加成能不能真的进 rules（负 draw 与正 enemyMana 都是第一次出现）
 	var s := Campaign.empty_progress("liubang")
 	s["deck"] = (GameData.decks.get("han", []) as Array).duplicate()
-	Campaign.apply_event(s, "shibing", 0)          # 生命上限 +3，起手少摸一张
-	ok(int(s["hpBonus"]) == 3, "许诺还乡：生命上限 +3")
+	Campaign.apply_event(s, "shibing", 0)          # 下一战首回合 +2 军粮，起手少摸一张
+	ok(int(s["manaBonus"]) == 2, "许诺还乡：下一战 +2 军粮（实际 %d）" % int(s["manaBonus"]))
 	var r_neg := Campaign.engine_rules(Campaign.stage_by_id("peixian"), s)
 	ok(int(r_neg.get("openingDraw", 0)) == -1, "许诺还乡：openingDraw -1 真的进 rules",
 		str(r_neg.get("openingDraw")))
@@ -422,6 +434,42 @@ func _test_chuben() -> void:
 		"chuben 存档迁移保留")
 	Campaign.save_slot(0, run)
 	ok(str(Campaign.slot_summary(0)["mode"]) == "chuben", "存档摘要带 mode")
+	Campaign._wipe_all()
+
+## 重整机会（P5）：把「无限重试」改成每关 1 次，第二次兵败本局终结。
+## 这里钉住三件事：次数上限真的生效、不同关卡互不占用、终结会清档但不动其他槽位。
+func _test_retry() -> void:
+	print("· 重整机会")
+	Campaign._wipe_all()
+	var deck := (GameData.decks.get("han", []) as Array).duplicate()
+	var p := Campaign.start_run("liubang", deck, "", 0, "regular")
+	var sid := str(Campaign.stages()[0]["id"])
+	ok(Campaign.retry_left(p, sid) == Campaign.RETRY_PER_STAGE,
+		"新局每关有 %d 次重整" % Campaign.RETRY_PER_STAGE, str(Campaign.retry_left(p, sid)))
+	ok(Campaign.can_retry(p, sid), "首败前可重整")
+	ok(Campaign.take_retry(p, sid), "第 1 次重整消耗成功")
+	ok(Campaign.retry_left(p, sid) == 0 and not Campaign.can_retry(p, sid),
+		"用完即不可再重整", str(Campaign.retry_left(p, sid)))
+	ok(not Campaign.take_retry(p, sid), "第二次调 take_retry 返回 false（不会被无限重试）")
+	# 不同关卡互不占用：第一关用完，第二关仍有
+	var sid2 := str(Campaign.stages()[1]["id"])
+	ok(Campaign.retry_left(p, sid2) == Campaign.RETRY_PER_STAGE, "别的关卡仍有重整机会")
+	# 存档往返：消耗记录要持久化，否则读档就能刷新重试次数
+	var reloaded := Campaign.load_slot(int(Campaign.active_slot()))
+	ok(Campaign.retry_left(reloaded, sid) == 0, "重整记录随存档持久化",
+		str(Campaign.retry_left(reloaded, sid)))
+	ok(int(Campaign.slot_summary(int(Campaign.active_slot()))["retries"]) == 1,
+		"存档摘要带兵败次数")
+	# 老存档没有 retried 字段 → 视为一次没用过
+	var old := Campaign.normalize({"cleared": [], "deck": []})
+	ok((old.get("retried", []) as Array).is_empty(), "旧存档迁移后 retried 为空")
+	# 本局终结：清当前槽，不动别的槽
+	var other := Campaign.start_run("liubang", deck, "", 0, "regular")
+	Campaign.save_slot(2, other)
+	Campaign.use_slot(0)
+	Campaign.end_run()
+	ok(bool(Campaign.slot_summary(0)["empty"]), "本局终结后当前槽清空")
+	ok(not bool(Campaign.slot_summary(2)["empty"]), "别的存档位不受影响")
 	Campaign._wipe_all()
 
 func _test_ascension() -> void:

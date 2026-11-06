@@ -32,5 +32,6 @@ Desktop.ini
 godot/tests/_pvp_*.txt
 godot/tests/_peek*.png
 godot/tests/_gd-*.png
+godot/tests/_gd-*.png.import
 legacy/checks/_*.png
 godot/tests/_peek*.png.import

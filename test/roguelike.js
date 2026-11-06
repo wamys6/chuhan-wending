@@ -51,7 +51,7 @@ function newProg() {
 /* ① 数据完整性 */
 section('① 军师与事件数据完整性');
 (function () {
-  assert(C.ADVISORS.length === 5, '军师应有 5 名，实际：' + C.ADVISORS.length);
+  assert(C.ADVISORS.length === 8, '军师应有 8 名，实际：' + C.ADVISORS.length);
   var ids = {};
   C.ADVISORS.forEach(function (a) {
     assert(!!a.id && !!a.name && !!a.title && !!a.desc, '军师字段缺失：' + a.id);
@@ -98,8 +98,9 @@ section('② 军师 · 张良运筹');
   var s3 = give(st, 'p1', 's_xiaohe');
   E.playCard(st, 'p1', s3.uid);
   assert(d2 - st.players.p1.deck.length === 3, '新回合应重新触发，实际抽了 ' + (d2 - st.players.p1.deck.length));
-  assert(st.players.p1.mana === m0 - 2 + 1, '张良应返还 1 点军粮（2 费牌净花 1），实际：' + (st.players.p1.mana - m0));
-  console.log('  每回合首张计谋抽 1 张并返还 1 粮，次张不触发，跨回合重置 ✅');
+  assert(st.players.p1.mana === m0 - 2 + E.tuning.zhangliangRefund,
+    '张良返粮应等于 ADV.zhangliangRefund（现为 ' + E.tuning.zhangliangRefund + '），实际净花 ' + (m0 - st.players.p1.mana));
+  console.log('  每回合首张计谋抽 1 张（返粮按常量），次张不触发，跨回合重置 ✅');
 })();
 
 /* ②-b 萧何 / 陈平的起手摸牌 */
@@ -139,16 +140,17 @@ section('④ 军师 · 韩信多多益善');
   var b = give(st, 'p1', 'n_bing2');            /* 2/3 前锋 */
   E.playCard(st, 'p1', b.uid);
   var f = units(st, 'p1', 'front')[0];
-  assert(f.atk === 3, '前锋锐士应为 3 攻，实际：' + f.atk);
+  assert(f.atk === 2, '前锋不应加成（韩信改加中军），实际：' + f.atk);
   var m = give(st, 'p1', 'n_shi1');             /* 1/4 中军 */
   E.playCard(st, 'p1', m.uid);
-  assert(units(st, 'p1', 'mid')[0].atk === 1, '中军不应加成，实际：' + units(st, 'p1', 'mid')[0].atk);
+  assert(units(st, 'p1', 'mid')[0].atk === 1 + E.tuning.hanxinAtk,
+    '中军应 +' + E.tuning.hanxinAtk + ' 攻，实际：' + units(st, 'p1', 'mid')[0].atk);
   /* 敌方前锋不受影响（军师只对玩家生效） */
   st.players.p2.mana = 10;
   var eb = give(st, 'p2', 'n_bing2');
   E.playCard(st, 'p2', eb.uid);
   assert(units(st, 'p2', 'front')[0].atk === 2, '敌方前锋不应加成，实际：' + units(st, 'p2', 'front')[0].atk);
-  console.log('  只加成我方前锋，中军与敌方不受影响 ✅');
+  console.log('  只加成我方中军，前锋与敌方不受影响 ✅');
 })();
 
 /* ⑤ 军师：樊哙 —— 本场第一个兵种 +2/+1 */
@@ -158,8 +160,9 @@ section('⑤ 军师 · 樊哙陷阵先登');
   var first = give(st, 'p1', 'n_bing2');        /* 2/3 */
   E.playCard(st, 'p1', first.uid);
   var f = units(st, 'p1', 'front')[0];
-  assert(f.atk === 4, '第一个兵种应为 4 攻，实际：' + f.atk);
-  assert(f.hp === 4 && f.maxHp === 4, '第一个兵种应为 4 血，实际：' + f.hp + '/' + f.maxHp);
+  assert(f.atk === 2 + E.tuning.fankuaiAtk, '第一个兵种攻击应为 2+' + E.tuning.fankuaiAtk + '，实际：' + f.atk);
+  assert(f.hp === 3 + E.tuning.fankuaiHp && f.maxHp === 3 + E.tuning.fankuaiHp,
+    '第一个兵种生命应为 3+' + E.tuning.fankuaiHp + '，实际：' + f.hp + '/' + f.maxHp);
   var second = give(st, 'p1', 'n_bing2');
   E.playCard(st, 'p1', second.uid);
   var s2 = units(st, 'p1', 'front')[1];
@@ -168,7 +171,7 @@ section('⑤ 军师 · 樊哙陷阵先登');
   var st2 = fresh({ advisor: 'fankuai' });
   var a = give(st2, 'p1', 'n_bing2');
   E.playCard(st2, 'p1', a.uid);
-  assert(units(st2, 'p1', 'front')[0].atk === 4, '新战斗中第一个兵种应重新获得加成');
+  assert(units(st2, 'p1', 'front')[0].hp === 3 + E.tuning.fankuaiHp, '新战斗中第一个兵种应重新获得加成');
   console.log('  每场仅首个兵种 +2/+1，之后不再触发 ✅');
 })();
 
@@ -207,35 +210,66 @@ section('⑦ 无军师时规则不变');
 /* ⑧ 行军事件结算 */
 section('⑧ 行军事件结算');
 (function () {
-  var p = newProg();
-  var r1 = C.applyEvent(p, 'liumin', 0);        /* 开仓赈济：+3 生命 */
-  assert(r1.ok, '事件应结算成功');
-  assert(p.hpBonus === 3, '生命加成应为 3，实际：' + p.hpBonus);
-  assert(p.events.indexOf('liumin') >= 0, '应记录已触发事件');
-  assert(p.eventLog.length === 1 && p.eventLog[0].choice === '开仓赈济', '事件流水应记录选择');
+  /* P5 把 43 个选项的代价全换成了真货币（军粮/起手/敌粮/牌/删牌）。
+     老版本这里写死了「开仓赈济 +3 血」「沉璧祭河 +2 粮」之类的具体数字，
+     换货币之后必然全红——改成**数据驱动**：逐条比对「声明的 fx」与「实际结算的进度字段」，
+     以后调事件数值不用再改测试。 */
+  C.EVENTS.forEach(function (ev) {
+    ev.options.forEach(function (opt) {
+      assert(!(opt.fx || {}).hp, '事件「' + ev.name + '」的「' + opt.label + '」不应再用生命上限当货币');
+    });
+  });
 
-  var p2 = newProg();
-  C.applyEvent(p2, 'jisi', 0);                  /* 沉璧祭河：+2 军粮 */
-  assert(p2.manaBonus === 2, '下一战军粮应为 +2，实际：' + p2.manaBonus);
-  C.applyEvent(p2, 'qiaofu', 0);                /* 小道：+1 军粮 +1 起手 */
-  assert(p2.manaBonus === 3, '军粮加成应累加为 3，实际：' + p2.manaBonus);
-  assert(p2.drawBonus === 1, '起手摸牌加成应为 1，实际：' + p2.drawBonus);
+  var p = newProg();
+  var ev = C.EVENTS[0], opt = ev.options[0], fx = opt.fx || {};
+  var r = C.applyEvent(p, ev.id, 0);
+  assert(r.ok, '事件应结算成功');
+  assert(p.manaBonus === (fx.mana || 0), '军粮加成应等于 fx.mana，实际：' + p.manaBonus);
+  assert(p.drawBonus === (fx.draw || 0), '起手加成应等于 fx.draw，实际：' + p.drawBonus);
+  assert(p.enemyManaBonus === (fx.enemyMana || 0), '敌粮加成应等于 fx.enemyMana，实际：' + p.enemyManaBonus);
+  assert(p.events.indexOf(ev.id) >= 0, '应记录已触发事件');
+  assert(p.eventLog.length === 1 && p.eventLog[0].choice === opt.label, '事件流水应记录选择');
+
+  /* 删牌类事件有两种契约，别混：
+       · removeRandom —— 结算层当场随机删，返回后牌组必须已经变短
+       · remove       —— 只声明张数，由 UI 弹「你来挑」的删牌界面，结算层不得擅自动牌组
+     早期版本把两者当一回事断言，结果 remove 路径永远红（结算层没删牌是设计如此）。 */
+  var rndEv = null, rndIdx = -1, pickEv = null, pickIdx = -1;
+  C.EVENTS.forEach(function (e) {
+    e.options.forEach(function (o, i) {
+      var f = o.fx || {};
+      if (rndEv === null && f.removeRandom) { rndEv = e; rndIdx = i; }
+      if (pickEv === null && f.remove) { pickEv = e; pickIdx = i; }
+    });
+  });
+  assert(rndEv !== null && pickEv !== null, '应同时存在「随机删」与「挑着删」两类事件');
 
   var p3 = newProg();
   var before = p3.deck.length;
-  C.applyEvent(p3, 'yiqing', 0);                /* 隔离病卒：随机掉一张 */
-  assert(p3.deck.length === before - 1, '牌组应少 1 张，实际：' + (before - p3.deck.length));
+  var rndN = rndEv.options[rndIdx].fx.removeRandom;
+  var r3 = C.applyEvent(p3, rndEv.id, rndIdx);
+  assert(p3.deck.length === before - rndN,
+    '随机删牌事件应真的删掉 ' + rndN + ' 张，实际：' + (before - p3.deck.length));
+  assert(r3.fx && r3.fx.removeRandom === rndN, '返回值应把随机删牌张数一并交回');
 
   var p4 = newProg();
-  var r4 = C.applyEvent(p4, 'laozu', 2);        /* 厚赐遣归：-1 血，删两张 */
-  assert(r4.fx.remove === 2, '应请求删两张牌');
-  assert(p4.hpBonus === -1, '生命上限应 -1，实际：' + p4.hpBonus);
+  var before4 = p4.deck.length;
+  var pickN = pickEv.options[pickIdx].fx.remove;
+  var r4 = C.applyEvent(p4, pickEv.id, pickIdx);
+  assert(p4.deck.length === before4,
+    '「你来挑」的删牌不该由结算层擅自扣牌（留给 UI 弹牌组选择），实际扣了 ' + (before4 - p4.deck.length));
+  assert(r4.fx && r4.fx.remove === pickN, '返回值应把待删张数交给 UI，实际：' + (r4.fx || {}).remove);
 
-  /* 生命上限有下限，不会扣成必败 */
-  var p5 = newProg();
-  for (var i = 0; i < 6; i++) C.applyEvent(p5, 'pofu', 0);   /* -5 × 6 = -30 */
-  assert(p5.hpBonus >= -8, '生命上限扣减应有下限 -8，实际：' + p5.hpBonus);
-  console.log('  生命 / 军粮 / 摸牌 / 掉牌 / 删牌 / 下限保护全部正确 ✅');
+  /* 得牌类事件：applyEvent 只声明，真正加牌由调用方按 card/cardCount 处理 */
+  var cardEv = null, cardIdx = -1;
+  C.EVENTS.forEach(function (e) {
+    e.options.forEach(function (o, i) {
+      if (cardEv === null && (o.fx || {}).card) { cardEv = e; cardIdx = i; }
+    });
+  });
+  assert(cardEv !== null, '应至少有一个「得牌」事件');
+  assert((cardEv.options[cardIdx].fx.cardCount || 1) >= 1, '得牌事件应声明张数');
+  console.log('  货币字段与声明一致，随机删真删/挑选删只声明，生命不再是代价 ✅');
 })();
 
 /* ⑨ 事件抽取不重复 */
@@ -272,7 +306,7 @@ section('⑩ engineRules 注入');
   assert(r.playerHpBonus === 2, '应注入生命加成');
   assert(r.playerStartMana === 3, '关卡 2 + 事件 1 = 3，实际：' + r.playerStartMana);
   assert(r.openingDraw === 1, '应注入起手摸牌');
-  assert(r.enemyStartMana === -1, '应注入敌方军粮削减');
+  assert(r.enemyStartMana === 0, '敌方军粮削减应钳到 ≥0（P3 的规则），实际：' + r.enemyStartMana);
   var bare = C.engineRules(stage);
   assert(bare.advisor === undefined && bare.playerHpBonus === undefined, '不传进度时不应注入');
   assert(bare.playerStartMana === 2, '不传进度时保持关卡原值');
@@ -301,6 +335,14 @@ section('⑪ 起手额外摸牌');
 /* ⑫ 奖励池：稀有度上限 / 阵营 / 同名 2 张 */
 section('⑫ 奖励池随机化');
 (function () {
+  /* 这一节用「固定种子」的伪随机：forEach 的迭代次数取决于抽中了哪些牌
+     （关卡特色牌要跳过断言、牌池不够 3 张时提前结束），用真随机会让
+     断言总数在 620 上下浮动，红了也复现不出来。种子固定后计数与结论都稳定。 */
+  var _rnd0 = Math.random, _seed = 20261106 >>> 0;
+  Math.random = function () {
+    _seed = (_seed * 1664525 + 1013904223) >>> 0;
+    return _seed / 4294967296;
+  };
   var p = newProg();
   var s1 = C.stageById('peixian');              /* 第 1 关 → tier 1 */
   assert(C.tierOf(s1) === 1, '首关应为 tier 1，实际：' + C.tierOf(s1));
@@ -343,6 +385,7 @@ section('⑫ 奖励池随机化');
     assert(list.length === 3, '应抽出 3 张，实际：' + list.length);
     assert(list[0] !== list[1] && list[1] !== list[2] && list[0] !== list[2], '三选一不应重复');
   }
+  Math.random = _rnd0;
   console.log('  稀有度随关卡爬升、阵营过滤、同名 2 张上限、三选一不重复 ✅');
 })();
 

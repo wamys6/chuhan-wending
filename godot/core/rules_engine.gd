@@ -459,7 +459,7 @@ static func damage_unit(state: Dictionary, owner_pid: String, unit: Dictionary, 
 			# 夏侯婴：死战额外发动一次，每场战斗有次数上限（不限次实测 +29pp，太强）
 			var owner: Dictionary = state["players"][owner_pid]
 			if owner_pid == "p1" and str(state["rules"].get("advisor", "")) == "xiangying" \
-					and int(owner.get("xyDoubles", 0)) < ADV_XIANGYING_CAP:
+					and int(owner.get("xyDoubles", 0)) < ADV_XIANGYING_CAP + int(owner.get("xyCapBonus", 0)):
 				owner["xyDoubles"] = int(owner.get("xyDoubles", 0)) + 1
 				_log(state, "xy_double", {"name": unit["name"]})
 				resolve_effect(state, owner_pid, unit["deathrattle"], null, {"lastStand": true})
@@ -620,6 +620,35 @@ static func resolve_effect(state: Dictionary, pid: String, effect, self_card = n
 		if highest != null:
 			damage_unit(state, other(pid), highest["unit"], int(effect["dmgHighest"]), highest["rank"])
 
+	# 军师主动技（P6）：给我方/敌方「攻击力最高」的兵种加/削。
+	# 不走 damage_unit，所以没有溢出伤害与亡语结算；攻击力削到 0 时同步收回攻击权
+	if effect.has("buffHighest"):
+		var bh = null
+		for r in RANKS:
+			for u in p["board"][r]:
+				if bh == null or int(u["atk"]) > int(bh["unit"]["atk"]):
+					bh = {"unit": u, "rank": r}
+		if bh != null:
+			var ba := int(effect["buffHighest"].get("atk", 0))
+			var bhp := int(effect["buffHighest"].get("hp", 0))
+			bh["unit"]["atk"] = int(bh["unit"]["atk"]) + ba
+			bh["unit"]["hp"] = int(bh["unit"]["hp"]) + bhp
+			bh["unit"]["maxHp"] = int(bh["unit"]["maxHp"]) + bhp
+			bh["unit"]["canAttack"] = int(bh["unit"]["atk"]) > 0
+			_log(state, "buff_highest", {"name": str(bh["unit"]["name"]), "atk": ba, "hp": bhp})
+
+	if effect.has("debuffHighest"):
+		var dh = null
+		for r in RANKS:
+			for u in e["board"][r]:
+				if dh == null or int(u["atk"]) > int(dh["unit"]["atk"]):
+					dh = {"unit": u, "rank": r}
+		if dh != null and int(dh["unit"]["atk"]) > 0:
+			var da := int(effect["debuffHighest"].get("atk", 0))
+			dh["unit"]["atk"] = maxi(0, int(dh["unit"]["atk"]) - da)
+			dh["unit"]["canAttack"] = int(dh["unit"]["atk"]) > 0
+			_log(state, "debuff_highest", {"name": str(dh["unit"]["name"]), "n": da})
+
 	# 直取主将 / 恢复主将
 	if int(effect.get("dmgHero", 0)) != 0:
 		_log(state, "spell_hero_dmg", {"side": pid, "n": int(effect["dmgHero"])})
@@ -647,6 +676,15 @@ static func resolve_effect(state: Dictionary, pid: String, effect, self_card = n
 		for r in RANKS:
 			for u in p["board"][r]:
 				u["atk"] = int(u["atk"]) + int(effect["buffAll"])
+
+	# 全体加血（周勃·整军）：上限与当前血量一起加
+	if int(effect.get("buffAllHp", 0)) != 0:
+		var bhp := int(effect["buffAllHp"])
+		for r in RANKS:
+			for u in p["board"][r]:
+				u["hp"] = int(u["hp"]) + bhp
+				u["maxHp"] = int(u["maxHp"]) + bhp
+		_log(state, "buff_all_hp", {"n": bhp})
 
 	if int(effect.get("debuffAll", 0)) != 0:
 		for r in RANKS:
@@ -684,6 +722,51 @@ static func resolve_effect(state: Dictionary, pid: String, effect, self_card = n
 	# 只作用于牌本身（连击自我强化）
 	if int(effect.get("selfAtk", 0)) != 0 and self_card != null:
 		self_card["atk"] = int(self_card["atk"]) + int(effect["selfAtk"])
+
+
+# ---------- 军师主动技（每场战斗 1 次，P6） ----------
+# 定义由战役侧通过 rules["advisorActive"] 注入，引擎不反向依赖 campaign.gd。
+# 只对 p1 生效（军师是玩家的），每场一次，用 p["advUsed"] 记。
+
+static func advisor_active(state: Dictionary) -> Dictionary:
+	var rules: Dictionary = state.get("rules", {})
+	if str(rules.get("advisor", "")) == "":
+		return {}
+	var a = rules.get("advisorActive", null)
+	if a == null or not (a is Dictionary) or not a.has("fx"):
+		return {}
+	return a
+
+
+static func can_advisor_active(state: Dictionary, pid: String) -> bool:
+	if state.is_empty() or bool(state["over"]) or pid != "p1":
+		return false
+	var a := advisor_active(state)
+	if a.is_empty():
+		return false
+	var p: Dictionary = state["players"]["p1"]
+	if bool(p.get("advUsed", false)):
+		return false
+	return int(p["mana"]) >= int(a.get("cost", 0))
+
+
+static func use_advisor_active(state: Dictionary, pid: String) -> Dictionary:
+	if not can_advisor_active(state, pid):
+		return {"ok": false, "reason": "军师技现在用不了"}
+	var a := advisor_active(state)
+	var p: Dictionary = state["players"]["p1"]
+	p["mana"] = int(p["mana"]) - int(a.get("cost", 0))
+	p["advUsed"] = true
+	_log(state, "adv_active", {"name": str(a.get("name", "献策"))})
+	var fx: Dictionary = (a["fx"] as Dictionary).duplicate()
+	# xyCap 不是通用效果词，是夏侯婴专属：本场死战额外发动的次数上限 +N
+	var xy := int(fx.get("xyCap", 0))
+	fx.erase("xyCap")
+	if not fx.is_empty():
+		resolve_effect(state, "p1", fx)
+	if xy != 0:
+		p["xyCapBonus"] = int(p.get("xyCapBonus", 0)) + xy
+	return {"ok": true}
 
 
 # ---------- 英雄技能 ----------
@@ -790,9 +873,9 @@ static func fingerprint(state: Dictionary) -> String:
 		"1" if state["over"] else "0", "-" if state["winner"] == null else str(state["winner"])])
 	for pid in ["p1", "p2"]:
 		var p: Dictionary = state["players"][pid]
-		var s := "%s hp%d/%d m%d/%d f%d sk%d h[%s] d%d b{" % [
+		var s := "%s hp%d/%d m%d/%d f%d sk%d av%d h[%s] d%d b{" % [
 			pid, int(p["hp"]), int(p["maxHp"]), int(p["mana"]), int(p["maxMana"]),
-			int(p["fatigue"]), 1 if p["skillUsed"] else 0,
+			int(p["fatigue"]), 1 if p["skillUsed"] else 0, 1 if p.get("advUsed", false) else 0,
 			_hand_sig(p["hand"]), p["deck"].size()]
 		for r in RANKS:
 			s += r + ":" + _row_sig(p["board"][r]) + ";"

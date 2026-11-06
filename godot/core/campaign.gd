@@ -272,6 +272,10 @@ static func engine_rules(stage: Dictionary, progress: Dictionary) -> Dictionary:
 		var adv := str(progress.get("advisor", ""))
 		if adv != "":
 			r["advisor"] = adv
+			# 主动技跟着军师走：引擎只认规则里的这份数据
+			var adv_def := advisor_by_id(adv)
+			if adv_def.has("active"):
+				r["advisorActive"] = adv_def["active"]
 		# 死战专精：只跟牌组，不跟军师。军师是「这一局怎么打」，专精是「我选了哪些牌」
 		var lsb := last_stand_bonus(progress.get("deck", []))
 		r["lastStandTier"] = last_stand_tier(progress.get("deck", []))

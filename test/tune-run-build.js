@@ -38,6 +38,9 @@ let rng = mulberry32(SEED_BASE);
 Math.random = function () { return rng(); };
 function resetRng(i) { rng = mulberry32(SEED_BASE + i * 7919); }
 
+/* CH_NO_ADV=1：关掉军师主动技（同种子 A/B 量它值多少） */
+if (process.env.CH_NO_ADV === '1' && C.setAdvisorActive) C.setAdvisorActive(false);
+
 /* 第 7 个参数：奖励倾斜开关（0 = 关掉，用来分离"双亡语"与"奖励倾斜"各自值多少） */
 const BIAS_ON = (process.argv[7] || '1') !== '0';
 if (!BIAS_ON) C.setRewardBias && C.setRewardBias(0);
@@ -73,6 +76,11 @@ function score(id) {
   return Math.random();
 }
 
+/* CH_ADVUSE=1：额外打印「军师技发动率」——一个按钮如果 AI 整轮一次都不按，
+   数值差自然等于 0，那不是「技能弱」，是「技能不存在」（夏侯婴 0 费的坑）。 */
+const ADV_USE = process.env.CH_ADVUSE === '1';
+let advUsedBattles = 0, battles = 0;
+
 function runOne() {
   const prog = C.emptyProgress('liubang');
   prog.deck = D.DECKS.han.slice();
@@ -90,6 +98,8 @@ function runOne() {
     let guard = 0;
     while (!st.over && guard++ < 800) AI.applyAction(st, st.current, AI.aiNextAction(st, st.current));
     const win = st.winner === 'p1';
+    battles++;
+    if (st.players.p1.advUsed) advUsedBattles++;
     stages.push(win);
     if (!win) return { cleared: i, stages: stages };
     const cands = C.rollRewards(stage, 'han', 3, prog);
@@ -126,3 +136,7 @@ const mid = runs[Math.floor(runs.length / 2)];
 console.log('=== ' + label + '（' + N + ' 局 × ' + REPEAT + '）===');
 runs.forEach((r, i) => console.log('  第 ' + (i + 1) + ' 轮  八关 ' + r.curve.join('/') + '  通关 ' + r.clear + '%'));
 console.log('  中位  八关 ' + mid.curve.join('/') + '  通关 ' + median + '%');
+if (ADV_USE) {
+  console.log('  军师技发动 ' + advUsedBattles + '/' + battles + ' 场（'
+    + Math.round(advUsedBattles / Math.max(1, battles) * 100) + '%）');
+}

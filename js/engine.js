@@ -347,9 +347,9 @@
            而每场 3 次把收益压回区间内——它奖励"多带死战卡"，不是白送强度。 */
         var xyOwner = state.players[ownerPid];
         if (ownerPid === 'p1' && state.rules.advisor === 'xiangying'
-            && (xyOwner.xyDoubles || 0) < ADV.xiangyingCap) {
+            && (xyOwner.xyDoubles || 0) < ADV.xiangyingCap + (xyOwner.xyCapBonus || 0)) {
           xyOwner.xyDoubles = (xyOwner.xyDoubles || 0) + 1;
-          log(state, (ownerPid === 'p1' ? '我方' : '敌方') + unit.name + ' 死战再发（滕公护军）');
+          log(state, '军师夏侯婴护军有方：' + unit.name + ' 死战再发');
           resolveEffect(state, ownerPid, unit.deathrattle, null, { lastStand: true });
         }
       }
@@ -496,9 +496,36 @@
       });
       if (highest) damageUnit(state, other(pid), highest.unit, effect.dmgHighest, highest.rank);
     }
+    /* 军师主动技（P6）：给我方/敌方「攻击力最高」的兵种加/削。不走 damageUnit，
+       所以没有溢出伤害与亡语结算；攻击力削到 0 时同步收回攻击权（否则 0 攻还能出击） */
+    if (effect.buffHighest) {
+      var bh = null;
+      RANKS.forEach(function (r) {
+        p.board[r].forEach(function (u) { if (!bh || u.atk > bh.unit.atk) bh = { unit: u, rank: r }; });
+      });
+      if (bh) {
+        var ba = effect.buffHighest.atk || 0, bhp = effect.buffHighest.hp || 0;
+        bh.unit.atk += ba;
+        bh.unit.hp += bhp;
+        bh.unit.maxHp += bhp;
+        bh.unit.canAttack = bh.unit.atk > 0;
+        log(state, '我军 ' + bh.unit.name + ' +' + ba + '/+' + bhp);
+      }
+    }
+    if (effect.debuffHighest) {
+      var dh = null;
+      RANKS.forEach(function (r) {
+        e.board[r].forEach(function (u) { if (!dh || u.atk > dh.unit.atk) dh = { unit: u, rank: r }; });
+      });
+      if (dh && dh.unit.atk > 0) {
+        var da = effect.debuffHighest.atk || 0;
+        dh.unit.atk = Math.max(0, dh.unit.atk - da);
+        dh.unit.canAttack = dh.unit.atk > 0;
+        log(state, '敌军 ' + dh.unit.name + ' 攻击力 -' + da);
+      }
+    }
     /* 直取主将 / 恢复主将 */
-    if (effect.dmgHero) {
-      log(state, (pid === 'p1' ? '我方' : '敌方') + '计策直击敌将 ' + effect.dmgHero + ' 点');
+    if (effect.dmgHero) {      log(state, (pid === 'p1' ? '我方' : '敌方') + '计策直击敌将 ' + effect.dmgHero + ' 点');
       damageHero(state, other(pid), effect.dmgHero);
     }
     if (effect.healHero) {
@@ -520,6 +547,16 @@
     }
     if (effect.buffAll) {
       RANKS.forEach(function (r) { p.board[r].forEach(function (u) { u.atk += effect.buffAll; }); });
+    }
+    /* 全体加血（周勃·整军）：上限与当前血量一起加，不触发亡语/溢出 */
+    if (effect.buffAllHp) {
+      RANKS.forEach(function (r) {
+        p.board[r].forEach(function (u) {
+          u.hp += effect.buffAllHp;
+          u.maxHp += effect.buffAllHp;
+        });
+      });
+      log(state, '我军全体 +' + effect.buffAllHp + ' 生命');
     }
     if (effect.debuffAll) {
       RANKS.forEach(function (r) {
@@ -548,6 +585,42 @@
     }
     /* 只作用于牌本身（连击自我强化） */
     if (effect.selfAtk && self) { self.atk += effect.selfAtk; }
+  }
+
+  /* ---------- 军师主动技（每场战斗 1 次） ---------- */
+
+  /* 主动技定义由战役侧通过 rules.advisorActive 注入：引擎不反向依赖 campaign。
+     只对 p1 生效（军师是玩家的），每场一次，用 p.advUsed 记。 */
+  function advisorActive(state) {
+    var rules = state.rules || {};
+    var a = rules.advisorActive;
+    if (!rules.advisor || !a || !a.fx) return null;
+    return a;
+  }
+
+  function canAdvisorActive(state, pid) {
+    if (!state || state.over) return false;
+    if (pid !== 'p1') return false;
+    var a = advisorActive(state);
+    if (!a) return false;
+    var p = state.players.p1;
+    if (p.advUsed) return false;
+    return p.mana >= (a.cost || 0);
+  }
+
+  function useAdvisorActive(state, pid) {
+    if (!canAdvisorActive(state, pid)) return { ok: false, reason: '军师技现在用不了' };
+    var a = advisorActive(state);
+    var p = state.players.p1;
+    p.mana -= (a.cost || 0);
+    p.advUsed = true;
+    log(state, '军师出手「' + (a.name || '献策') + '」');
+    /* xyCap 不是通用效果词，是夏侯婴专属：本场死战额外发动的次数上限 +N */
+    var fx = {};
+    Object.keys(a.fx).forEach(function (k) { if (k !== 'xyCap') fx[k] = a.fx[k]; });
+    if (Object.keys(fx).length) resolveEffect(state, 'p1', fx, null);
+    if (a.fx.xyCap) p.xyCapBonus = (p.xyCapBonus || 0) + a.fx.xyCap;
+    return { ok: true };
   }
 
   /* ---------- 英雄技能 ---------- */
@@ -641,6 +714,9 @@
     getAttackTargets: getAttackTargets,
     canPlay: canPlay,
     playCard: playCard,
+    advisorActive: advisorActive,
+    canAdvisorActive: canAdvisorActive,
+    useAdvisorActive: useAdvisorActive,
     canSkill: canSkill,
     useSkill: useSkill,
     attack: attack

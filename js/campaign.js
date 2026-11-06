@@ -13,46 +13,66 @@
   /* ------------------------------------------------------------------
      军师（战役开局的永久被动，每局三选一）
      被动由引擎识别：rules.advisor = <id>，只对玩家（p1）生效
+     active = 每场战斗 1 次的手动技（P6，2026-11-06 加）：cost + fx，
+     fx 走引擎 resolveEffect 的同一套词汇（draw/healHero/summon/buffAll/
+     dmgHighest 等），个别特例（xyCap）由引擎单独认字段。
+     为什么要它：8 位军师都是「选完就再没交互」的纯被动，开局三选一之后
+     玩家和军师之间没有任何操作；一个每场 1 次的技，成本可控（一场一次），
+     又让「这场要不要留给他」变成一次真决策。
   ------------------------------------------------------------------ */
+  /* 调参开关：量「主动技值多少」时用它做同种子 A/B */
+  var ADVISOR_ACTIVE_ON = true;
+  function setAdvisorActive(on) { ADVISOR_ACTIVE_ON = !!on; }
+
   var ADVISORS = [
     {
       id: 'zhangliang', name: '张良', title: '运筹帷幄', glyph: '张',
       desc: '每回合第一次打出计谋牌时，额外抽一张牌。',
+      active: { name: '献策', cost: 2, desc: '抽两张牌。', fx: { draw: 2 } },
       flavor: '运筹帷幄之中，决胜千里之外。'
     },
     {
       id: 'xiaohe', name: '萧何', title: '镇国抚民', glyph: '萧',
       desc: '每场战斗开始时，主将生命上限 +5，起手多摸一张牌。',
+      active: { name: '转输', cost: 2, desc: '主将恢复 2 点血量。', fx: { healHero: 2 } },
       flavor: '镇国家，抚百姓，给馈饷，不绝粮道。'
     },
     {
       id: 'hanxin', name: '韩信', title: '多多益善', glyph: '韩',
       desc: '你派到前锋列的兵种，攻击力 +1。',
+      active: { name: '点兵', cost: 4, desc: '抽一张牌；前锋列兵种攻击力 +1。',
+        fx: { draw: 1, buffCol: 'front', atk: 1 } },
       flavor: '臣多多而益善耳。'
     },
     {
       id: 'fankuai', name: '樊哙', title: '陷阵先登', glyph: '樊',
       desc: '每场战斗你派出的第一个兵种，攻击力 +1、生命 +1。',
+      active: { name: '冲阵', cost: 3, desc: '我方全体兵种攻击力 +1。', fx: { buffAll: 1 } },
       flavor: '臣请入，与之同命！'
     },
     {
       id: 'xiangying', name: '夏侯婴', title: '滕公护军', glyph: '夏',
       desc: '你的每个死战效果都额外发动一次（每场战斗至多额外发动两次）。安置流散，护军有方。',
+      active: { name: '救驾', cost: 1, desc: '主将恢复 2 点血量；本场战斗死战额外发动的次数 +1。',
+        fx: { healHero: 2, xyCap: 1 } },
       flavor: '上虽急，可以勉生，奈何弃之？'
     },
     {
       id: 'chenping', name: '陈平', title: '六出奇计', glyph: '陈',
       desc: '每场战斗开始时起手多摸两张牌；敌军已列阵时，再对其全体造成 1 点伤害。',
+      active: { name: '反间', cost: 3, desc: '对敌方攻击力最高的兵种造成 1 点伤害。', fx: { dmgHighest: 1 } },
       flavor: '凡六出奇计，辄益邑。'
     },
     {
       id: 'zhoubo', name: '周勃', title: '安刘定倾', glyph: '周',
       desc: '每个我方回合开始时，你攻击力最高的兵种获得 +1/+1（每场战斗至多一次）。',
+      active: { name: '整军', cost: 4, desc: '我方全体兵种生命上限 +1。', fx: { buffAllHp: 1 } },
       flavor: '绛侯厚重少文，然安刘氏者必勃也。'
     },
     {
       id: 'liyiji', name: '郦食其', title: '舌下齐城', glyph: '郦',
       desc: '每个敌方回合开始时，敌方攻击力最高的兵种攻击力 -1（每场战斗至多一次）。',
+      active: { name: '说降', cost: 2, desc: '敌方攻击力最高的兵种攻击力 -1。', fx: { debuffHighest: { atk: 1 } } },
       flavor: '一士之辩，下齐七十余城。'
     }
   ];
@@ -827,7 +847,12 @@
     if (MANA_BOOST_STAGES[stage.id]) r.enemyStartMana += MANA_BOOST_STAGES[stage.id];
     if (GLOBAL_PLAYER_HP) r.playerHpBonus = (r.playerHpBonus || 0) + GLOBAL_PLAYER_HP;
     if (progress) {
-      if (progress.advisor) r.advisor = progress.advisor;
+      if (progress.advisor) {
+        r.advisor = progress.advisor;
+        /* 主动技跟着军师走：引擎只认规则里的这份数据，不反向依赖 campaign */
+        var advDef = advisorById(progress.advisor);
+        r.advisorActive = (advDef && advDef.active && ADVISOR_ACTIVE_ON) ? advDef.active : null;
+      }
       /* 死战专精：只跟牌组，不跟军师。军师是「这一局怎么打」，专精是「我选了哪些牌」 */
       var lsb = lastStandBonus(progress.deck);
       r.lastStandTier = lastStandTier(progress.deck);
@@ -1052,6 +1077,7 @@
   return {
     STAGES: STAGES,
     ADVISORS: ADVISORS,
+    setAdvisorActive: setAdvisorActive,
     EVENTS: EVENTS,
     ASCENSION: ASCENSION,
     TIANSHI: TIANSHI,

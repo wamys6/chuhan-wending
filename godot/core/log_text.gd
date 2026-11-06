@@ -44,6 +44,10 @@ const ZH := {
 	"skill_buff": "{side}发动「约法三章」，{name} +1 攻",
 	"attack_hero": "{side}{name} 直取敌将，造成 {n} 点伤害",
 	"attack_unit": "{side}{name} 攻击 {target}（{a} vs {d}）",
+	"adv_active": "军师出手「{name}」",
+	"buff_highest": "我军 {name} +{atk}/+{hp}",
+	"buff_all_hp": "我军全体 +{n} 生命",
+	"debuff_highest": "敌军 {name} 攻击力 -{n}",
 }
 
 const SIDE_ZH := {"p1": "我方", "p2": "敌方"}
@@ -87,6 +91,10 @@ const EN := {
 	"skill_buff": "{side} use “Three Articles”: {name} +1 Attack",
 	"attack_hero": "{side} {name} strikes the commander for {n}",
 	"attack_unit": "{side} {name} attacks {target} ({a} vs {d})",
+	"adv_active": "The advisor acts: “{name}”",
+	"buff_highest": "{name} gains +{atk}/+{hp}",
+	"buff_all_hp": "All your units gain +{n} Health",
+	"debuff_highest": "Enemy {name} loses {n} Attack",
 }
 
 ## 把 {k, a} 渲染成中文（迁移期用于与 JS 版逐字比对）

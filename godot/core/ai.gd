@@ -158,7 +158,46 @@ static func lethal_plan(state: Dictionary, pid: String) -> Variant:
 	return {"type": "attack", "attacker": int(first["uid"]),
 		"target": {"kind": "hero"}, "score": 9999.0}
 
-## 产生下一个动作：play / skill / attack / end
+## 军师主动技（每场 1 次）：只在「确实有东西可用」时出手，别空放
+static func adv_action(state: Dictionary, pid: String) -> Variant:
+	if not RulesEngine.can_advisor_active(state, pid):
+		return null
+	var a: Dictionary = RulesEngine.advisor_active(state)
+	if a.is_empty():
+		return null
+	var p: Dictionary = state["players"][pid]
+	var e: Dictionary = state["players"][opp(pid)]
+	var fx: Dictionary = a["fx"]
+	var my_units := 0
+	var foe_units := 0
+	var my_rattle := 0
+	for r in RulesEngine.RANKS:
+		my_units += (p["board"][r] as Array).size()
+		foe_units += (e["board"][r] as Array).size()
+		for u in p["board"][r]:
+			if u.get("deathrattle", null) != null:
+				my_rattle += 1
+	if fx.has("draw"):
+		return {"type": "adv"}
+	if fx.has("healHero"):
+		return {"type": "adv"} if int(p["hp"]) <= int(p["maxHp"]) - 2 else null
+	if fx.has("summon"):
+		var rank: String = str((fx["summon"] as Dictionary).get("rank", "front"))
+		return {"type": "adv"} if (p["board"][rank] as Array).size() < 3 else null
+	# buffCol 只加某一列：那一列没人就白花军粮（JS 侧曾漏掉这个分支）
+	if fx.has("buffCol"):
+		var col: Array = p["board"].get(str(fx["buffCol"]), [])
+		return {"type": "adv"} if col.size() > 0 else null
+	if fx.has("buffAll") or fx.has("buffAllHp") or fx.has("buffHighest"):
+		return {"type": "adv"} if my_units > 0 else null
+	if fx.has("dmgHighest") or fx.has("debuffHighest"):
+		return {"type": "adv"} if foe_units > 0 else null
+	if fx.has("xyCap"):
+		return {"type": "adv"} if my_rattle > 0 else null
+	return null
+
+
+## 产生下一个动作：play / adv / skill / attack / end
 static func next_action(state: Dictionary, pid: String) -> Dictionary:
 	if bool(state["over"]):
 		return {"type": "end"}
@@ -184,6 +223,11 @@ static func next_action(state: Dictionary, pid: String) -> Dictionary:
 		plays.sort_custom(func (a, b): return a["score"] > b["score"])
 		if float(plays[0]["score"]) > 0.5:
 			return plays[0]
+
+	# 1.5 军师主动技：出牌之后、攻击之前——加攻/减攻要赶在打人前
+	var adv = adv_action(state, pid)
+	if adv != null:
+		return adv
 
 	# 2. 英雄技能
 	if skill_useful(state, pid):
@@ -225,6 +269,8 @@ static func apply_action(state: Dictionary, pid: String, action: Dictionary) -> 
 	match str(action["type"]):
 		"play":
 			return RulesEngine.play_card(state, pid, int(action["uid"]))
+		"adv":
+			return RulesEngine.use_advisor_active(state, pid)
 		"skill":
 			return RulesEngine.use_skill(state, pid)
 		"attack":

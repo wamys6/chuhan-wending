@@ -100,6 +100,7 @@ var log_panel: Panel
 var log_clip: Control
 var stage_label: Label
 var skill_btn: Button
+var adv_btn: Button            # 军师主动技（每场 1 次，没有军师时隐藏）
 var pause_btn: Button
 var phrase_btn: Button
 var hand_zone: Control
@@ -255,6 +256,15 @@ func _build_layers() -> void:
 	skill_btn.add_theme_font_size_override("font_size", FS_TITLE)
 	skill_btn.pressed.connect(_on_skill)
 	ui_layer.add_child(skill_btn)
+
+	# 军师主动技（P6）：每场 1 次。没有军师的对局（快速开战 / 联机）里不出现
+	adv_btn = UiTheme.button("军师技", false)
+	adv_btn.position = Vector2(RIGHT_EDGE - 176.0 * 3.0 - 40.0, 828)
+	adv_btn.size = Vector2(176, 52)
+	adv_btn.add_theme_font_size_override("font_size", FS_TITLE)
+	adv_btn.pressed.connect(_on_advisor_active)
+	adv_btn.visible = false
+	ui_layer.add_child(adv_btn)
 
 	# 暂停：右上角小按钮（Esc 也行），里面能放弃本局
 	pause_btn = UiTheme.button("暂 停", false)
@@ -736,6 +746,7 @@ func _sync_hero_bars() -> void:
 			bar["hp"].add_theme_color_override("font_color", Color("#c0261c"))
 
 	_sync_skill_btn()
+	_sync_adv_btn()
 
 	var label_text := ""
 	if state["over"]:
@@ -1120,6 +1131,62 @@ func _on_skill() -> void:
 	_after_action(before)
 	if coach != null and is_instance_valid(coach):
 		coach.notify("skill")
+
+## 军师主动技按钮：每场 1 次。用过之后按钮留在原地显示「已用」——
+## 直接隐藏会让玩家以为界面坏了（同「军师卡缺立绘时整块空白」那类问题）
+func _sync_adv_btn() -> void:
+	if adv_btn == null or state.is_empty():
+		return
+	if my_pid != "p1":
+		adv_btn.visible = false
+		return
+	var a: Dictionary = RulesEngine.advisor_active(state)
+	if a.is_empty():
+		adv_btn.visible = false
+		return
+	adv_btn.visible = true
+	var nm := str(a.get("name", "军师技"))
+	var cost := int(a.get("cost", 0))
+	var used := bool(state["players"]["p1"].get("advUsed", false))
+	adv_btn.text = I18n.T("%s %d" % [nm, cost]) if not used else I18n.T("%s · 已用" % nm)
+	adv_btn.tooltip_text = I18n.T("%s（%d 军粮 · 每场一次）\n%s" % [nm, cost, str(a.get("desc", ""))])
+	var usable: bool = RulesEngine.can_advisor_active(state, my_pid) \
+		and str(state["current"]) == my_pid and not busy
+	if _skill_styles.is_empty():
+		for on in [true, false]:
+			var sb := UiTheme.panel_style(UiTheme.PAPER,
+				UiTheme.SEAL if on else Color(0.11, 0.10, 0.09, 0.22), 6, 2)
+			sb.content_margin_left = 22
+			sb.content_margin_right = 22
+			sb.content_margin_top = 10
+			sb.content_margin_bottom = 10
+			_skill_styles[on] = sb
+	adv_btn.add_theme_stylebox_override("normal", _skill_styles[usable])
+	adv_btn.add_theme_stylebox_override("hover", _skill_styles[usable])
+	var ink := UiTheme.SEAL if usable else Color(UiTheme.INK_SOFT.r, UiTheme.INK_SOFT.g, UiTheme.INK_SOFT.b, 0.5)
+	adv_btn.add_theme_color_override("font_color", ink)
+	adv_btn.add_theme_color_override("font_hover_color", ink)
+	adv_btn.modulate.a = 1.0 if usable else 0.8
+
+func _on_advisor_active() -> void:
+	if busy or state["over"] or state["current"] != my_pid:
+		return
+	if not RulesEngine.can_advisor_active(state, my_pid):
+		var p: Dictionary = state["players"][my_pid]
+		if bool(p.get("advUsed", false)):
+			_toast("军师技本场已用过")
+		elif int(p["mana"]) < int(RulesEngine.advisor_active(state).get("cost", 0)):
+			_toast("军粮不足")
+		else:
+			_toast("现在没有可施技的目标")
+		return
+	var before := _snapshot()
+	var r := RulesEngine.use_advisor_active(state, my_pid)
+	if not r["ok"]:
+		_toast(str(r.get("reason", "军师技现在用不了")))
+		return
+	Audio.sfx("skill")
+	_after_action(before)
 
 func _on_end_turn() -> void:
 	if busy or state["over"]:

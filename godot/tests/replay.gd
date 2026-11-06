@@ -90,6 +90,11 @@ func replay(sc: Dictionary) -> Dictionary:
 				if not bool(rp.get("ok", false)) and action_err < 3:
 					action_err += 1
 					ok(false, "[%s] 出牌被拒 uid=%d" % [name, int(act["uid"])], str(rp.get("reason", "")))
+			"adv":
+				var rad := RulesEngine.use_advisor_active(state, pid)
+				if not bool(rad.get("ok", false)) and action_err < 3:
+					action_err += 1
+					ok(false, "[%s] 军师主动技被拒" % name, str(rad.get("reason", "")))
 			"skill":
 				var rs := RulesEngine.use_skill(state, pid)
 				if not bool(rs.get("ok", false)) and action_err < 3:

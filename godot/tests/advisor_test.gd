@@ -40,6 +40,12 @@ func _run() -> void:
 	_test_isolation()
 	print("· 数据与文案")
 	_test_data_and_text()
+	print("· 军师主动技（每场 1 次）")
+	_test_active()
+	print("· 主动技文案与数值一致")
+	_test_active_text_numbers()
+	print("· AI 认得每一种主动技")
+	_test_ai_covers_all_fx()
 
 	print("\n通过 %d 项，失败 %d 项" % [checks - failures, failures])
 	quit(1 if failures > 0 else 0)
@@ -248,3 +254,243 @@ func _test_data_and_text() -> void:
 			"%s：中文战报有文案" % key, zh_line)
 		ok(not en_line.begins_with("{") and not en_line.contains("{name}"),
 			"%s：英文战报有文案" % key, en_line)
+
+
+# ---------------- 军师主动技（P6，每场 1 次） ----------------
+
+## 建一局带「主动技定义」的战斗——真实对局里这份定义由 Campaign.engine_rules 注入
+func _adv_state(advisor_id: String) -> Dictionary:
+	var st := RulesEngine.new_game("liubang", "xiangyu", "p1", "bijiang", null,
+		{"rules": {"advisor": advisor_id}})
+	var adv := GameData.advisor_by_id(advisor_id)
+	if adv.has("active"):
+		st["rules"]["advisorActive"] = (adv["active"] as Dictionary).duplicate(true)
+	st["players"]["p1"]["mana"] = 10
+	st["players"]["p1"]["maxMana"] = 10
+	return st
+
+
+func _put(st: Dictionary, side: String, rank: String, base: String,
+		atk: int = -1, hp: int = -1) -> Dictionary:
+	var u := RulesEngine.new_instance(base)
+	if atk >= 0:
+		u["atk"] = atk
+	if hp >= 0:
+		u["hp"] = hp
+		u["maxHp"] = hp
+	u["canAttack"] = false
+	st["players"][side]["board"][rank].append(u)
+	return u
+
+
+func _test_active() -> void:
+	# ① 数据齐全：8 位都要有 name/cost/desc/fx，中英都要有
+	for adv in GameData.advisors:
+		var id := str(adv.get("id", ""))
+		ok(adv.has("active"), "%s：配了主动技" % id)
+		var a: Dictionary = adv.get("active", {})
+		ok(str(a.get("name", "")) != "" and str(a.get("desc", "")) != "",
+			"%s：主动技有名有述" % id)
+		ok(int(a.get("cost", 0)) >= 1, "%s：主动技有费用" % id)
+		ok(a.get("fx", {}) is Dictionary and not (a.get("fx", {}) as Dictionary).is_empty(),
+			"%s：主动技有效果" % id)
+	I18n.set_lang_soft("en")
+	for adv in GameData.advisors:
+		var id := str(adv.get("id", ""))
+		var an := str((adv.get("active", {}) as Dictionary).get("name", ""))
+		ok(an != "" and not I18n.has_cjk(an), "%s：英文主动技名" % id, an)
+	I18n.set_lang_soft("zh")
+
+	# ② 门槛：无军师 / 军粮不足 / 用过 / 敌方 都不行
+	var none_st := RulesEngine.new_game("liubang", "xiangyu", "p1", "bijiang", null, {"rules": {}})
+	none_st["players"]["p1"]["mana"] = 10
+	ok(not RulesEngine.can_advisor_active(none_st, "p1"), "无军师：没有主动技")
+
+	var st := _adv_state("zhoubo")
+	st["players"]["p1"]["mana"] = 0
+	ok(not RulesEngine.can_advisor_active(st, "p1"), "军粮不足：不可发动")
+	ok(not RulesEngine.can_advisor_active(st, "p2"), "军师技不给敌方")
+	st["players"]["p1"]["mana"] = 10
+	_put(st, "p1", "front", "n_bing1")
+	ok(RulesEngine.can_advisor_active(st, "p1"), "条件齐备：可发动")
+	var cost := int((GameData.advisor_by_id("zhoubo")["active"] as Dictionary)["cost"])
+	var mana_before := int(st["players"]["p1"]["mana"])
+	var r := RulesEngine.use_advisor_active(st, "p1")
+	ok(bool(r["ok"]), "发动成功")
+	ok(int(st["players"]["p1"]["mana"]) == mana_before - cost, "扣费 = 主动技费用")
+	ok(not RulesEngine.can_advisor_active(st, "p1"), "同一场不能二次发动")
+
+	# ③ 逐个效果
+	# 张良·献策：抽 2
+	st = _adv_state("zhangliang")
+	var hand_before: int = (st["players"]["p1"]["hand"] as Array).size()
+	RulesEngine.use_advisor_active(st, "p1")
+	ok((st["players"]["p1"]["hand"] as Array).size() == hand_before + 2, "张良：抽两张")
+
+	# 萧何·转输：主将 +2，不超上限
+	st = _adv_state("xiaohe")
+	st["players"]["p1"]["hp"] = int(st["players"]["p1"]["maxHp"]) - 1
+	RulesEngine.use_advisor_active(st, "p1")
+	ok(int(st["players"]["p1"]["hp"]) == int(st["players"]["p1"]["maxHp"]), "萧何：回血且封顶")
+
+	# 韩信·点兵：只加前锋
+	st = _adv_state("hanxin")
+	var fr := _put(st, "p1", "front", "n_bing1", 1, 2)
+	var md := _put(st, "p1", "mid", "n_bing1", 1, 2)
+	RulesEngine.use_advisor_active(st, "p1")
+	ok(int(fr["atk"]) == 2, "韩信：前锋 +1 攻")
+	ok(int(md["atk"]) == 1, "韩信：中军不动")
+
+	# 樊哙·冲阵：全体 +1
+	st = _adv_state("fankuai")
+	var a1 := _put(st, "p1", "front", "n_bing1", 1, 2)
+	var a2 := _put(st, "p1", "mid", "n_bing1", 1, 2)
+	RulesEngine.use_advisor_active(st, "p1")
+	ok(int(a1["atk"]) == 2 and int(a2["atk"]) == 2, "樊哙：全体 +1 攻")
+
+	# 夏侯婴·救驾：回 2 血 + 本场死战额外次数 +1
+	# （只给 xyCap 时实测差值精确等于 0pp：AI 整轮按下去也换不来任何结果，
+	#   不是「技能弱」而是「技能等于没有」。加了回血才真的有人用）
+	st = _adv_state("xiangying")
+	st["players"]["p1"]["hp"] = int(st["players"]["p1"]["maxHp"]) - 3
+	RulesEngine.use_advisor_active(st, "p1")
+	ok(int(st["players"]["p1"].get("xyCapBonus", 0)) == 1, "夏侯婴：死战次数上限 +1")
+	ok(int(st["players"]["p1"]["hp"]) == int(st["players"]["p1"]["maxHp"]) - 1, "夏侯婴：同时回 2 血")
+
+	# 陈平·反间：削敌方最高攻的血
+	st = _adv_state("chenping")
+	var big := _put(st, "p2", "front", "n_bing1", 3, 3)
+	var small := _put(st, "p2", "mid", "n_bing1", 1, 1)
+	RulesEngine.use_advisor_active(st, "p1")
+	ok(int(big["hp"]) == 2, "陈平：打的是最高攻")
+	ok(int(small["hp"]) == 1, "陈平：小兵不挨打")
+
+	# 周勃·整军：我方全体生命上限 +1（攻不动，当前血量与上限一起加）
+	# 单个 +1/+1 实测只有 +0.3pp（4 费换不起一张牌的收益），改成全体加血才立得住
+	st = _adv_state("zhoubo")
+	var tall := _put(st, "p1", "front", "n_bing1", 2, 2)
+	var wide := _put(st, "p1", "mid", "n_bing1", 1, 1)
+	var foe := _put(st, "p2", "front", "n_bing1", 1, 2)
+	RulesEngine.use_advisor_active(st, "p1")
+	ok(int(tall["hp"]) == 3 and int(tall["maxHp"]) == 3, "周勃：我方全体生命上限 +1")
+	ok(int(wide["hp"]) == 2 and int(wide["maxHp"]) == 2, "周勃：另一列也加")
+	ok(int(tall["atk"]) == 2, "周勃：攻击力不动")
+	ok(int(foe["hp"]) == 2, "周勃：敌方不加")
+
+	# 郦食其·说降：削敌方最高攻，不削到负
+	st = _adv_state("liyiji")
+	var ebig := _put(st, "p2", "front", "n_bing1", 3, 3)
+	RulesEngine.use_advisor_active(st, "p1")
+	ok(int(ebig["atk"]) == 2, "郦食其：削 1 攻")
+	st = _adv_state("liyiji")
+	var ezero := _put(st, "p2", "front", "n_dun1", 0, 3)
+	RulesEngine.use_advisor_active(st, "p1")
+	ok(int(ezero["atk"]) == 0, "郦食其：0 攻不会被削成负数")
+
+	# ④ 战报三键中英都渲染得出来（缺 key 会原样吐 {name}）
+	for key in ["adv_active", "buff_highest", "debuff_highest", "buff_all_hp"]:
+		var args := {"name": "试兵", "atk": 1, "hp": 1, "n": 1}
+		var zh_line := LogText.zh(key, args)
+		var en_line := LogText.en(key, args)
+		ok(not zh_line.begins_with("{") and not zh_line.contains("{name}"), "%s：中文战报" % key, zh_line)
+		ok(not en_line.begins_with("{") and not en_line.contains("{name}"), "%s：英文战报" % key, en_line)
+
+
+# ---------------- 文案数字 ← 数值（踩坑 42 家族：英文单边写错） ----------------
+
+## 把 fx 里所有数字摊平：[healHero:2, xyCap:1] → [2, 1]，buffHighest{atk,hp} 也摊平
+func _fx_numbers(fx: Dictionary) -> Array:
+	var out := []
+	for k in fx.keys():
+		var v = fx[k]
+		if typeof(v) == TYPE_INT or typeof(v) == TYPE_FLOAT:
+			out.append(int(v))
+		elif v is Dictionary:
+			for k2 in (v as Dictionary).keys():
+				var v2 = (v as Dictionary)[k2]
+				if typeof(v2) == TYPE_INT or typeof(v2) == TYPE_FLOAT:
+					out.append(int(v2))
+	return out
+
+
+## 文案里写到的数字：阿拉伯数字 + 中文数字 + 英文数词。
+## 中文卡面用「两」，英文爱写 "one more time"——只查阿拉伯数字会漏掉一半。
+func _desc_numbers(text: String, english: bool) -> Array:
+	var out := []
+	var re := RegEx.new()
+	re.compile("[0-9]+")
+	for m in re.search_all(text):
+		out.append(int(m.get_string()))
+	var cn := {"一": 1, "两": 2, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6}
+	for ch in cn.keys():
+		if text.contains(str(ch)):
+			out.append(int(cn[ch]))
+	if english:
+		var en := {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5}
+		for w in en.keys():
+			if text.to_lower().contains(str(w)):
+				out.append(int(en[w]))
+	return out
+
+
+func _test_active_text_numbers() -> void:
+	# 文案里出现的每个数字，都必须能在 fx 里找到；反之 fx 里的数不一定写进文案（hp:0 之类）
+	for lang in ["zh", "en"]:
+		I18n.set_lang_soft(lang)
+		for adv in GameData.advisors:
+			var id := str(adv.get("id", ""))
+			var a: Dictionary = adv.get("active", {})
+			var allow := _fx_numbers(a.get("fx", {}))
+			var nums := _desc_numbers(str(a.get("desc", "")), lang == "en")
+			for n in nums:
+				ok(allow.has(int(n)),
+					"%s/%s：文案里的 %d 必须来自 fx（fx=%s）" % [id, lang, int(n), str(allow)],
+					str(a.get("desc", "")))
+	I18n.set_lang_soft("zh")
+
+
+# ---------------- AI 认得每一种主动技 ----------------
+
+## 一个「所有条件都满足」的局面：血量不满、前锋有兵、有死战兵、敌方也列了阵。
+## 只测「AI 会不会按这个按钮」——韩信的点兵曾经因为 ai.js 少一个 buffCol 分支，
+## 整轮一次都没被按过，A/B 差值精确等于 0.0pp，看起来像「技能弱」，其实是「没人用」。
+func _test_ai_covers_all_fx() -> void:
+	# ① 逐个 fx 键单独喂给 AI。只测「整个技能认不认得」会被组合掩盖：
+	#    韩信的点兵现在是 {draw, buffCol}，少了 buffCol 分支时 draw 分支照样返回 adv，
+	#    测试全绿——本条第一版就是这样假绿的，故意删掉分支验证过。
+	var seen := {}
+	for adv in GameData.advisors:
+		var afx: Dictionary = (adv.get("active", {}) as Dictionary).get("fx", {})
+		for k in afx.keys():
+			seen[str(k)] = afx[k]
+	# 跳过「参数键」：它们是某个效果的入参（buffCol 的 atk、summon 的 rank/baseId），
+	# 不是独立效果。想把新效果塞进这张白名单蒙混过去，等于自己承认没接 AI 分支。
+	const FX_PARAMS := ["atk", "hp", "count", "rank", "baseId"]
+	for k in seen.keys():
+		if FX_PARAMS.has(str(k)):
+			continue
+		var solo := _adv_state("zhoubo")
+		solo["rules"]["advisorActive"] = {
+			"name": "试", "cost": 1, "desc": "试", "fx": {str(k): seen[k]}
+		}
+		solo["players"]["p1"]["hp"] = int(solo["players"]["p1"]["maxHp"]) - 3
+		_put(solo, "p1", "front", "n_bing5")
+		_put(solo, "p1", "mid", "n_bing1")
+		_put(solo, "p2", "front", "n_bing1")
+		var solo_act = Ai.adv_action(solo, "p1")
+		ok(solo_act != null and typeof(solo_act) == TYPE_DICTIONARY,
+			"AI 认得单个 fx 键「%s」" % k, str(solo_act))
+
+	# ② 再按真实军师整份定义过一遍（防「单键都对、组合就漏」）
+	for adv in GameData.advisors:
+		var id := str(adv.get("id", ""))
+		var st := _adv_state(id)
+		st["players"]["p1"]["hp"] = int(st["players"]["p1"]["maxHp"]) - 3
+		_put(st, "p1", "front", "n_bing5")      # 死战兵（夏侯婴的 xyCap 需要）
+		_put(st, "p1", "mid", "n_bing1")
+		st["players"]["p1"]["board"]["front"][0]["canAttack"] = false
+		_put(st, "p2", "front", "n_bing1")
+		ok(RulesEngine.can_advisor_active(st, "p1"), "%s：AI 场景可发动" % id)
+		var act = Ai.adv_action(st, "p1")
+		ok(act != null and typeof(act) == TYPE_DICTIONARY,
+			"%s：AI 认得这个主动技（条件齐全时应当出手）" % id, str(act))

@@ -182,19 +182,28 @@ func _test_relay_e2e() -> void:
 
 # ---------------- ④ 断线重连（真服务器 + 真 socket 断开） ----------------
 
-## 加入方在第 6 个动作后真实断开 socket，1.2 秒后 resume；
-## 断线窗口里房主照常行动，重连方必须靠服务端日志把错过的动作补齐，
+## 加入方在第 N 个动作后真实断开 socket，若干秒后 resume；
+## 断线窗口里对手继续行动，重连方必须靠服务端日志把错过的动作补齐，
 ## 整局结束时两端指纹仍然一致——这就是「断线重连真机验收」的自动化等价物
 func _test_reconnect() -> void:
-	var r: Dictionary = await _play_pair("27912",
-		["--drop-at", "6", "--drop-delay", "1200"], "断线重连")
+	# 断在哪一步决定了「窗口里还有没有人行动」：轮到自己那一侧时整段窗口一步都不走，
+	# 「错过动作」自然为 0（本机 3 跑 1 红，且拉长窗口也治不好——等的是对方回合）。
+	# 所以最多试三个断点，只要有一次真的产生空洞就算过：这条要证明的是「补放路径存在」，
+	# 不是「第 6 步必有空洞」。指纹一致性在后面单独断言，回归逃不掉。
+	var r := {}
+	var missed := 0
+	for at in ["6", "7", "8"]:
+		r = await _play_pair("27912", ["--drop-at", str(at), "--drop-delay", "1500"],
+			"断线重连", at != "6")
+		missed = int(r.get("missed_guest", "0"))
+		if missed > 0:
+			break
 	ok(str(r.get("fp_host", "")) != "" and str(r.get("fp_guest", "")) != "",
 		"重连局两端都打完了",
 		"host_err=%s guest_err=%s" % [r.get("err_host", ""), r.get("err_guest", "")])
 	ok(str(r.get("recon_guest", "0")) == "1", "加入方完成 1 次重连", str(r.get("recon_guest", "")))
 	# 断线窗口必须是真断（错过了动作、靠日志补回来），否则这条只测到握手
-	ok(int(r.get("missed_guest", "0")) > 0,
-		"断线期间错过的动作 > 0（确实走了补放）", str(r.get("missed_guest", "")))
+	ok(missed > 0, "断线期间错过的动作 > 0（确实走了补放）", str(missed))
 	if str(r.get("fp_host", "")) != "" and str(r.get("fp_guest", "")) != "":
 		ok(r["fp_host"] == r["fp_guest"], "断线重连后两端指纹仍一致")
 		ok(r["win_host"] == r["win_guest"] and str(r["win_host"]) != "",
@@ -203,7 +212,9 @@ func _test_reconnect() -> void:
 			"两端应用的动作数一致", "%s vs %s" % [r["act_host"], r["act_guest"]])
 
 ## 起中继 + 两个 headless 客户端打一整局，返回两端写出的结果
-func _play_pair(port: String, guest_extra: Array, tag: String) -> Dictionary:
+## quiet=true 时不写断言——重试同一场景时只算一次，否则「通过项数」会随重试次数漂
+## （踩坑 52 同款：报数字的地方不能跟着重试次数变）。
+func _play_pair(port: String, guest_extra: Array, tag: String, quiet := false) -> Dictionary:
 	var host_out := ProjectSettings.globalize_path("res://tests/_pvp_host.txt")
 	var guest_out := ProjectSettings.globalize_path("res://tests/_pvp_guest.txt")
 	for p in [host_out, guest_out]:
@@ -225,7 +236,8 @@ func _play_pair(port: String, guest_extra: Array, tag: String) -> Dictionary:
 		"--script", "res://tests/pvp_client.gd", "--", "--role", "host", "--seed", "42",
 		"--port", port]
 	var host_pid := OS.create_process(exe, _trim_exe(args_host))
-	ok(host_pid != -1, "[%s] 房主客户端已启动" % tag)
+	if not quiet:
+		ok(host_pid != -1, "[%s] 房主客户端已启动" % tag)
 
 	# 等房主写出房间码
 	var code := ""
@@ -233,7 +245,8 @@ func _play_pair(port: String, guest_extra: Array, tag: String) -> Dictionary:
 	while Time.get_ticks_msec() < deadline and code == "":
 		await create_timer(0.4).timeout
 		code = _read_key(host_out, "CODE")
-	ok(code != "", "[%s] 拿到房间码" % tag, code)
+	if not quiet:
+		ok(code != "", "[%s] 拿到房间码" % tag, code)
 
 	var gargs: PackedStringArray = [exe, "--headless", "--path", base,
 		"--script", "res://tests/pvp_client.gd", "--", "--role", "guest", "--seed", "42",
@@ -241,7 +254,8 @@ func _play_pair(port: String, guest_extra: Array, tag: String) -> Dictionary:
 	for x in guest_extra:
 		gargs.append(str(x))
 	var guest_pid := OS.create_process(exe, _trim_exe(gargs))
-	ok(guest_pid != -1, "[%s] 加入方客户端已启动" % tag)
+	if not quiet:
+		ok(guest_pid != -1, "[%s] 加入方客户端已启动" % tag)
 
 	# 等两端打完（最长 150 秒）
 	deadline = Time.get_ticks_msec() + 150000

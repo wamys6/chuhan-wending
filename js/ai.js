@@ -134,7 +134,38 @@
     return { type: 'attack', attacker: first.uid, target: { kind: 'hero' }, score: 9999 };
   }
 
-  /* 产生下一个动作：play / skill / attack / end */
+  /* 军师主动技（每场 1 次）：只在「确实有东西可用」时出手，别空放 */
+  function advAction(state, pid) {
+    if (!Engine.canAdvisorActive(state, pid)) return null;
+    var a = Engine.advisorActive(state);
+    if (!a || !a.fx) return null;
+    var p = state.players[pid], e = state.players[opp(pid)];
+    var fx = a.fx;
+    var myUnits = 0, foeUnits = 0, myRattle = 0;
+    Engine.RANKS.forEach(function (r) {
+      myUnits += p.board[r].length;
+      foeUnits += e.board[r].length;
+      p.board[r].forEach(function (u) { if (u.deathrattle) myRattle++; });
+    });
+    if (fx.draw) return { type: 'adv' };
+    if (fx.healHero) return p.hp <= p.maxHp - 2 ? { type: 'adv' } : null;
+    if (fx.summon) {
+      var rank = fx.summon.rank || 'front';
+      return p.board[rank].length < 3 ? { type: 'adv' } : null;
+    }
+    /* buffCol 只加某一列：那一列没人就白花军粮（曾经漏了这个分支，
+       韩信的「点兵」在 AI 手里一次都没放过，A/B 差值精确等于 0.0pp） */
+    if (fx.buffCol) {
+      var col = p.board[fx.buffCol] || [];
+      return col.length > 0 ? { type: 'adv' } : null;
+    }
+    if (fx.buffAll || fx.buffAllHp || fx.buffHighest) return myUnits > 0 ? { type: 'adv' } : null;
+    if (fx.dmgHighest || fx.debuffHighest) return foeUnits > 0 ? { type: 'adv' } : null;
+    if (fx.xyCap) return myRattle > 0 ? { type: 'adv' } : null;
+    return null;
+  }
+
+  /* 产生下一个动作：play / adv / skill / attack / end */
   function aiNextAction(state, pid) {
     if (state.over) return { type: 'end' };
     var p = state.players[pid], e = state.players[opp(pid)];
@@ -159,6 +190,10 @@
       plays.sort(function (a, b) { return b.score - a.score; });
       if (plays[0].score > 0.5) return plays[0];
     }
+
+    /* 1.5 军师主动技：放在出牌之后、攻击之前——加攻/减攻要赶在打人前 */
+    var adv = advAction(state, pid);
+    if (adv) return adv;
 
     /* 2. 英雄技能 */
     if (skillUseful(state, pid)) {
@@ -196,6 +231,7 @@
   /* 在真实状态上执行一个 AI 动作 */
   function applyAction(state, pid, action) {
     if (action.type === 'play') return Engine.playCard(state, pid, action.uid);
+    if (action.type === 'adv') return Engine.useAdvisorActive(state, pid);
     if (action.type === 'skill') return Engine.useSkill(state, pid);
     if (action.type === 'attack') return Engine.attack(state, pid, action.attacker, action.target);
     if (action.type === 'end') { Engine.endTurn(state); return { ok: true }; }

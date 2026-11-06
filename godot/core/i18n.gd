@@ -50,6 +50,9 @@ const RULES := [
 	["^([0-9]+) 攻 · ([0-9]+) 血$", "{1} Atk · {2} HP"],
 	# —— 技能按钮的悬浮说明 ——
 	["^(.+)（([0-9]+) 军粮）\\n(.+)$", "{1} ({2} Provisions)\n{3}"],
+	# —— 军师主动技按钮（P6）——
+	["^(.+)（([0-9]+) 军粮 · 每场一次）\\n(.+)$", "{1} ({2} Provisions · once per battle)\n{3}"],
+	["^(.+) · 已用$", "{1} · used"],
 	# —— 成就横幅 / 关卡名号 ——
 	["^「(.+)」已 破$", "“{1}” Taken"],
 	["^「(.+)」已破$", "“{1}” Taken"],
@@ -500,6 +503,15 @@ static func apply_data() -> void:
 				a[f] = ea[f]
 			elif za.has(f):
 				a[f] = za[f]
+		# 主动技（P6）是一个嵌套字典，主循环的浅字段覆盖管不到它
+		var zact: Dictionary = (za.get("active", {}) as Dictionary) if za.has("active") else {}
+		var eact: Dictionary = (ea.get("active", {}) as Dictionary) if (ea != null and ea is Dictionary and ea.has("active")) else {}
+		if a.has("active") and a["active"] is Dictionary:
+			for f in ["name", "desc"]:
+				if en and eact.has(f):
+					a["active"][f] = eact[f]
+				elif zact.has(f):
+					a["active"][f] = zact[f]
 
 	for i in GameData.events.size():
 		var e: Dictionary = GameData.events[i]

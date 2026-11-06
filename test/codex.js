@@ -189,7 +189,10 @@ section('⑧ 图鉴筛选');
   assert(all.indexOf('s_xianji') < 0, '先机虎符不应出现在图鉴');
   var stats = X.cardStats(D);
   assert(stats.total === all.length, '统计总数应与筛选结果一致');
-  assert(stats.total === 45, '卡池应为 45 张，实际：' + stats.total);
+  /* 别写死张数：卡池一直在加（45 → 78），写死等于每隔几版就假红一次（踩坑 48 同款）。
+     图鉴口径 = 全部卡 − 先机虎符（token，不入图鉴）。 */
+  var expectTotal = Object.keys(D.CARDS).length - 1;
+  assert(stats.total === expectTotal, '卡池应为 ' + expectTotal + ' 张（全部卡 − 先机虎符），实际：' + stats.total);
   assert(stats.byFaction.neutral + stats.byFaction.han + stats.byFaction.chu === stats.total,
     '阵营分项之和应等于总数');
   assert(stats.byType.piece + stats.byType.spell === stats.total, '类型分项之和应等于总数');
@@ -218,7 +221,7 @@ section('⑧ 图鉴筛选');
 
   /* 每个结果都能拿到卡牌对象（防止脏 id） */
   all.forEach(function (id) { assert(!!D.CARDS[id], '图鉴出现不存在的卡：' + id); });
-  console.log('  45 张全量 / 阵营 / 类型 / 组合筛选与费用排序全部正确 ✅');
+  console.log('  ' + stats.total + ' 张全量 / 阵营 / 类型 / 组合筛选与费用排序全部正确 ✅');
 })();
 
 /* ⑨ 存档重置与内存兜底 */

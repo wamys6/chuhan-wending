@@ -745,48 +745,80 @@
       "name": "Zhang Liang",
       "title": "Grand Strategist",
       "desc": "The first Stratagem you play each turn draws a card.",
+      "active": {
+        "name": "Counsel",
+        "desc": "Draw two cards."
+      },
       "flavor": "Planning inside the tent; victory a thousand li away."
     },
     "xiaohe": {
       "name": "Xiao He",
       "title": "Keeper of the State",
       "desc": "At the start of each battle, your max Health +5 and you draw an extra card.",
+      "active": {
+        "name": "Convoy",
+        "desc": "Restore 2 Health to your commander."
+      },
       "flavor": "He steadied the state, settled the people, and the grain never stopped moving."
     },
     "hanxin": {
       "name": "Han Xin",
       "title": "The More the Better",
       "desc": "Units you deploy into the Vanguard gain +1 Attack.",
+      "active": {
+        "name": "Muster",
+        "desc": "Draw a card; units in your Vanguard gain +1 Attack."
+      },
       "flavor": "Give me more troops—always more."
     },
     "fankuai": {
       "name": "Fan Kuai",
       "title": "First Through the Gate",
       "desc": "The first unit you deploy each battle gains +1 Attack and +1 Health.",
+      "active": {
+        "name": "Charge",
+        "desc": "All your units gain +1 Attack."
+      },
       "flavor": "Let me in—I will share his fate!"
     },
     "chenping": {
       "name": "Chen Ping",
       "title": "Six Strange Stratagems",
       "desc": "Draw two extra cards at the start of each battle; if the enemy has units arrayed, deal 1 damage to each of them.",
+      "active": {
+        "name": "Sow Discord",
+        "desc": "Deal 1 damage to the enemy's highest-Attack unit."
+      },
       "flavor": "Six strange stratagems, six new fiefs."
     },
     "xiangying": {
       "name": "Xiahou Ying",
       "title": "Duke of Teng",
       "desc": "Every Last Stand of yours triggers one extra time (at most twice extra per battle).",
+      "active": {
+        "name": "Rescue the Prince",
+        "desc": "Restore 2 Health to your commander; your Last Stand may trigger one more time this battle."
+      },
       "flavor": "The prince is in danger—yet he can be saved. Why abandon him?"
     },
     "zhoubo": {
       "name": "Zhou Bo",
       "title": "Steadying the House of Liu",
       "desc": "At the start of each of your turns, your highest-Attack unit gains +1 Attack and +1 Health (at most once per battle).",
+      "active": {
+        "name": "Rally the Ranks",
+        "desc": "All your units gain +1 Health."
+      },
       "flavor": "Blunt and plain of speech—yet it is Bo who will keep the House of Liu standing."
     },
     "liyiji": {
       "name": "Li Yiji",
       "title": "Seventy Cities by Tongue",
       "desc": "At the start of each enemy turn, their highest-Attack unit loses 1 Attack (at most once per battle).",
+      "active": {
+        "name": "Call for Surrender",
+        "desc": "The enemy's highest-Attack unit loses 1 Attack."
+      },
       "flavor": "One scholar's argument, and seventy cities of Qi came over."
     }
   },

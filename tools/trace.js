@@ -59,7 +59,7 @@ function fingerprint(state) {
   ['p1', 'p2'].forEach(function (pid) {
     var p = state.players[pid];
     var s = pid + ' hp' + p.hp + '/' + p.maxHp + ' m' + p.mana + '/' + p.maxMana +
-      ' f' + p.fatigue + ' sk' + (p.skillUsed ? 1 : 0) +
+      ' f' + p.fatigue + ' sk' + (p.skillUsed ? 1 : 0) + ' av' + (p.advUsed ? 1 : 0) +
       ' h[' + handSig(p.hand) + '] d' + p.deck.length + ' b{';
     ['front', 'mid', 'back'].forEach(function (r) {
       s += r + ':' + rowSig(p.board[r]) + ';';
@@ -89,6 +89,12 @@ function playOneTurn(state, trace, pid) {
       }
     }
     if (played) continue;
+
+    /* 军师主动技：每场一次，录制进 trace 以便两端等价性覆盖这条路径 */
+    if (E.canAdvisorActive(state, pid)) {
+      var ra = E.useAdvisorActive(state, pid);
+      if (ra.ok) { trace.push({ a: 'adv' }); continue; }
+    }
 
     if (E.canSkill(state, pid)) {
       var rs = E.useSkill(state, pid);
@@ -203,6 +209,8 @@ var scenarios = [
       }
     }
   },
+  { name: 'advisor-xiangying', seed: 61, hero: 'liubang', foe: 'xiangyu', first: 'p1',
+    opts: { rules: { advisor: 'xiangying' } } },
   {
     name: 'stage-pengcheng', seed: 43, hero: 'liubang', foe: 'xiangyu', first: 'p1',
     opts: { rules: C.stageById('pengcheng').rules, p2Meta: C.stageById('pengcheng').enemy.meta }
@@ -254,6 +262,17 @@ var scenarios = [
     },
     opts: { rules: { advisor: 'xiangying' } }
   },
+  /* 周勃·整军（全体加血 buffAllHp）单独一条：新效果词必须有跨语言指纹与战报比对 */
+  {
+    name: 'advisor-zhoubo', seed: 67, hero: 'liubang', foe: 'xiangyu', first: 'p1',
+    decks: {
+      p1: ['n_bing5', 'n_bing5', 'n_bing6', 'n_bing6', 'n_bing7', 'n_bing7', 'n_bing9', 'n_bing10',
+        'n_che4', 'n_jiang2', 'n_shi4', 'n_shi5', 'n_yi1', 'n_shi7', 'n_cheng2', 'n_cheng4',
+        'n_dun1', 'n_lei1', 'n_cheng3', 'n_huogong'],
+      p2: (D.DECKS.chu || []).slice()
+    },
+    opts: { rules: { advisor: 'zhoubo' } }
+  },
   /* 死战专精（1.2）：死战召唤的援军吃 rules.lastStandAtk/Hp 的加成。
      档位由 campaign.lastStandTier 算、引擎只认这两个数字——分开测，改动互相不牵连。
      牌组里同时放征发（战吼召唤），用来卡住「只有死战触发的召唤才吃加成」这条边界。 */
@@ -278,6 +297,16 @@ var scenarios = [
     }
   }
 ];
+
+/* 军师主动技（P6）：带军师的场景一律注入 advisorActive——
+   真实对局里它由 Campaign.engineRules 注入，录制端不补这一手就永远走不到这条路径 */
+scenarios.forEach(function (cfg) {
+  var rules = cfg.opts && cfg.opts.rules;
+  if (rules && rules.advisor) {
+    var adv = C.advisorById(rules.advisor);
+    if (adv && adv.active) rules.advisorActive = adv.active;
+  }
+});
 
 var out = { version: 1, engine: 'js', scenarios: [] };
 scenarios.forEach(function (cfg) {

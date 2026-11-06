@@ -60,6 +60,7 @@ func _run() -> void:
 	await _test_log_panel(scene)
 	await _test_unit_click(scene)
 	await _test_layout(scene)
+	await _test_threat(scene)
 
 	scene.queue_free()
 	await process_frame
@@ -549,6 +550,92 @@ func _test_unit_click(scene: Control) -> void:
 		return
 	_click(found)
 	ok(scene.selected_uid == int(found.uid), "点部队能选中（selected_uid 已设置）", str(scene.selected_uid))
+
+# ---------------- ⑧ 敌方意图预告 ----------------
+
+func _clear_board(scene: Control) -> void:
+	for pid in ["p1", "p2"]:
+		for r in RulesEngine.RANKS:
+			(scene.state["players"][pid]["board"][r] as Array).clear()
+
+func _test_threat(scene: Control) -> void:
+	var foe: Dictionary = scene.state["players"]["p2"]
+	var me: Dictionary = scene.state["players"]["p1"]
+
+	# ① 单杀：5 攻敌车打得死 2/3 前锋 → 险印亮出；敌方部队不亮印
+	_clear_board(scene)
+	var car: Dictionary = RulesEngine.new_instance("n_che1")      # 5/5
+	foe["board"]["front"].append(car)
+	var mine: Dictionary = RulesEngine.new_instance("n_bing2")    # 2/3
+	me["board"]["front"].append(mine)
+	scene.state["current"] = "p1"
+	scene.busy = false
+	scene._sync_all()
+	await create_timer(0.6).timeout   # 让上一组用例旧视图的阵亡动画走完
+	var pv: Dictionary = RulesEngine.threat_preview(scene.state, "p1")
+	ok(pv["kill"].has(int(mine["uid"])), "引擎预览：5 攻 ≥ 3 血标记前锋")
+	var v: UnitView = scene.unit_views.get(int(mine["uid"]), null)
+	ok(v != null and v._threat.visible, "被标记部队亮「险」印")
+	var foe_v: UnitView = scene.unit_views.get(int(car["uid"]), null)
+	ok(foe_v != null and not foe_v._threat.visible, "敌方部队不亮印")
+
+	# ② 守御吸火力：火力被守御强制接管，中军解除威胁
+	_clear_board(scene)
+	foe["board"]["front"].append(RulesEngine.new_instance("n_che1"))
+	var guard: Dictionary = RulesEngine.new_instance("n_shi1")    # 1/4 守御
+	me["board"]["front"].append(guard)
+	var mid: Dictionary = RulesEngine.new_instance("n_bing2")
+	me["board"]["mid"].append(mid)
+	scene._sync_all()
+	await create_timer(0.6).timeout
+	pv = RulesEngine.threat_preview(scene.state, "p1")
+	ok(pv["kill"].has(int(guard["uid"])), "引擎预览：守御强制先挨打，5 攻 ≥ 4 血")
+	ok(not pv["kill"].has(int(mid["uid"])), "引擎预览：有守御时中军不在威胁名单")
+	var gv: UnitView = scene.unit_views.get(int(guard["uid"]), null)
+	var mv: UnitView = scene.unit_views.get(int(mid["uid"]), null)
+	ok(gv != null and gv._threat.visible, "守御部队亮「险」印")
+	ok(mv != null and not mv._threat.visible, "被保护的中军不亮印")
+
+	# ③ 主将斩杀线：全场无兵才暴露；脱离斩杀线 / 敌方回合告警熄灭
+	_clear_board(scene)
+	foe["board"]["front"].append(RulesEngine.new_instance("n_che1"))
+	me["hp"] = 5
+	scene._sync_all()
+	await create_timer(0.6).timeout
+	ok(bool(RulesEngine.threat_preview(scene.state, "p1")["hero"]),
+		"引擎预览：无兵且 5 攻 ≥ 5 血，主将告警")
+	var danger: Control = scene.hero_bars["p1"]["danger"]
+	ok(danger.visible, "主将血条亮「险」印")
+	# 险印不许压主将卡内的任何已有元素（曾经放右上角，盖掉了第 10 颗军粮点）
+	for pid in ["p1", "p2"]:
+		var b: Dictionary = scene.hero_bars[pid]
+		var dr: Rect2 = (b["danger"] as Control).get_global_rect()
+		ok(not dr.intersects((b["pips"][9] as Control).get_global_rect()),
+			"%s 险印不压军粮圆点" % pid)
+		ok(not dr.intersects((b["hp"] as Control).get_global_rect()),
+			"%s 险印不压血量" % pid)
+		ok(not dr.intersects((b["name"] as Control).get_global_rect()),
+			"%s 险印不压名字" % pid)
+	me["hp"] = 30
+	scene._sync_all()
+	await process_frame
+	ok(not bool(RulesEngine.threat_preview(scene.state, "p1")["hero"]), "引擎预览：30 血脱离斩杀线")
+	ok(not danger.visible, "脱离斩杀线告警熄灭")
+	scene.state["current"] = "p2"
+	scene._sync_all()
+	await process_frame
+	ok(not danger.visible, "敌方回合主将告警熄灭")
+	var any_lit := false
+	for u in me["board"]["front"]:
+		var uv: UnitView = scene.unit_views.get(int(u["uid"]), null)
+		if uv != null and uv._threat.visible:
+			any_lit = true
+	ok(not any_lit, "敌方回合部队险印全部熄灭")
+
+	# 恢复我方回合，收尾（后续无用例依赖场面对象）
+	scene.state["current"] = "p1"
+	scene._sync_all()
+	await create_timer(0.6).timeout
 
 # ---------------- 文件工具 ----------------
 

@@ -208,5 +208,81 @@ section('⑧ AI 会使用新牌');
   console.log('  8 张新机制牌 AI 都会主动使用 ✅');
 })();
 
+/* ⑨ 敌方意图预告：威胁标记（围杀口径）与主将斩杀线 */
+section('⑨ 敌方意图预告');
+(function () {
+  function put(st, pid, rank, baseId) {
+    var u = E.newInstance(baseId);
+    st.players[pid].board[rank].push(u);
+    return u;
+  }
+  function killed(st, u) { return !!E.threatPreview(st, 'p1').kill[u.uid]; }
+
+  /* 1. 单杀：够得着且攻击够打死才标；够不着的同列兄弟不标 */
+  var st = fresh();
+  var front = put(st, 'p1', 'front', 'n_bing2');   /* 2/3 */
+  var mid = put(st, 'p1', 'mid', 'n_bing2');       /* 2/3，被前锋挡住 */
+  put(st, 'p2', 'front', 'n_che1');                /* 5/5 */
+  var pv = E.threatPreview(st, 'p1');
+  assert(killed(st, front), '5 攻敌车够得着 2/3 前锋，应标「险」');
+  assert(!killed(st, mid), '前锋挡路，中军不应被标');
+  assert(!pv.hero, '我方有兵，主将不应告警');
+
+  /* 2. 围杀：单杀不够、总攻够也算（两支 2 攻围死 3 血） */
+  var st2 = fresh();
+  var victim = put(st2, 'p1', 'mid', 'n_bing2');   /* 2/3，前锋空所以中军顶到一线 */
+  put(st2, 'p2', 'front', 'n_bing2');              /* 2/3 */
+  put(st2, 'p2', 'front', 'n_bing2');              /* 2/3 */
+  assert(killed(st2, victim), '2+2 总攻 ≥ 3 血，围杀应标「险」');
+
+  /* 3. 守御吸火力：火力被守御强制接管，别的部队解围 */
+  var st3 = fresh();
+  var guard = put(st3, 'p1', 'front', 'n_shi1');   /* 1/4 守御 */
+  var safe = put(st3, 'p1', 'mid', 'n_bing2');     /* 2/3 */
+  put(st3, 'p2', 'front', 'n_che1');               /* 5/5 */
+  assert(killed(st3, guard), '守御必须先挨打，5 攻 ≥ 4 血应标「险」');
+  assert(!killed(st3, safe), '有守御时中军不应被标');
+
+  /* 4. 远程：后军炮可打任意列 */
+  var st4 = fresh();
+  var soft = put(st4, 'p1', 'mid', 'n_bing1');     /* 1/2 */
+  var tough = put(st4, 'p1', 'mid', 'n_bing2');    /* 2/3 */
+  put(st4, 'p2', 'back', 'n_pao1');                /* 2/4 远程 */
+  assert(killed(st4, soft), '炮 2 攻 ≥ 2 血应标「险」');
+  assert(!killed(st4, tough), '炮 2 攻打不死 3 血，不应标');
+
+  /* 5. 主将斩杀线：全场无兵才暴露，项羽技能直伤算进斩杀 */
+  var st5 = fresh();
+  st5.players.p1.board = { front: [], mid: [], back: [] };
+  st5.players.p2.board = { front: [], mid: [], back: [] };
+  put(st5, 'p2', 'front', 'n_che1');               /* 5 攻 */
+  st5.players.p1.hp = 30; st5.players.p1.maxHp = 30;
+  st5.players.p2.mana = 1;
+  assert(!E.threatPreview(st5, 'p1').hero, '5 攻打不死 30 血主将，不应告警');
+  st5.players.p1.hp = 5;
+  assert(E.threatPreview(st5, 'p1').hero, '5 攻 ≥ 5 血，主将应告警');
+  st5.players.p1.hp = 6;
+  assert(E.threatPreview(st5, 'p1').hero, '5 攻 + 项羽技 1 伤 ≥ 6 血，应告警');
+  st5.players.p2.skillUsed = true;
+  assert(!E.threatPreview(st5, 'p1').hero, '技能用过就只剩 5 攻，6 血不应告警');
+
+  /* 6. 有兵挡路时主将不暴露 */
+  var st6 = fresh();
+  put(st6, 'p1', 'front', 'n_bing1');              /* 1/2 挡路 */
+  put(st6, 'p2', 'front', 'n_che1');               /* 5/5 */
+  st6.players.p1.hp = 3;
+  assert(!E.threatPreview(st6, 'p1').hero, '场上还有兵，主将不应告警');
+
+  /* 7. 只读：预览不改状态 */
+  var st7 = fresh();
+  put(st7, 'p1', 'front', 'n_bing2');
+  put(st7, 'p2', 'front', 'n_che1');
+  var before = JSON.stringify(st7);
+  E.threatPreview(st7, 'p1');
+  assert(JSON.stringify(st7) === before, 'threatPreview 必须是纯只读');
+
+  console.log('  威胁标记（围杀/守御/远程）与主将斩杀线 ✅');
+})();
+
 console.log('\n通过 ' + passed + ' 项，失败 ' + failed + ' 项');
 if (failed > 0) process.exit(1);

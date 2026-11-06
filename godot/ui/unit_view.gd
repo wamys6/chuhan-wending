@@ -20,6 +20,7 @@ var _atk_bg: Panel
 var _hp_bg: Panel
 var _atk: Label
 var _hp: Label
+var _threat: Panel
 var _selected := false
 ## 冲刺动画进行中为 true：_sync_board 期间不瞬移回位，避免打断回程
 var lunging := false
@@ -74,6 +75,24 @@ func setup(u: Dictionary) -> void:
 		stamps.position = Vector2(SIZE.x - 3.0 - stamps.size.x, 3.0)
 		add_child(stamps)
 
+	# 敌方意图预告「险」印：左上角，朱砂底。按当前战场算，现有敌军足以击杀它
+	# 时亮出（围杀口径：够得着的敌军总攻 ≥ 生命）。计谋直伤与当回合新下的
+	# 冲锋牌预告不了——印的语义是「可能被击杀」，不是「必死」。
+	_threat = Panel.new()
+	_threat.position = Vector2(3, 3)
+	_threat.size = Vector2(24, 24)
+	_threat.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_threat.add_theme_stylebox_override("panel",
+		UiTheme.panel_style(UiTheme.SEAL, Color("#f2c1b8"), 12, 1))
+	_threat.visible = false
+	var tl := UiTheme.label("!" if I18n.is_en() else "险", 14, Color("#ffe9e4"))
+	tl.set_anchors_preset(Control.PRESET_FULL_RECT)
+	tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	tl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_threat.add_child(tl)
+	add_child(_threat)
+
 	refresh(u)
 
 func _badge(pos: Vector2) -> Panel:
@@ -114,6 +133,11 @@ func refresh(u: Dictionary) -> void:
 func set_selected(on: bool) -> void:
 	_selected = on
 	refresh(unit)
+
+## 敌方意图预告「险」印开关（battle.gd 按威胁预览结果调用）
+func set_threat(on: bool) -> void:
+	if _threat != null:
+		_threat.visible = on
 
 func set_dim(on: bool) -> void:
 	modulate = Color(0.7, 0.68, 0.66, 1) if on else Color(1, 1, 1, 1)

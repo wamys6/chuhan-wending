@@ -700,6 +700,47 @@
     return { ok: true };
   }
 
+  /* ---------- 敌方意图预告（只读，不改状态） ----------
+     以当前战场为准回答两个问题：
+     1. 我方哪些部队会被现有敌军击杀？——围杀口径：够得着它的敌军总攻 ≥ 其生命
+     2. 我方主将是否处于斩杀线？——我方全场无兵时主将才暴露（可达规则）
+     只覆盖「当前在场敌军」：计谋直伤与当回合新下的冲锋牌预告不了（探针实测
+     约覆盖一半的实际死亡），语义是「可能被击杀」，不是「必死」。 */
+  function threatPreview(state, pid) {
+    var out = { kill: {}, hero: false };
+    if (!state || state.over || state.phase !== 'play') return out;
+    var me = state.players[pid], foe = state.players[other(pid)];
+    var foePid = other(pid);
+    var reach = {}, foeAtk = 0;
+    RANKS.forEach(function (r) {
+      foe.board[r].forEach(function (a) {
+        if (a.atk <= 0) return;
+        foeAtk += a.atk;
+        getAttackTargets(state, foePid, a).units.forEach(function (t) {
+          reach[t.unit.uid] = (reach[t.unit.uid] || 0) + a.atk;
+        });
+      });
+    });
+    Object.keys(reach).forEach(function (uid) {
+      var hp = 0;
+      RANKS.some(function (r) {
+        return me.board[r].some(function (u) {
+          if (String(u.uid) === uid) { hp = u.hp; return true; }
+          return false;
+        });
+      });
+      if (hp > 0 && reach[uid] >= hp) out.kill[uid] = true;
+    });
+    /* 主将：全场无兵才暴露；项羽技能在前锋空时能直击主将，算进斩杀线 */
+    var anyMine = RANKS.some(function (r) { return me.board[r].length > 0; });
+    if (!anyMine) {
+      var dmg = foeAtk;
+      if (!foe.skillUsed && foe.mana >= foe.skill.cost && foe.heroId === 'xiangyu') dmg += 1;
+      if (dmg >= me.hp) out.hero = true;
+    }
+    return out;
+  }
+
   return {
     RANKS: RANKS,
     tuning: ADV,
@@ -719,6 +760,7 @@
     useAdvisorActive: useAdvisorActive,
     canSkill: canSkill,
     useSkill: useSkill,
-    attack: attack
+    attack: attack,
+    threatPreview: threatPreview
   };
 });

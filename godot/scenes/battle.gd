@@ -489,8 +489,27 @@ func _make_hero_bar(pid: String) -> Dictionary:
 			if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
 				_on_enemy_hero_clicked())
 
+	# 敌方意图预告「险」印：我方全场无兵且现有敌军足以斩杀主将时亮出。
+	# 可达规则下主将只在无兵时暴露，这个判定干净、永不误报。
+	# 位置在血量行与军粮圆点之间的空档（hp 标签止于 274，圆点起于 312）：
+	# 放在右上角会盖掉第 10 颗军粮点。
+	var danger := Panel.new()
+	danger.position = Vector2(280, 44)
+	danger.size = Vector2(28, 28)
+	danger.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	danger.add_theme_stylebox_override("panel",
+		UiTheme.panel_style(UiTheme.SEAL, Color("#f2c1b8"), 15, 1))
+	danger.visible = false
+	var dl := UiTheme.label("!" if I18n.is_en() else "险", 14, Color("#ffe9e4"))
+	dl.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	dl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	dl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	danger.add_child(dl)
+	holder.add_child(danger)
+
 	return {"holder": holder, "hp": hp_label, "mana": mana_label, "avatar": avatar,
-		"name": name_label, "pips": pips,
+		"name": name_label, "pips": pips, "danger": danger,
 		"sb_on": sb_on, "sb_spent": sb_spent, "sb_off": sb_off}
 
 # ---------------- 状态同步 ----------------
@@ -511,6 +530,24 @@ func _sync_all() -> void:
 	_sync_hand()
 	_sync_hero_bars()
 	_sync_log()
+	_sync_threats()
+
+## 敌方意图预告：我方回合且对手是 AI 时，按当前战场给够得着且打得死我方部队的
+## 「险」印亮出来；我方全场无兵且敌方总攻够斩杀时主将血条亮「险」。
+## 每次 _sync_all 后重算——玩家打出的每一步都会改变可达性，印必须跟着走。
+## PvP 不开：对手是人，预告意义与节奏都另议（公开信息，双方本可自己算）。
+func _sync_threats() -> void:
+	var on: bool = (not pvp) and not bool(state["over"]) \
+		and str(state["phase"]) == "play" and str(state["current"]) == my_pid
+	var pv := {"kill": {}, "hero": false}
+	if on:
+		pv = RulesEngine.threat_preview(state, my_pid)
+	for uid in unit_views.keys():
+		var v: UnitView = unit_views[uid]
+		if is_instance_valid(v):
+			v.set_threat(on and pv["kill"].has(int(uid)))
+	var bar: Dictionary = hero_bars[my_pid]
+	(bar["danger"] as Control).visible = on and bool(pv["hero"])
 
 ## 死战专精生效的一记反馈：一道自下而上的淡金掠光 + 印章声。
 ## 不做单位高亮——引擎状态里没有"这个援军被加成过"的标记，为表现层改状态结构不值得。

@@ -433,6 +433,53 @@ static func get_attack_targets(state: Dictionary, pid: String, unit: Dictionary)
 	return {"heroOk": false, "units": units, "mustTaunt": taunts.size() > 0}
 
 
+# ---------- 敌方意图预告（只读，不改状态） ----------
+# 与 js/engine.js threatPreview 同构：以当前战场为准回答两个问题——
+# 1. 我方哪些部队会被现有敌军击杀？围杀口径：够得着它的敌军总攻 >= 其生命
+# 2. 我方主将是否处于斩杀线？我方全场无兵时主将才暴露（可达规则）
+# 只覆盖「当前在场敌军」：计谋直伤与当回合新下的冲锋牌预告不了（探针实测
+# 约覆盖一半的实际死亡），语义是「可能被击杀」，不是「必死」。
+static func threat_preview(state: Dictionary, pid: String) -> Dictionary:
+	var out := {"kill": {}, "hero": false}
+	if state.is_empty() or state["over"] or state["phase"] != "play":
+		return out
+	var me: Dictionary = state["players"][pid]
+	var foe: Dictionary = state["players"][other(pid)]
+	var foe_pid := other(pid)
+	var reach := {}          # 我方部队 uid -> 够得着它的敌军总攻
+	var foe_atk := 0
+	for r in RANKS:
+		for a in foe["board"][r]:
+			if int(a["atk"]) <= 0:
+				continue
+			foe_atk += int(a["atk"])
+			var info := get_attack_targets(state, foe_pid, a)
+			for t in info["units"]:
+				var uid: int = int(t["unit"]["uid"])
+				reach[uid] = int(reach.get(uid, 0)) + int(a["atk"])
+	for uid in reach.keys():
+		var hp := 0
+		for r in RANKS:
+			for u in me["board"][r]:
+				if int(u["uid"]) == int(uid):
+					hp = int(u["hp"])
+		if hp > 0 and int(reach[uid]) >= hp:
+			out["kill"][uid] = true
+	# 主将：全场无兵才暴露；项羽技能在前锋空时能直击主将，算进斩杀线
+	var any_mine := false
+	for r in RANKS:
+		if me["board"][r].size() > 0:
+			any_mine = true
+	if not any_mine:
+		var dmg := foe_atk
+		if not foe["skillUsed"] and int(foe["mana"]) >= int(foe["skill"]["cost"]) \
+				and str(foe["heroId"]) == "xiangyu":
+			dmg += 1
+		if dmg >= int(me["hp"]):
+			out["hero"] = true
+	return out
+
+
 # ---------- 伤害 ----------
 
 static func remove_dead(state: Dictionary, pid: String, rank: String, unit: Dictionary) -> void:

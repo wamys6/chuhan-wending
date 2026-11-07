@@ -712,6 +712,78 @@ func _shot(file_name: String) -> void:
 	var img := get_viewport().get_texture().get_image()
 	img.save_png("res://tests/" + file_name)
 	print("[tour] 截图 ", file_name, " ", img.get_size())
+	_scan_overflow(file_name)
+
+# ---------------- 开发用：文本溢出扫描 ----------------
+## 目的：把「文字放不下」从「靠人盯截图」变成「巡览时自动打一张表」。
+## 判据不看节点属性，只看字体度量：单行所需宽度 vs 实际可用宽度。
+##   · 不折行 / 折行但行数不够 → 记 overflow（会糊到框外或被省略号吃掉）
+##   · 显式 clip_text 也记，但标 clip（设计上就是要截的，人工复核用）
+## 只在 --tour 里调用，不进正式测试；扫描结论靠人的判断，不做断言。
+##
+## 两个坑（都是本工具自己的测量口径，踩过）：
+##   1. `get_string_size` 对含 "\n" 的文本**按一整段量**，宽度是各行相加——
+##      两行排版会被算成溢出。必须按行拆开取最大值。
+##   2. 居中的 Label 常在比自身 rect 更宽的容器里，文字溢出 rect 但没出面板，
+##      视觉上完全正常。只报「超出最近一层有背景的祖先」和「超出自家长度」两种，
+##      再附上祖先宽度，人一眼能分出真伪。
+
+func _scan_overflow(tag: String) -> void:
+	var rows: Array = []
+	_collect_overflow(get_tree().root, rows)
+	if rows.is_empty():
+		print("[ovf] %s 无溢出" % tag)
+		return
+	print("[ovf] %s 溢出 %d 处" % [tag, rows.size()])
+	for r in rows:
+		print("  ", r)
+
+## 文本按行拆开后的最大行宽（详见上面第 1 条坑）
+func _max_line_width(f: Font, text: String, fs: int) -> float:
+	var w := 0.0
+	for ln in text.split("\n"):
+		w = maxf(w, f.get_string_size(str(ln), HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x)
+	return w
+
+## 最近一层「有背景」的祖先宽度：文字溢出 rect 后视觉上的容身之处
+func _bg_ancestor_width(n: Node) -> float:
+	var p := n.get_parent()
+	while p != null:
+		if p is Panel or p is PanelContainer or p is ColorRect or p is TextureRect:
+			return (p as Control).size.x
+		p = p.get_parent()
+	return -1.0
+
+func _collect_overflow(n: Node, rows: Array) -> void:
+	if n is Label and (n as Label).is_visible_in_tree():
+		var l := n as Label
+		if l.text.strip_edges() != "":
+			var f := l.get_theme_font("font")
+			var fs := l.get_theme_font_size("font_size")
+			if f != null:
+				var need := _max_line_width(f, l.text, fs)
+				var have := l.size.x
+				if need > have + 1.0:
+					var wrapped := l.autowrap_mode != TextServer.AUTOWRAP_OFF
+					var lines := maxi(1, int(ceil(need / maxf(have, 1.0))))
+					var allowed: int = l.max_lines_visible if l.max_lines_visible > 0 else 0
+					# 折行且行数够 → 不算问题；折行但不够 / 不折行 → 记
+					if not wrapped or (allowed > 0 and lines > allowed):
+						var flag := "clip" if l.clip_text else ("wrap%d/%d" % [lines, allowed] if wrapped else "raw")
+						var bg := _bg_ancestor_width(l)
+						var verdict := "真溢出" if bg > 0.0 and need > bg else "可容身"
+						rows.append("%s  %dpx  need %.0f / have %.0f / 面板 %.0f  [%s] %s  %s" % [
+							l.get_path(), fs, need, have, bg, flag, verdict,
+							l.text.replace("\n", "\\n").substr(0, 44)])
+	elif n is Button and (n as Button).is_visible_in_tree():
+		var b := n as Button
+		if b.text.strip_edges() != "":
+			var mn := b.get_combined_minimum_size().x
+			if mn > b.size.x + 1.0:
+				rows.append("%s  btn  min %.0f / have %.0f  真溢出  %s" % [
+					b.get_path(), mn, b.size.x, b.text.substr(0, 44)])
+	for c in n.get_children():
+		_collect_overflow(c, rows)
 
 ## 文本文件的读/写/删（巡览备份存档用）
 func _read_file(path: String) -> String:

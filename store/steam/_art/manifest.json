@@ -1,0 +1,440 @@
+{
+  "title": "楚汉·问鼎 · Steam 宣传素材",
+  "source_document": "prompts-source.md",
+  "asset_count": 6,
+  "text_in_images": false,
+  "native_and_resized_versions_preserved": true,
+  "assets": [
+    {
+      "id": "library_hero_duel",
+      "name": "库英雄图 A · 双雄对峙",
+      "size": [
+        3840,
+        1240
+      ],
+      "title_zone": {
+        "x": [
+          0.34,
+          0.66
+        ],
+        "y": [
+          0.12,
+          0.88
+        ]
+      },
+      "notes": "左右各保留12%安全边；正中留白排标题。",
+      "raw_path": "store/steam/_raw/library_hero_duel_raw.png",
+      "path": "store/steam/no-title/library_hero_duel.png",
+      "raw": {
+        "size": [
+          2172,
+          724
+        ],
+        "mode": "RGB",
+        "format": "PNG",
+        "bytes": 2419477,
+        "sha256": "8e0da289a1349121b062b9863c998d37637161158b63714b29d67cfb038c44f2"
+      },
+      "final": {
+        "size": [
+          3840,
+          1240
+        ],
+        "mode": "RGB",
+        "format": "PNG",
+        "bytes": 5442144,
+        "sha256": "83ba66e76e1281df755a23c95f4fb4f48e9bac35bdeff9eb670ecfc5465523e7"
+      },
+      "processing": {
+        "resize": "LANCZOS, proportional to target width",
+        "scaled_size": [
+          3840,
+          1280
+        ],
+        "crop": [
+          0,
+          20,
+          0,
+          20
+        ],
+        "pad": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sharpen": {
+          "radius": 0.7,
+          "percent": 45,
+          "threshold": 3
+        },
+        "text_overlay": false
+      },
+      "validation": {
+        "decoded": true,
+        "dimensions_match": true,
+        "visual_reviewed": true,
+        "text_check": "No readable or pseudo lettering observed.",
+        "composition_reviewed": true
+      }
+    },
+    {
+      "id": "library_hero_charge",
+      "name": "库英雄图 B · 项羽破阵",
+      "size": [
+        3840,
+        1240
+      ],
+      "title_zone": {
+        "x": [
+          0.53,
+          0.88
+        ],
+        "y": [
+          0.12,
+          0.88
+        ]
+      },
+      "notes": "沿用B版提示词：左侧单骑冲阵，右半幅留白排标题。",
+      "raw_path": "store/steam/_raw/library_hero_charge_raw.png",
+      "path": "store/steam/no-title/library_hero_charge.png",
+      "raw": {
+        "size": [
+          2172,
+          724
+        ],
+        "mode": "RGB",
+        "format": "PNG",
+        "bytes": 2805145,
+        "sha256": "23612178b3bd2ba7ad970c6ba729c1c088e3bff9a5914345ce8e7b4d48a9dab6"
+      },
+      "final": {
+        "size": [
+          3840,
+          1240
+        ],
+        "mode": "RGB",
+        "format": "PNG",
+        "bytes": 6402191,
+        "sha256": "3f9ada836d09bc6a52037d7a6ad4c205980d9ddaf22be33039874d39de8aa914"
+      },
+      "processing": {
+        "resize": "LANCZOS, proportional to target width",
+        "scaled_size": [
+          3840,
+          1280
+        ],
+        "crop": [
+          0,
+          20,
+          0,
+          20
+        ],
+        "pad": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sharpen": {
+          "radius": 0.7,
+          "percent": 45,
+          "threshold": 3
+        },
+        "text_overlay": false
+      },
+      "validation": {
+        "decoded": true,
+        "dimensions_match": true,
+        "visual_reviewed": true,
+        "text_check": "No readable or pseudo lettering observed.",
+        "composition_reviewed": true
+      }
+    },
+    {
+      "id": "main_capsule",
+      "name": "主胶囊",
+      "size": [
+        1232,
+        706
+      ],
+      "title_zone": {
+        "x": [
+          0.34,
+          0.66
+        ],
+        "y": [
+          0.12,
+          0.83
+        ]
+      },
+      "notes": "左右双雄，中间竖向留白；下方朱砂仅为无字抽象墨块。",
+      "raw_path": "store/steam/_raw/main_capsule_raw.png",
+      "path": "store/steam/no-title/main_capsule.png",
+      "raw": {
+        "size": [
+          1659,
+          948
+        ],
+        "mode": "RGB",
+        "format": "PNG",
+        "bytes": 2572669,
+        "sha256": "c43887fec8f69ac701b4932054339aae3aa31202b464cd4dc39173b305fc65ce"
+      },
+      "final": {
+        "size": [
+          1232,
+          706
+        ],
+        "mode": "RGB",
+        "format": "PNG",
+        "bytes": 1483840,
+        "sha256": "7352e318a297794d4db1f58b8971aa0061e15854c534bca32e4e9b74c9e1e39f"
+      },
+      "processing": {
+        "resize": "LANCZOS, proportional to target width",
+        "scaled_size": [
+          1232,
+          704
+        ],
+        "crop": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "pad": [
+          0,
+          1,
+          0,
+          1
+        ],
+        "sharpen": {
+          "radius": 0.7,
+          "percent": 45,
+          "threshold": 3
+        },
+        "text_overlay": false
+      },
+      "validation": {
+        "decoded": true,
+        "dimensions_match": true,
+        "visual_reviewed": true,
+        "text_check": "No readable or pseudo lettering observed.",
+        "composition_reviewed": true
+      }
+    },
+    {
+      "id": "vertical_capsule",
+      "name": "竖版胶囊",
+      "size": [
+        748,
+        896
+      ],
+      "title_zone": {
+        "x": [
+          0.12,
+          0.88
+        ],
+        "y": [
+          0.08,
+          0.63
+        ]
+      },
+      "notes": "上方约三分之二留白，下方双雄背影。",
+      "raw_path": "store/steam/_raw/vertical_capsule_raw.png",
+      "path": "store/steam/no-title/vertical_capsule.png",
+      "raw": {
+        "size": [
+          1122,
+          1402
+        ],
+        "mode": "RGB",
+        "format": "PNG",
+        "bytes": 2457205,
+        "sha256": "4e480fce2f0525ef2febb617adcade3c34c193338db992b950eaeb6ba5288b04"
+      },
+      "final": {
+        "size": [
+          748,
+          896
+        ],
+        "mode": "RGB",
+        "format": "PNG",
+        "bytes": 1000187,
+        "sha256": "ac65624f69bc22d9f79ccb4e173c624f82ec6eaff8c158aee1fd3e2934ac8f9f"
+      },
+      "processing": {
+        "resize": "LANCZOS, proportional to target width",
+        "scaled_size": [
+          748,
+          935
+        ],
+        "crop": [
+          0,
+          19,
+          0,
+          20
+        ],
+        "pad": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sharpen": {
+          "radius": 0.7,
+          "percent": 45,
+          "threshold": 3
+        },
+        "text_overlay": false
+      },
+      "validation": {
+        "decoded": true,
+        "dimensions_match": true,
+        "visual_reviewed": true,
+        "text_check": "No readable or pseudo lettering observed.",
+        "composition_reviewed": true
+      }
+    },
+    {
+      "id": "page_background",
+      "name": "页面背景",
+      "size": [
+        1438,
+        810
+      ],
+      "title_zone": null,
+      "notes": "低对比淡墨背景，便于承托页面内容。",
+      "raw_path": "store/steam/_raw/page_background_raw.png",
+      "path": "store/steam/no-title/page_background.png",
+      "raw": {
+        "size": [
+          1672,
+          941
+        ],
+        "mode": "RGB",
+        "format": "PNG",
+        "bytes": 2044675,
+        "sha256": "35b4b74c2045c8fc6ccd535cafcca2bfd30e834c11cefd6cab2acc5baa48e323"
+      },
+      "final": {
+        "size": [
+          1438,
+          810
+        ],
+        "mode": "RGB",
+        "format": "PNG",
+        "bytes": 1410920,
+        "sha256": "061afa2bb5f5fd79ca229b256a26607fbe53ace5415268d186bf9e039aec8193"
+      },
+      "processing": {
+        "resize": "LANCZOS, proportional to target width",
+        "scaled_size": [
+          1438,
+          809
+        ],
+        "crop": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "pad": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "sharpen": {
+          "radius": 0.7,
+          "percent": 45,
+          "threshold": 3
+        },
+        "text_overlay": false
+      },
+      "validation": {
+        "decoded": true,
+        "dimensions_match": true,
+        "visual_reviewed": true,
+        "text_check": "No readable or pseudo lettering observed.",
+        "composition_reviewed": true
+      }
+    },
+    {
+      "id": "video_cover",
+      "name": "宣传片首帧／视频封面",
+      "size": [
+        1920,
+        1080
+      ],
+      "title_zone": null,
+      "notes": "按可选项一并生成；远处对峙军阵，近处战鼓与倒旗。",
+      "raw_path": "store/steam/_raw/video_cover_raw.png",
+      "path": "store/steam/no-title/video_cover.png",
+      "raw": {
+        "size": [
+          1672,
+          941
+        ],
+        "mode": "RGB",
+        "format": "PNG",
+        "bytes": 3043666,
+        "sha256": "78392deff6d86a8a97fdd076cc81bb53212e51f01f8222bf5db8d1fb3c98b837"
+      },
+      "final": {
+        "size": [
+          1920,
+          1080
+        ],
+        "mode": "RGB",
+        "format": "PNG",
+        "bytes": 3512610,
+        "sha256": "729dd953898899746657fef1b33f2c562da1d5231b8954b2437c22af8dcc09e1"
+      },
+      "processing": {
+        "resize": "LANCZOS, proportional to target width",
+        "scaled_size": [
+          1920,
+          1081
+        ],
+        "crop": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "pad": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sharpen": {
+          "radius": 0.7,
+          "percent": 45,
+          "threshold": 3
+        },
+        "text_overlay": false
+      },
+      "validation": {
+        "decoded": true,
+        "dimensions_match": true,
+        "visual_reviewed": true,
+        "text_check": "No readable or pseudo lettering observed.",
+        "composition_reviewed": true
+      }
+    }
+  ],
+  "validation": {
+    "count": 6,
+    "all_dimensions_match": true,
+    "all_pngs_decoded": true,
+    "all_visuals_reviewed": true,
+    "source_spec_mapping_reviewed": true,
+    "native_raws_preserved": true,
+    "target_versions_proportionally_resized": true,
+    "steam_upload_performed": false,
+    "project_typesetting_script_executed": false
+  }
+}

@@ -87,17 +87,24 @@ figure on the left side, figure in the center, crowded composition
 python tools/make-steam-art.py --check-hero 新图.png
 ```
 
-三条硬判据（不过就重出）：比例 3.05~3.15、左 40% 墨量 <3%、主体最左点 ≥40%。
+三条硬判据（不过就重出）：比例 2.95~3.15（生图只给整数比 3.000，按宽贴合裁高后正好
+3.097，只裁 1% 高度）、左 40% 墨量 <3%、主体最左点 ≥40%。
 另两条只提示不判死：中缝墨量（越淡标题越好放）、上下 13% 墨量（水墨本来出血，
 但贴边太高说明头/盔会被裁）。
 
-过了就放进去，脚本会自动优先用它、并且**不再镜像**：
+过了就放进去（文件名必须是这个，脚本按名认）：
 
 ```
 store/steam/_art/_raw/library_hero_charge_r_raw.png    ← 原图
 store/steam/_art/no-title/library_hero_charge_r.png    ← 同名，直接复制一份即可
-python tools/make-steam-art.py     # 输出 library-hero-charge.png
+python tools/make-steam-art.py     # 多出一张 library-hero-charge-r.png（备选，不镜像）
 ```
+
+**注意它现在是「备选」不是主交付**。2026-11-07 收到一版实测：构图完全合格
+（左 40% 墨量 0.1%、主体起于 43%），但原生仍是 2172×724 —— 分辨率问题一点没解决，
+而笔触比原来那套更写实、少了水墨炸裂，放进胶囊套里像另一个项目。
+两版叠 Logo 的对照见 `store/steam/_ab-hero.jpg`。
+⇒ **真正要解决的是原生宽度 ≥3072，构图已经不用再试了。**
 
 ---
 

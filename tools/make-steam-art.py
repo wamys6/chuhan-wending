@@ -280,10 +280,7 @@ def make_hero(lang="zh", which="duel", titled=False, mirror=False, out_name=None
 
 def make_hero_preview():
     """把库 Logo 叠在推荐版英雄图上，确认「左侧留空」这条约束真的成立。"""
-    src = os.path.join(OUT, "library-hero-charge.png")
-    if not os.path.exists(src):
-        src = os.path.join(OUT, "library-hero-charge-mirror.png")
-    hero = Image.open(src).convert("RGB")
+    hero = Image.open(os.path.join(OUT, "library-hero-charge.png")).convert("RGB")
     hero = hero.resize((1920, 620), Image.LANCZOS)
     logo = Image.open(os.path.join(OUT, "library-logo-1280x720.png")).convert("RGBA")
     logo = logo.resize((560, 315), Image.LANCZOS)
@@ -476,7 +473,7 @@ def check_hero(path):
     """验收新出的库英雄底图：Steam 把库 Logo 叠在左侧，左侧有墨就必然压字。
 
     三条硬判据（不过就不能用）：
-      比例 3.05~3.15（3840×1240 = 3.097）
+      比例 2.95~3.15（3840×1240 = 3.097；3.000 会按宽贴合裁高，只裁 1% 高度）
       左 40% 墨量 < 3%（Logo 区必须干净）
       主体墨迹的最左点 ≥ 40% 宽（Logo 区不许有主体，淡墨雾可以）
     两条提示（人看一眼再定）：
@@ -513,7 +510,9 @@ def check_hero(path):
             break
     ratio = W / H
     hard = [
-        ("比例 %.3f（要 3.05~3.15）" % ratio, 3.05 <= ratio <= 3.15),
+        # 2.95~3.15：生图给的多半是整数比（3.000），按宽贴合裁高后正好 3.097，
+        # 只裁掉 1% 的高度，主体无损 —— 不能因为差 0.05 判死
+        ("比例 %.3f（要 2.95~3.15）" % ratio, 2.95 <= ratio <= 3.15),
         ("左 40%% 墨量 %.1f%%（要 <3%%）" % (left * 100), left < 0.03),
         ("主体最左点 %.0f%%（要 ≥40%%）" % ((first or 0) * 100), (first or 0) >= 0.40),
     ]
@@ -546,11 +545,12 @@ def main():
         make_vertical(748, 896, "capsule-vertical-748x896%s.png" % suffix, 104, lang)
         make_vertical(600, 900, "library-capsule-600x900%s.png" % suffix, 80, lang)
         make_logo(lang)
-    # 有原生「主体在右」的新图就用它，没有才退回把 charge 镜像
+    # 主交付：charge 镜像（左 40% 实测墨量 0.0%，且与其余五张同画风 —— 见 _ab-hero.jpg 的对照）
+    make_hero("zh", "charge", False, mirror=True, out_name="library-hero-charge.png")
+    # 备选：原生「主体在右」版。构图更适合直接上传（不用镜像），但目前同样是 2172 原生、
+    # 笔触更写实、与胶囊那套水墨炸裂的画风不连贯，所以不设为主交付。
     if os.path.exists(os.path.join(RAW, "library_hero_charge_r_raw.png")):
-        make_hero("zh", "charge_r", False, out_name="library-hero-charge.png")
-    else:
-        make_hero("zh", "charge", False, mirror=True)
+        make_hero("zh", "charge_r", False, out_name="library-hero-charge-r.png")
     make_hero("zh", "duel", False)
     make_hero("zh", "duel", True)
     make_hero("en", "duel", True)

@@ -17,6 +17,7 @@ Steam 商店素材生成器（2026-11-07 第二版：接入六张水墨无字底
 输出：store/steam/
 """
 import os
+import sys
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -71,6 +72,23 @@ def cover(im, size, anchor="center"):
     x = (im.width - W) // 2 if anchor == "center" else 0
     y = 0 if anchor == "top" else (im.height - H) // 2
     return im.crop((x, y, x + W, y + H))
+
+
+def hd_resize(im, size):
+    """大幅上采（>1.5×）专用：分段放大 + 每段轻锐化，再按宽贴合、居中裁高。
+
+    一次 1.77× LANCZOS 会把笔锋的飞白糊成灰雾；分两步各放大 1.5× 再各锐化一次，
+    边缘能救回一部分。宽度贴合后再裁高，顺带修掉 3.00:1 → 3.10:1 的强行拉伸。
+    """
+    W, H = size
+    cur = im
+    while cur.width < W * 0.72:
+        cur = cur.resize((round(cur.width * 1.5), round(cur.height * 1.5)), Image.LANCZOS)
+        cur = cur.filter(ImageFilter.UnsharpMask(radius=2.0, percent=55, threshold=2))
+    cur = cur.resize((W, max(H, round(cur.height * W / cur.width))), Image.LANCZOS)
+    cur = cur.filter(ImageFilter.UnsharpMask(radius=1.2, percent=40, threshold=3))
+    y = (cur.height - H) // 2
+    return cur.crop((0, y, W, y + H))
 
 
 def crop_bottom(im, size):
@@ -235,7 +253,7 @@ def make_vertical(W, H, name, base, lang="zh"):
     return canvas
 
 
-def make_hero(lang="zh", which="duel", titled=False, mirror=False):
+def make_hero(lang="zh", which="duel", titled=False, mirror=False, out_name=None):
     """库英雄图 3840×1240。
 
     Steam 库页面会把库 Logo 叠在**左侧**，所以左侧必须干净：
@@ -244,10 +262,12 @@ def make_hero(lang="zh", which="duel", titled=False, mirror=False):
     见 `_preview-library-hero.jpg`（合成预览）。
     """
     W, H = 3840, 1240
-    canvas = art("library_hero_%s" % which, (W, H))
+    canvas = hd_resize(art("library_hero_%s" % which, raw=True), (W, H))
     if mirror:
         canvas = canvas.transpose(Image.FLIP_LEFT_RIGHT)
-    tag = "library-hero-%s%s" % (which, "-mirror" if mirror else "")
+    tag = out_name or "library-hero-%s%s" % (which, "-mirror" if mirror else "")
+    if out_name:
+        tag = out_name[:-4] if out_name.endswith(".png") else out_name
     if titled:
         canvas = soften(canvas, [W * 0.30, H * 0.16, W * 0.70, H * 0.84], radius=int(W * 0.03))
         cx = W * 0.475 if which == "duel" else W * 0.705
@@ -260,7 +280,10 @@ def make_hero(lang="zh", which="duel", titled=False, mirror=False):
 
 def make_hero_preview():
     """把库 Logo 叠在推荐版英雄图上，确认「左侧留空」这条约束真的成立。"""
-    hero = Image.open(os.path.join(OUT, "library-hero-charge-mirror.png")).convert("RGB")
+    src = os.path.join(OUT, "library-hero-charge.png")
+    if not os.path.exists(src):
+        src = os.path.join(OUT, "library-hero-charge-mirror.png")
+    hero = Image.open(src).convert("RGB")
     hero = hero.resize((1920, 620), Image.LANCZOS)
     logo = Image.open(os.path.join(OUT, "library-logo-1280x720.png")).convert("RGBA")
     logo = logo.resize((560, 315), Image.LANCZOS)
@@ -353,6 +376,9 @@ def make_preview_sheet():
         ("capsule-vertical-748x896.png", "竖版 748×896"),
         ("library-capsule-600x900.png", "库胶囊 600×900"),
         ("video-cover-1920x1080.png", "宣传片首帧 1920×1080"),
+        ("title-card-1.png", "字卡 1 · 公元前二〇六年"),
+        ("title-card-2.png", "字卡 2 · 一手牌，定天下"),
+        ("title-card-end.png", "片尾卡（中）"),
     ]
     col_w, pad, label_h = 620, 16, 26
     rows_h = []
@@ -383,7 +409,134 @@ def make_preview_sheet():
     sheet.save(os.path.join(OUT, "_preview-sheet.jpg"), quality=92)
 
 
+def _paper_bg(size, fade=0.80):
+    """纸底：拿页面背景压成极淡，字才压得住；纯 #F7F1E4 会显得像 PPT。"""
+    W, H = size
+    base = cover(art("page_background"), (W, H))
+    return Image.blend(base, Image.new("RGB", (W, H), CREAM), fade)
+
+
+def title_card(name, lines, size, sub=None):
+    """宣传片字卡 1920×1080。中文标题只能这样出（模型必写错字）。"""
+    W, H = 1920, 1080
+    canvas = _paper_bg((W, H))
+    d = ImageDraw.Draw(canvas)
+    f = ImageFont.truetype(FONT_TITLE_ZH, size)
+    gap = int(size * 0.62)
+    block = len(lines) * size + (len(lines) - 1) * gap
+    sub_size = int(size * 0.30) if sub else 0
+    # 按「文字 + 句读点 + 副标题」整组居中，不是只居中文字——只居中文字会整组偏低
+    total = block + int(size * 0.52) + 15 + (sub_size + 46 if sub else 0)
+    top = int((H - total) / 2)
+    for i, line in enumerate(lines):
+        _tracked(d, W / 2, top + i * (size + gap) + size / 2, line, f, INK, int(size * 0.18))
+    # 句读点，不是下划线——112px 的短横压在「无主」下面会被读成「无」的下划线
+    y = top + block + int(size * 0.52)
+    d.ellipse([W / 2 - 7, y, W / 2 + 7, y + 15], fill=SEAL)
+    if sub:
+        fs = ImageFont.truetype(FONT_SUB_ZH, sub_size)
+        _tracked(d, W / 2, y + 15 + 52, sub, fs, SUBINK, int(size * 0.06))
+    canvas.save(os.path.join(OUT, name))
+    return canvas
+
+
+def end_card(lang="zh"):
+    """片尾卡：透明 Logo 居中压在纸底上。"""
+    W, H = 1920, 1080
+    canvas = _paper_bg((W, H), 0.86)
+    logo = Image.open(os.path.join(OUT, "library-logo%s-1280x720.png" % ("" if lang == "zh" else "-en")))
+    logo = logo.convert("RGBA")
+    # 按墨迹实际边界裁掉透明留白再定位——按图框算会让副标题压到「鼎」的脚上
+    logo = logo.crop(logo.getchannel("A").getbbox())
+    lw = 300 if lang == "zh" else 620
+    logo = logo.resize((lw, round(logo.height * lw / logo.width)), Image.LANCZOS)
+    top = int(H * 0.20)
+    canvas.paste(logo, ((W - logo.width) // 2, top), logo)
+    d = ImageDraw.Draw(canvas)
+    y = top + logo.height + 46
+    # 中文 Logo 自己就带那粒朱砂点，别再加一粒；英文 Logo 只有一条朱砂线，补一粒
+    if lang == "zh":
+        f = ImageFont.truetype(FONT_SUB_ZH, 44)
+        _tracked(d, W / 2, y + 34, SUB_ZH, f, SUBINK, 8)
+    else:
+        d.ellipse([W / 2 - 7, y, W / 2 + 7, y + 15], fill=SEAL)
+    canvas.save(os.path.join(OUT, "title-card-end%s.png" % ("" if lang == "zh" else "-en")))
+    return canvas
+
+
+def make_title_cards():
+    """宣传片的几张字卡。文案刻意短——片内字卡超过 10 个字没人读得完。"""
+    title_card("title-card-1.png", ["公元前二〇六年", "天下无主"], 104)
+    title_card("title-card-2.png", ["一手牌", "定天下"], 150)
+    end_card("zh")
+    end_card("en")
+
+
+def check_hero(path):
+    """验收新出的库英雄底图：Steam 把库 Logo 叠在左侧，左侧有墨就必然压字。
+
+    三条硬判据（不过就不能用）：
+      比例 3.05~3.15（3840×1240 = 3.097）
+      左 40% 墨量 < 3%（Logo 区必须干净）
+      主体墨迹的最左点 ≥ 40% 宽（Logo 区不许有主体，淡墨雾可以）
+    两条提示（人看一眼再定）：
+      中缝 40~50% 墨量（过渡带越淡，标题越好放）
+      上下 13% 墨量 —— 水墨本来就出血，高了不算错，但 Steam 按比例裁高时
+      贴边的头/盔可能被切，>20% 就要自己确认一次脸没被切
+    """
+    im = Image.open(path).convert("L")
+    W, H = im.size
+    px = im.load()
+
+    def ink(x0, x1, y0, y1):
+        n = dark = 0
+        sy = max(1, (y1 - y0) // 120)
+        sx = max(1, (x1 - x0) // 240)
+        for y in range(y0, y1, sy):
+            for x in range(x0, x1, sx):
+                n += 1
+                if px[x, y] < 205:
+                    dark += 1
+        return dark / max(1, n)
+
+    left = ink(0, int(W * 0.40), 0, H)
+    mid = ink(int(W * 0.40), int(W * 0.50), 0, H)
+    top = ink(0, W, 0, max(1, int(H * 0.13)))
+    bot = ink(0, W, int(H * 0.87), H)
+    # 主体最左点：按 24px 宽的竖条扫，找第一根墨量 >0.5% 的条。
+    # 用单列会被一粒飞白骗到（charge 镜像版左 40% 实测 0.0% 却报 5%），必须按条算。
+    band = 24
+    first = None
+    for x in range(0, int(W * 0.6), 4):
+        if ink(x, min(W, x + band), 0, H) > 0.005:
+            first = x / W
+            break
+    ratio = W / H
+    hard = [
+        ("比例 %.3f（要 3.05~3.15）" % ratio, 3.05 <= ratio <= 3.15),
+        ("左 40%% 墨量 %.1f%%（要 <3%%）" % (left * 100), left < 0.03),
+        ("主体最左点 %.0f%%（要 ≥40%%）" % ((first or 0) * 100), (first or 0) >= 0.40),
+    ]
+    soft = [
+        ("中缝 40~50%% 墨量 %.1f%%" % (mid * 100), mid < 0.12),
+        ("上/下 13%% 墨量 %.1f%% / %.1f%%" % (top * 100, bot * 100),
+         top < 0.06 and bot < 0.06),
+    ]
+    print("%s  %dx%d" % (os.path.basename(path), W, H))
+    for label, ok in hard:
+        print("  %s %s" % ("PASS" if ok else "FAIL", label))
+    for label, ok in soft:
+        print("  %s %s" % ("好  " if ok else "看  ", label))
+    good = all(ok for _, ok in hard)
+    print("  => %s" % ("可以用（提示项自己看一眼）" if good else "不合格，重出或换构图"))
+    return good
+
+
 def main():
+    if len(sys.argv) > 2 and sys.argv[1] == "--check-hero":
+        for p in sys.argv[2:]:
+            check_hero(p)
+        return
     os.makedirs(OUT, exist_ok=True)
     for lang in ("zh", "en"):
         suffix = "" if lang == "zh" else "-en"
@@ -393,13 +546,18 @@ def main():
         make_vertical(748, 896, "capsule-vertical-748x896%s.png" % suffix, 104, lang)
         make_vertical(600, 900, "library-capsule-600x900%s.png" % suffix, 80, lang)
         make_logo(lang)
-    make_hero("zh", "charge", False, mirror=True)
+    # 有原生「主体在右」的新图就用它，没有才退回把 charge 镜像
+    if os.path.exists(os.path.join(RAW, "library_hero_charge_r_raw.png")):
+        make_hero("zh", "charge_r", False, out_name="library-hero-charge.png")
+    else:
+        make_hero("zh", "charge", False, mirror=True)
     make_hero("zh", "duel", False)
     make_hero("zh", "duel", True)
     make_hero("en", "duel", True)
     make_hero_preview()
     make_page_bg()
     make_video_cover()
+    make_title_cards()
     make_icon()
     make_screenshots()
     make_small_test()

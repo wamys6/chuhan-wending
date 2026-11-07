@@ -41,6 +41,34 @@ func _build() -> void:
 		add_child(card)
 		Widgets.rise_in(card, 0.1 + i * 0.08, 22.0)
 
+## 空槽档位说明的位置。数都在这儿，测试直接读常量，别再抄一遍。
+## TIP_BOX 高 48 = 两行（14px 行高 21.3，实测两行 42.6）+ 4px 余量：英文整句要 520px，
+## 352 的框只能折成两行；中文 308px 仍是一行（Label 自己折，不用分语言写死）。
+const TIP_Y := 212.0
+const TIP_BOX := Vector2(352, 48)
+const REGULAR_Y := 264.0
+
+## 初阵档位说明（数字必须从常量生成，别抄进文案）。
+##
+## 原来这行是「单行 + clip_text」：中文要 364px、英文要 520px，框只有 352px，
+## 于是被裁掉尾巴——英文玩家看到的是以「…Provision short —」结尾的一句残缺话，
+## 「for new players」整段没了，而且没有省略号，看不出被裁。
+## 改成折行：两行放得下，信息完整。
+##
+## 折行还有个副作用是必须的：不折行时最小宽度等于整句自然宽，`set_size` 会被顶回
+## 591（实测），`clip_text` 的裁剪边界跟着跑到面板外，裁不裁全看运气；
+## 开了 autowrap 最小宽度塌成 1，size 才真的是 352。
+static func tip_text() -> String:
+	return ("初阵：主将 +%d 血、敌军首回合 -%d 军粮，适合新手"
+		% [Campaign.CHUBEN_HP, -Campaign.CHUBEN_ENEMY_MANA])
+
+static func tip_label() -> Label:
+	var l := UiTheme.label(tip_text(), 14, UiTheme.INK_SOFT)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.position = Vector2(24, TIP_Y)
+	l.size = TIP_BOX
+	return l
+
 func _slot_card(index: int) -> Panel:
 	var info := Campaign.slot_summary(index)
 	var card := Panel.new()
@@ -76,17 +104,11 @@ func _slot_card(index: int) -> Panel:
 		tip.size = Vector2(400, 24)
 		card.add_child(tip)
 
-		# 初阵档位说明（数字必须从常量生成，别抄进文案）
-		var chuben := UiTheme.label(
-			"初阵：主将 +%d 血、敌军首回合 -%d 军粮，适合新手" %
-			[Campaign.CHUBEN_HP, -Campaign.CHUBEN_ENEMY_MANA], 14, UiTheme.INK_SOFT)
-		chuben.position = Vector2(24, 216)
-		chuben.clip_text = true
-		chuben.size = Vector2(352, 22)
-		card.add_child(chuben)
+		# 初阵档位说明（两行，见 tip_label 的注释）
+		card.add_child(tip_label())
 
 		var regular := UiTheme.label("常规：标准难度", 14, UiTheme.INK_SOFT)
-		regular.position = Vector2(24, 242)
+		regular.position = Vector2(24, REGULAR_Y)
 		regular.size = Vector2(352, 22)
 		card.add_child(regular)
 

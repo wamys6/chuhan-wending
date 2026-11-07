@@ -41,6 +41,7 @@ func _initialize() -> void:
 	_test_hero_bar()
 	_test_goal_line()
 	_test_card_names()
+	_test_slot_tip()
 	print("通过 %d 项，失败 %d 项" % [checks, failures])
 	quit(0 if failures == 0 else 1)
 
@@ -315,3 +316,46 @@ func _test_card_names() -> void:
 	ok(too_small.is_empty(), "没有牌名小于 11px", str(too_small))
 	ok(clipped.is_empty(), "牌名都装得下（单行不省略 / 两行不被切）", str(clipped))
 	ok(two_count >= 10, "确实有一批牌名走了两行（%d 条）" % two_count, str(two_count))
+
+# ---------------- 六、存档位空槽说明 ----------------
+
+## 同一类「固定框 + 文案来自表」的坑，但坏法更隐蔽：**不是溢出，是被静默截断**。
+## 英文整句 520px 塞进 352px 的框，尾巴「for new players」直接消失，而且没有省略号，
+## 看上去像一句以「short —」结尾的正常句子——中文也差 12px，同样被吃掉「适合新手」。
+##
+## 顺带钉住一个更阴的：不折行时 Label 的最小宽度 = 整句自然宽，`set_size` 会被顶回到
+## 591（按备用字体量的），`clip_text` 的裁剪边界跟着跑到面板外——「设了 size 就没事」是假的。
+## 判据：折行 + 两行装得下 + size 真的等于框宽 + 不靠裁剪。
+func _test_slot_tip() -> void:
+	var Slots: GDScript = load("res://scenes/slots.gd")
+	ok(Slots != null, "slots.gd 拿得到（空槽版式常量要对齐）")
+	if Slots == null:
+		return
+	var km: Dictionary = Slots.get_script_constant_map()
+	var box: Vector2 = km["TIP_BOX"]
+	var tip_y := float(km["TIP_Y"])
+	var reg_y := float(km["REGULAR_Y"])
+	var f := UiTheme.font()
+	var over: Array = []
+	var lines_of := {}
+	for lang in ["zh", "en"]:
+		I18n.set_lang_soft(str(lang))
+		var l: Label = Slots.tip_label()
+		var fs := l.get_theme_font_size("font_size")
+		var need := text_width(f, l.text, fs)
+		var lines := int(ceil(need / box.x))
+		lines_of[lang] = lines
+		if lines > 2:
+			over.append("%s 要 %d 行（%.0fpx）" % [lang, lines, need])
+		if f.get_height(fs) * float(lines) + 4.0 > box.y:
+			over.append("%s %d 行装不进 %.0f 高（行高 %.1f）" % [lang, lines, box.y, f.get_height(fs)])
+		if not is_equal_approx(l.size.x, box.x):
+			over.append("%s size 被顶回到 %.0f" % [lang, l.size.x])
+		if l.clip_text or l.autowrap_mode == TextServer.AUTOWRAP_OFF:
+			over.append("%s 靠裁剪而不是折行" % lang)
+	I18n.set_lang_soft("zh")
+	ok(over.is_empty(), "空槽说明两行装得下、且真的折行（框 %.0f×%.0f）" % [box.x, box.y], str(over))
+	# 下界：至少有一种语言真的需要两行，否则「两行的框高」就是白留的
+	ok(maxi(int(lines_of["zh"]), int(lines_of["en"])) >= 2,
+		"最宽的语言确实需要两行（zh %d 行 / en %d 行）" % [int(lines_of["zh"]), int(lines_of["en"])])
+	ok(reg_y >= tip_y + box.y, "「常规」一行没压到说明上（%.0f ≥ %.0f）" % [reg_y, tip_y + box.y])

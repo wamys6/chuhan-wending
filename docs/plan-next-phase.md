@@ -938,6 +938,30 @@ GTX 1060 上 32 秒/张，三张（duel / charge / charge_r）共 1 分 52 秒�
 那些像素。1:1 对照里甲片铆钉比原画更「清楚」一点——在可信范围内，但这条要写进交付说明，
 不能对用户说「拿到了原生 4K」。
 
+## 五·十九、真人测试第一批 7 条（✅ 2026-11-08）
+
+用户第一次真机试玩，一次给出 7 条反馈。**7 条里有 3 条同一个根因**，值得当成一条方法论记下来。
+
+| # | 反馈 | 真因 | 修法 |
+|---|---|---|---|
+| 1 | 有时结束回合不自动高亮 | `busy` 有 7 个分散赋值点，`_drain_pvp` 攻击分支漏了 `busy=false` | `_set_busy()` 单一入口；静态扫描源码钉住 |
+| 2 | 粮草充足时点数够的手牌不高亮 | `CardView.set_playable` 的「状态没变就 return」——`_playable` 初值 false、modulate 初值全白，新牌第一次判「不能出」被跳过，永远亮着；真能出的金边被淹掉 | 去掉 early-return，每次都画 |
+| 3 | 出战牌攻击完卡在半空中 | **两个 tween 抢 `position`**：冲刺回程 0.25s vs 受击震动 0.31s，震动最后写下「冲刺途中」的坐标。本作攻击是双向结算，所以只有互相伤害时才触发 → 「有时」 | 冲刺中的单位只抖 `rotation`；动画收尾按当前阵型重钉一次 |
+| 4 | 对方出牌没动画，瞬间完成 | `_run_ai` 里 play 走的是 apply + sync，没有表现层 | `_anim_enemy_play` 落牌动画（0.26s，从主将栏后滑出） |
+| 5 | 点攻击牌提示不明显，不知道有没有选中 | 选中只有 4px 金框，90px 宽的单位上只差 1px 边宽 | 金圈呼吸 + 选中 toast + **按 `get_attack_targets` 点亮真正打得到的敌人** |
+| 6 | 战斗完选牌 UI 没对齐 | `Widgets.card_view` 缩放用中心 pivot，调用方按左上角算位置 → 整体偏左 19px、高出 28px | pivot=0，三处调用方统一 |
+| 7 | （联机自查）远端攻击只播动画不结算 | `_apply_remote` 的 match 缺 `attack`；`tests/pvp_client.gd` 自己抄了一份正确的，所以测试一直绿 | 补分支；测试改为直接调生产函数 |
+
+**方法论**：第 1、3、7 条都不是「某个地方写错了」，而是**同一份信息有两个主人**——
+`busy` 有 7 个写入口、`position` 有 2 条 tween、动作映射有 2 份代码。这类 bug 的修法不是
+「补一处判断」，是把所有权收成一份；测试要能复现**真实触发条件**（互相伤害、真实战斗、生产函数），
+而不是复现一个自己编的近似场景。
+
+回归 **2535 项（三连一致）+ E2E 24**；新增 13 条断言全部做过回退验证（90.0px / 11 处 / 30→30）。
+踩坑 78~81 记在 `docs/technical.md`。
+
+---
+
 ## 六、只有用户能做的三件事
 
 1. **六张事件插图**（生图，我接不了这一步）；
@@ -969,7 +993,7 @@ Godot --headless --path godot --script res://tests/fonts_test.gd  # 缺字会红
 Godot --path godot --resolution 1920x1080 -- --tour   # 19 张截图逐张看
 # 全量
 # replay / campaign / audio / codex / tutorial / i18n / pvp / battle_ui /
-# fonts / card_art / art_rect / keyword_stamp / event_pick / advisor  → 2521 项 + E2E 24
+# fonts / card_art / art_rect / keyword_stamp / event_pick / advisor  → 2535 项 + E2E 24
 ```
 
 ---

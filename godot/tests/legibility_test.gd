@@ -40,6 +40,7 @@ func _initialize() -> void:
 	_test_log_width()
 	_test_hero_bar()
 	_test_goal_line()
+	_test_card_names()
 	print("通过 %d 项，失败 %d 项" % [checks, failures])
 	quit(0 if failures == 0 else 1)
 
@@ -271,3 +272,46 @@ func _test_goal_line() -> void:
 	ok(over.is_empty(), "8 关目标句都能在 %.0fpx 内换两行放下" % box_w, str(over))
 	# 下界：如果全都远短于一行，说明两行的预算根本没被用到，这条断言就没在验证东西
 	ok(widest > box_w, "至少有一关真的需要换行（最长 %.0fpx > %.0f）" % [widest, box_w], str(widest))
+
+# ---------------- 五、卡面牌名 ----------------
+
+## 卡面 128 宽、墨条 38 高。英文卡名比中文长一倍，原来只能一路缩字号：78 张里
+## 15 张要 ≤10px（1366×768 下不到 8.5px，等于看不见）、2 张要 8px。
+## 现在改成「单行放不下就在 · 处断两行」，两行 11px 比一行 8px 好读得多。
+## 这条钉三件事：① 没有牌名小到 11px 以下；② 两行的行高必须装得进墨条（否则第二行被切）；
+## ③ 至少真有几张走了两行——否则「两行放得下」这条在全是短名时永远为真。
+func _test_card_names() -> void:
+	var f := UiTheme.font()
+	var box: float = float(CardView.SIZE.x) - 4.0
+	var band: float = float(CardView.NAME_BAND_H)
+	var too_small: Array = []
+	var clipped: Array = []
+	var two_count := 0
+	var total := 0
+	for lang in ["zh", "en"]:
+		I18n.set_lang_soft(str(lang))
+		for id in GameData.cards.keys():
+			var nm := I18n.T(str(GameData.card(str(id)).get("name", "")))
+			if nm == "":
+				continue
+			total += 1
+			var st: Dictionary = CardView._name_layout(nm)
+			var fs := int(st["font"])
+			var two := bool(st["two"])
+			if two:
+				two_count += 1
+			if fs < 11:
+				too_small.append("%s %dpx %s" % [lang, fs, nm])
+			if two:
+				# 两行：行高＋4px 呼吸必须装进墨条，否则第二行下半截被切（实测过）
+				if f.get_height(fs) * 2.0 + 4.0 > band:
+					clipped.append("%s %dpx %s" % [lang, fs, nm])
+			else:
+				# 单行：不能靠省略号收场
+				if text_width(f, nm, fs) > box:
+					clipped.append("%s %dpx %s" % [lang, fs, nm])
+	I18n.set_lang_soft("zh")
+	ok(total > 140, "两种语言都扫到了卡名（%d 条）" % total, str(total))
+	ok(too_small.is_empty(), "没有牌名小于 11px", str(too_small))
+	ok(clipped.is_empty(), "牌名都装得下（单行不省略 / 两行不被切）", str(clipped))
+	ok(two_count >= 10, "确实有一批牌名走了两行（%d 条）" % two_count, str(two_count))

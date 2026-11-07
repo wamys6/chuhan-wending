@@ -73,8 +73,13 @@ func _advance(st: Dictionary, target: int, need: int) -> void:
 			return
 		var turn := int(st.get("turnNo", 0))
 		var cur := str(st.get("current", ""))
-		if turn >= target and cur == "p1" and _units(st, "p1") >= need and _units(st, "p2") >= need:
-			return
+		var u1 := _units(st, "p1")
+		var u2 := _units(st, "p2")
+		if cur == "p1":
+			# 首选两边都铺满；退一步两边各 2 支也拍（再等下去常有一边被打空，
+			# 拍出来对面空场，看不出是双方对攻）
+			if (turn >= target and u1 >= need and u2 >= need) or (turn >= 10 and u1 >= 2 and u2 >= 2):
+				return
 		if turn > target + 8:
 			return
 		var pid := cur

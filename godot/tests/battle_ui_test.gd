@@ -36,6 +36,10 @@ func _click(view: Control) -> void:
 	view._gui_input(ev)
 
 func _run() -> void:
+	# 语言钉死中文且不写盘。放在这里而不是 _initialize：autoload 的 App._ready()
+	# 会在 _initialize 之后按玩家设置重新 init 一次，早钉会被覆盖。
+	Settings.lang = "zh"
+	I18n.init_from_settings()
 	_tut_backup = _read(Tutorial.PATH)
 	Tutorial.mark_done(Tutorial.BATTLE_INTRO)   # 别让引导浮层挡住点击
 	# 主脚本编译时单例名还没注册，运行期从 root 取

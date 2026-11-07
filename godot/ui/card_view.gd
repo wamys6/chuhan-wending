@@ -9,6 +9,9 @@ const SIZE := Vector2(128, 186)
 ## 关键词小印边长。18（两枚加间距占 39/128）是「认得出字、又不抢立绘」的折中值；
 ## 20 时两枚印占满卡宽三分之一，在手里比立绘还抢眼
 const STAMP_BOX := 18.0
+## 牌名墨条高度。一行 12px 行高 ~16，两行要 32；取 34 给上下各 1px 余量。
+## 立绘因此少 4px（156 → 152），换来英文 23 张长名从 8px 变 12px。
+const NAME_BAND_H := 38.0
 
 var card: Dictionary = {}
 var _art: TextureRect
@@ -96,25 +99,32 @@ func setup(c: Dictionary, art_id: String = "") -> void:
 	_cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_cost_bg.add_child(_cost_label)
 
-	# 名称：底部墨条
+	# 名称：底部墨条。
+	# 30 只能放一行 12px（行高 16）；两行要 32，实测第二行会被裁掉，所以取 34。
+	# 代价是立绘少 4px（156 → 152），肉眼看不出来；换来英文 23 张长名从 8px 变 12px。
 	var band := Panel.new()
-	band.position = Vector2(0, SIZE.y - 30)
-	band.size = Vector2(SIZE.x, 30)
+	band.position = Vector2(0, SIZE.y - NAME_BAND_H)
+	band.size = Vector2(SIZE.x, NAME_BAND_H)
 	band.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var bsb := UiTheme.panel_style(Color(0.11, 0.10, 0.09, 0.82), Color(0, 0, 0, 0), 0, 0)
 	band.add_theme_stylebox_override("panel", bsb)
 	add_child(band)
 
 	var shown := I18n.T(str(c["name"]))
-	_name_label = UiTheme.label(shown, _name_font(shown), UiTheme.PAPER)
+	var name_style := _name_layout(shown)
+	_name_label = UiTheme.label(str(name_style["text"]), int(name_style["font"]), UiTheme.PAPER)
 	# **顺序要紧**：Label 的最小尺寸默认等于整句文本宽度，先设 size 会被顶回
 	# （「General · Warlord of the Dead」29 字符把 124 顶成 230，名字就画出卡外压到邻牌）。
 	# 而 clip_text = true 时最小尺寸才是 0，所以必须先开 clip 再设 size。
 	# 这是 TextureRect「先赋纹理再 set_size 会被顶回」的同一个坑，换成 Label 又来一次。
-	_name_label.clip_text = true
-	_name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	_name_label.position = Vector2(2, SIZE.y - 29)
-	_name_label.size = Vector2(SIZE.x - 4, 28)
+	# 两行排版不能开 clip（clip 只按单行算，第二行会被切掉），但两行的最小宽度
+	# 是「较长那一行」，本来就不超过 124，不存在顶回问题。
+	var two := bool(name_style["two"])
+	_name_label.clip_text = not two
+	if not two:
+		_name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_name_label.position = Vector2(2, SIZE.y - NAME_BAND_H)
+	_name_label.size = Vector2(SIZE.x - 4, NAME_BAND_H)
 	_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -136,20 +146,35 @@ func setup(c: Dictionary, art_id: String = "") -> void:
 ## 「萧何·粮草」6 字和「Xiao He · Grain Convoy」22 字符完全不是一回事。
 ## 直接拿真实字体量：从 14 号往下缩，量到放得下为止（下限 9 号，
 ## 还放不下就交给 `text_overrun_behavior` 收省略号，全名在悬停浮层里）
-static func _name_font(text: String) -> int:
+## 卡面牌名排版：先试单行；单行放不下就按「 · 」断成两行，最后才缩字号。
+##
+## 英文卡名比中文长一倍：78 张里 15 张单行要缩到 ≤10px（1366×768 下不到 8.5px，等于看不见）。
+## 而「类型 · 名字」这种结构天生可以在 · 处断开，两行 11~12px 比一行 8px 好读得多。
+## 断行只在「两半都放得下」时才用；断不了才回落到缩字号（8 是硬下限，再长就省略号）。
+static func _name_layout(text: String) -> Dictionary:
 	var f := UiTheme.font()
-	if f == null:
-		return 10
-	# 下限 8 不是随手取：最长的一条（General · Warlord of the Dead，29 字符）
-	# 在 9 号下仍要 131px，而卡面只有 124px 可用；8 号是 116px，刚放得下。
-	# 再长的就只能在 8 号上收省略号了
 	var box := SIZE.x - 4.0
-	var fs := 14
-	while fs > 8:
+	if f == null:
+		return {"text": text, "font": 10, "two": false}
+	for fs in [14, 13, 12]:
 		if f.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x <= box:
-			return fs
-		fs -= 1
-	return 8
+			return {"text": text, "font": fs, "two": false}
+	var parts := text.split(" · ")
+	if parts.size() == 2:
+		var a: String = parts[0]
+		var b: String = parts[1]
+		for fs in [12, 11, 10]:
+			# 行高也要过，而且要留 4px 呼吸：`<=` 会让两行正好填满墨条、字贴着下沿，
+			# 看起来就是「被切了」（实测 11px 两行 = 34，正好等于 34 的墨条高）
+			var fits_h := f.get_height(fs) * 2.0 + 4.0 <= NAME_BAND_H
+			var fits_w := f.get_string_size(a, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x <= box \
+				and f.get_string_size(b, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x <= box
+			if fits_h and fits_w:
+				return {"text": a + "\n" + b, "font": fs, "two": true}
+	for fs in [12, 11, 10, 9, 8]:
+		if f.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x <= box:
+			return {"text": text, "font": fs, "two": false}
+	return {"text": text, "font": 8, "two": false}
 
 func _corner_label(text: String, pos: Vector2, color: Color) -> Label:
 	var l := UiTheme.label(text, 16, color)
@@ -185,7 +210,12 @@ func set_selected(on: bool) -> void:
 ## 切语言后就地换名字（state 里的卡牌副本已由 I18n.localize_state 更新）
 func refresh_text() -> void:
 	if _name_label != null and not card.is_empty():
-		var shown := I18n.T(str(card.get("name", "")))
-		_name_label.text = shown
-		# 切语言等于换了一串完全不同宽度的字，字号要重算
-		_name_label.add_theme_font_size_override("font_size", _name_font(shown))
+		# 切语言等于换了一串完全不同宽度的字，排版（字号 / 断行）要整块重算
+		var style := _name_layout(I18n.T(str(card.get("name", ""))))
+		var two := bool(style["two"])
+		_name_label.text = str(style["text"])
+		_name_label.add_theme_font_size_override("font_size", int(style["font"]))
+		_name_label.clip_text = not two
+		_name_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING if two \
+			else TextServer.OVERRUN_TRIM_ELLIPSIS
+		_name_label.size = Vector2(SIZE.x - 4, NAME_BAND_H)

@@ -231,10 +231,16 @@ func _build_layers() -> void:
 	ui_layer.add_child(toast_label)
 
 	# 关卡目标条：顶部中线。左界让开敌将卡（484），右界让开暂停（1340）
+	# 英文目标句比中文长一倍：8 关里 5 关超 856px，最坏的垓下 1281px。
+	# 上面到军阵（116）还有 68px，所以给两行而不是缩字号——这句是战斗里最重要的文案，
+	# 16px 两行比 13px 一行更好读。中文最长 619px，永远占一行。
 	stage_label = UiTheme.label("", FS_BODY, UiTheme.INK_SOFT)
-	stage_label.position = Vector2(484, 24)
-	stage_label.size = Vector2(856, 24)
+	stage_label.position = Vector2(484, 22)
+	stage_label.size = Vector2(856, 48)
 	stage_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stage_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	stage_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	stage_label.max_lines_visible = 2
 	ui_layer.add_child(stage_label)
 
 	# 回合提示：压在中线空档（510~930）正中，不再浮在线条上方

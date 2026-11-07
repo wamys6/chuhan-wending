@@ -39,6 +39,7 @@ func _initialize() -> void:
 	_test_font_floor()
 	_test_log_width()
 	_test_hero_bar()
+	_test_goal_line()
 	print("通过 %d 项，失败 %d 项" % [checks, failures])
 	quit(0 if failures == 0 else 1)
 
@@ -239,3 +240,34 @@ func _test_hero_bar() -> void:
 
 func text_width(f: Font, text: String, size: int) -> float:
 	return f.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+
+# ---------------- 四、顶部关卡目标条 ----------------
+
+## 目标条内宽 856px（左让开敌将卡 484、右让开暂停 1340），给两行。
+## 中文 8 关最长 619px，永远一行；英文 5 关超 856，最坏的垓下 1281px —— 两行是 1712px 的预算，
+## 刚好够，但只剩 30% 余量，所以这条要钉死：任何一关的目标句不许超两行，
+## 也不许因为「反正会换行」就把句子越写越长。
+func _test_goal_line() -> void:
+	var f := UiTheme.font()
+	var box_w := 856.0
+	var box_h := 48.0
+	var body: int = int(Battle.get_script_constant_map()["FS_BODY"])
+	var line_h: float = f.get_height(body)
+	ok(box_h >= line_h * 2.0, "目标条高度放得下两行（%.0f ≥ %.0f×2）" % [box_h, line_h], str(line_h))
+
+	var over: Array = []
+	var widest := 0.0
+	for lang in ["zh", "en"]:
+		I18n.set_lang_soft(str(lang))
+		for s in GameData.stages:
+			var name_txt := str(s.get("name", ""))
+			var goal := str(s.get("goalText", ""))
+			var line := I18n.T(("%s · %s" % [name_txt, goal]) if goal != "" else name_txt)
+			var w := f.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, body).x
+			widest = maxf(widest, w)
+			if w > box_w * 2.0:
+				over.append("%s %s %.0f" % [lang, str(s.get("id", "")), w])
+	I18n.set_lang_soft("zh")
+	ok(over.is_empty(), "8 关目标句都能在 %.0fpx 内换两行放下" % box_w, str(over))
+	# 下界：如果全都远短于一行，说明两行的预算根本没被用到，这条断言就没在验证东西
+	ok(widest > box_w, "至少有一关真的需要换行（最长 %.0fpx > %.0f）" % [widest, box_w], str(widest))

@@ -38,6 +38,8 @@ func _run() -> void:
 	_test_stage()
 	print("· 卡名不被文本宽度顶回")
 	await _test_card_name()
+	print("· 缩放卡面的定位基准")
+	_test_scaled_card_pivot()
 	print("· 事件页插图")
 	await _test_event()
 	print("· 主菜单侧立绘")
@@ -388,3 +390,22 @@ func _find_label(n: Node, needle: String) -> Label:
 		if hit != null:
 			return hit
 	return null
+
+# ---------------- 缩放卡面的定位基准 ----------------
+## 奖励页三张卡「跟下面的按钮对不齐」：Widgets.card_view 缩放时 pivot 留在牌中心，
+## 而调用方按「左上角 + 宽×缩放」算位置，于是整张卡偏左 (1.3-1)/2×128 ≈ 19px、
+## 高出容器 28px。所有按左上角算位置的调用方（奖励 / 选牌器 / 奖励牌组）都吃这个亏。
+## 判据：pivot 必须是 0；按调用方的公式摆好之后，卡面中线必须落在容器中线上。
+
+func _test_scaled_card_pivot() -> void:
+	var cv: CardView = Widgets.card_view("n_jiang2", 1.3)
+	ok(cv.pivot_offset == Vector2.ZERO,
+		"缩放卡面以左上角为轴", str(cv.pivot_offset))
+	var holder_w := 214.0
+	var w: float = CardView.SIZE.x * 1.3
+	cv.position = Vector2((holder_w - w) * 0.5, 0)
+	var mid := cv.position.x + w * 0.5
+	ok(absf(mid - holder_w * 0.5) < 0.6,
+		"缩放后卡面中线对准容器中线（奖励页不歪）",
+		"卡中线 %.1f / 容器中线 %.1f" % [mid, holder_w * 0.5])
+	cv.queue_free()

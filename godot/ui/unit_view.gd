@@ -21,7 +21,12 @@ var _hp_bg: Panel
 var _atk: Label
 var _hp: Label
 var _threat: Panel
+var _sel_glow: Panel
+var _sel_tw: Tween
+var _tgt_glow: Panel
 var _selected := false
+## 「现在可以打它」：只在玩家选中了自己某支部队时亮，敌我双方同一套画法
+var _target := false
 ## 冲刺动画进行中为 true：_sync_board 期间不瞬移回位，避免打断回程
 var lunging := false
 ## 这一列的基准缩放（一列超过 3 张时整列等比缩小）。pop_in 以它为终值。
@@ -93,6 +98,29 @@ func setup(u: Dictionary) -> void:
 	_threat.add_child(tl)
 	add_child(_threat)
 
+	# 被选中的脉冲金光：光靠 4px 金框太弱（90 宽的单位上只差 1px 边宽），
+	# 玩家点了自己人之后不确定「到底选中没有」。外扩 5px 的一圈金线，
+	# 用 alpha 0.35↔0.9 呼吸——比静态框显眼，又不至于像「可攻击」的金边。
+	_sel_glow = Panel.new()
+	_sel_glow.position = Vector2(-5, -5)
+	_sel_glow.size = SIZE + Vector2(10, 10)
+	_sel_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_sel_glow.add_theme_stylebox_override("panel",
+		UiTheme.panel_style(Color(0, 0, 0, 0), Color(UiTheme.GOLD, 0.95), 10, 2))
+	_sel_glow.visible = false
+	add_child(_sel_glow)
+
+	# 「可攻击目标」标记：选中自己部队时，敌方每个够得着的单位点亮一圈细金线。
+	# 这个比文字提示有用——玩家不需要读「点敌方部队」，直接看到哪些能点。
+	_tgt_glow = Panel.new()
+	_tgt_glow.position = Vector2(-3, -3)
+	_tgt_glow.size = SIZE + Vector2(6, 6)
+	_tgt_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_tgt_glow.add_theme_stylebox_override("panel",
+		UiTheme.panel_style(Color(UiTheme.GOLD, 0.10), UiTheme.GOLD, 8, 2))
+	_tgt_glow.visible = false
+	add_child(_tgt_glow)
+
 	refresh(u)
 
 func _badge(pos: Vector2) -> Panel:
@@ -133,11 +161,28 @@ func refresh(u: Dictionary) -> void:
 func set_selected(on: bool) -> void:
 	_selected = on
 	refresh(unit)
+	if _sel_glow == null:
+		return
+	_sel_glow.visible = on
+	if _sel_tw != null and _sel_tw.is_valid():
+		_sel_tw.kill()
+		_sel_tw = null
+	if not on:
+		return
+	_sel_tw = create_tween().set_loops()
+	_sel_tw.tween_property(_sel_glow, "modulate:a", 0.42, 0.45)
+	_sel_tw.tween_property(_sel_glow, "modulate:a", 1.0, 0.45)
 
 ## 敌方意图预告「险」印开关（battle.gd 按威胁预览结果调用）
 func set_threat(on: bool) -> void:
 	if _threat != null:
 		_threat.visible = on
+
+## 「现在可以点它」标记（选中我方部队时给敌方单位亮）。只影响视觉，不参与规则判定。
+func set_target(on: bool) -> void:
+	_target = on
+	if _tgt_glow != null:
+		_tgt_glow.visible = on
 
 func set_dim(on: bool) -> void:
 	modulate = Color(0.7, 0.68, 0.66, 1) if on else Color(1, 1, 1, 1)

@@ -75,6 +75,7 @@
       '粮 0/0': 'Prov 0/0',
       '牌库 20': 'Deck 20', '手牌 4': 'Hand 4',
       '技能': 'Power', '结束回合': 'End Turn',
+      '已选中 · 点敌方部队或敌将发起攻击': 'Selected — click an enemy unit or the commander to attack',
       '楚 河': 'CHU RIVER', '汉 界': 'HAN BORDER',
       '设 置': 'SETTINGS',
       '背景音乐': 'Music', '音 效': 'Sound', '静 音': 'Mute', '动画特效': 'Effects', '全 屏': 'Fullscreen',

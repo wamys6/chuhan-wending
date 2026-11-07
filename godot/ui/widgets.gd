@@ -103,6 +103,12 @@ static func chip(text: String, bg: Color = UiTheme.PAPER_DEEP, fg: Color = UiThe
 	return pc
 
 ## 卡面（复用 CardView，用于奖励三选一、牌组预览）
+## 只读展示用的卡面（奖励、牌组、图鉴、选牌器）。
+##
+## **缩放必须绕左上角**（pivot = 0）：所有调用方都是按「左上角 + 宽×缩放」算位置的，
+## 而 CardView 的 pivot 默认在中心（手牌扇形要绕底边转）。两种基准混用会让缩放后的
+## 卡整体偏移「半个差值」：奖励页 1.3 倍时卡偏左 19px、高出容器 28px，看起来
+## 就是三张卡跟下面的「选它」按钮对不齐（玩家反馈原话「战斗完的选牌 UI 没对齐」）。
 static func card_view(card_id: String, scale: float = 1.0) -> Control:
 	var c := CardView.new()
 	var card: Dictionary = GameData.card(card_id).duplicate(true)
@@ -110,7 +116,7 @@ static func card_view(card_id: String, scale: float = 1.0) -> Control:
 	c.setup(card, card_id)
 	if scale != 1.0:
 		c.scale = Vector2(scale, scale)
-		c.pivot_offset = CardView.SIZE * 0.5
+		c.pivot_offset = Vector2.ZERO
 	return c
 
 ## 一段可换行的正文

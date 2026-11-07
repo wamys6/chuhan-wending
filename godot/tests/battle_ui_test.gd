@@ -66,6 +66,11 @@ func _run() -> void:
 	await _test_layout(scene)
 	await _test_threat(scene)
 	await _test_deck_label(scene)
+	_test_set_playable_paints(scene)
+	await _test_attack_anim_returns_home(scene)
+	await _test_remote_attack_applies(scene)
+	_test_end_turn_glow(scene)
+	_test_busy_single_entry()
 
 	scene.queue_free()
 	await process_frame
@@ -688,6 +693,209 @@ func _test_deck_label(scene: Control) -> void:
 	scene._sync_all()
 	await process_frame
 	ok(dl1.text == "牌库 %d" % keep.size(), "恢复后余量如实显示", dl1.text)
+
+## 保证我方场上至少有一支部队（前面几个用例可能只出了计谋牌），返回它的 uid
+func _ensure_p1_unit(scene: Control) -> int:
+	for r in RulesEngine.RANKS:
+		var arr: Array = scene.state["players"]["p1"]["board"][r]
+		if arr.size() > 0:
+			return int(arr[0]["uid"])
+	var u := _spawn_unit(scene, "p1", "n_jiang2")
+	return int(u.get("uid", -1))
+
+## 直接在阵上放一个单位：不遍历手牌、不依赖列空位，也不污染手牌布局。
+## 每个用例都造自己的演员，避免「拿上一用例剩下的随机场面当输入」。
+func _spawn_unit(scene: Control, pid: String, base_id: String) -> Dictionary:
+	var p: Dictionary = scene.state["players"][pid]
+	var u: Dictionary = RulesEngine.new_instance(base_id)
+	for r in RulesEngine.RANKS:
+		if (p["board"][r] as Array).size() < 3:
+			u["col"] = r
+			p["board"][r].append(u)
+			scene._sync_all()
+			return u
+	return {}
+
+# ---------------- ⑤ 手牌明暗：新牌也必须被画 ----------------
+## 玩家反馈「粮草充足时点数够的手牌不高亮」。真因是 CardView.set_playable 里
+## 「状态没变就 return」：`_playable` 初值 false 而 modulate 初值是全白，
+## 于是新抽的牌第一次判「不能出」直接被跳过，永远亮着——所有牌都一样亮，
+## 金边反而看不出来。这条钉两件事：判 false 必须真的压暗；亮着的必须有金边。
+
+func _test_set_playable_paints(scene: Control) -> void:
+	var c: Dictionary = GameData.card("n_jiang2").duplicate(true)
+	c["baseId"] = "n_jiang2"
+	c["uid"] = 0
+	var fresh := CardView.new()
+	fresh.setup(c)
+	fresh.set_playable(false)
+	ok(fresh.modulate.a < 0.9, "全新卡面第一次判「不能出」就压暗",
+		"modulate.a=%.2f" % fresh.modulate.a)
+	fresh.set_playable(true)
+	var glow: Panel = fresh._glow
+	ok(fresh.modulate.a > 0.99 and glow != null and glow.visible,
+		"判「能出」时同时亮起与金边")
+	fresh.queue_free()
+
+	var lit := 0
+	var glowing := 0
+	for v in scene.card_views.values():
+		var cv := v as CardView
+		if cv.modulate.a > 0.99:
+			lit += 1
+			if (cv._glow as Panel).visible:
+				glowing += 1
+	ok(lit == glowing, "每张亮着的手牌都必须带可出金边（亮≠可出会误导）",
+		"%d 张亮 / %d 张带金边" % [lit, glowing])
+
+# ---------------- ⑥ 攻击动画不能把 busy 卡死 ----------------
+## 玩家反馈「出战牌攻击完卡在半空中」，同时伴随「结束回合不亮」「手牌不亮」。
+## 三者同源：`await tw.finished` 的 tween 绑在单位节点上，单位在命中时阵亡被 free，
+## tween 被引擎 kill，finished 永不发出 → 协程不返回 → busy 永久 true。
+## 这条直接模拟「单位在冲刺途中被销毁」，只断言 busy 会收尾。
+
+func _test_attack_anim_returns_home(scene: Control) -> void:
+	# 造一个「打过去会被反伤」的目标：互相伤害才会触发 _shake，而 _shake 与冲刺
+	# tween 抢同一个 position —— 这正是玩家看到「攻击完卡在半空中」的触发条件
+	var a := _spawn_unit(scene, "p1", "n_jiang2")
+	var t := _spawn_unit(scene, "p2", "n_jiang2")
+	if a.is_empty() or t.is_empty():
+		ok(false, "双方阵上都还有空位（构造攻击演员）")
+		return
+	a["atk"] = 3
+	a["hp"] = 30
+	a["maxHp"] = 30
+	a["canAttack"] = true
+	t["atk"] = 2
+	t["hp"] = 30
+	t["maxHp"] = 30
+	t["canAttack"] = false
+	scene._sync_all()
+	await process_frame
+
+	var attacker := int(a["uid"])
+	var home := _slot_of(scene, "p1", attacker)
+	scene.state["current"] = "p1"
+	scene._do_attack(attacker, {"kind": "unit", "uid": int(t["uid"])})
+	await create_timer(1.2).timeout
+	var v: UnitView = scene.unit_views.get(attacker, null)
+	ok(v != null, "攻击者视图仍在")
+	if v == null:
+		return
+	ok(v.position.distance_to(home) < 1.5,
+		"冲刺结束必须回到阵位（互相伤害时也不能停在半空）",
+		"偏离 %.1f px" % v.position.distance_to(home))
+	ok(not scene.busy, "攻击结束后 busy 已放开")
+
+## 单位在阵型里应该在的左上角坐标
+func _slot_of(scene: Control, pid: String, uid: int) -> Vector2:
+	var u: Dictionary = scene._unit_by_uid(pid, uid)
+	if u.is_empty():
+		return Vector2.INF
+	var rank := str(u["col"])
+	var ci: int = RulesEngine.RANKS.find(rank)
+	if ci < 0:
+		return Vector2.INF
+	var row: Array = scene.state["players"][pid]["board"][rank]
+	var n: int = row.size()
+	var s: float = scene._rank_scale(n)
+	var uw: float = scene.UNIT_SIZE.x * s
+	var gap: float = scene.UNIT_GAP * s
+	var total_w: float = n * uw + maxf(0.0, n - 1) * gap
+	var idx := 0
+	for x in row:
+		if int(x["uid"]) == uid:
+			break
+		idx += 1
+	return Vector2(scene.COL_X[ci] - total_w * 0.5 + idx * (uw + gap),
+		scene._rank_top_y(pid, s)) - scene.UNIT_SIZE * 0.5 * (1.0 - s)
+
+# ---------------- ⑦ 远端攻击必须真的结算 ----------------
+## PvP 里 `_apply_remote` 的 match 缺 "attack" 分支：对手打过来时本端只播了冲刺动画，
+## 引擎一步没走——本端少挨一次打、少死一个兵，两端状态从此分叉。
+## `tests/pvp_client.gd` 自己写了一份正确的映射，所以联机测试一直绿，生产路径却是错的。
+
+func _test_remote_attack_applies(scene: Control) -> void:
+	_ensure_p1_unit(scene)
+	var enemy := _spawn_unit(scene, "p2", "n_jiang2")
+	if enemy.is_empty():
+		ok(false, "敌方阵上还有空位（构造远端攻击）")
+		return
+	enemy["atk"] = 3
+	enemy["hp"] = 30
+	enemy["maxHp"] = 30
+	enemy["canAttack"] = true
+	# 目标必须是「挡路规则下打得着」的那一列：非远程/非迂回单位只能打对方最靠前的有兵列
+	var mine: Dictionary = scene.state["players"]["p1"]
+	var front_rank := ""
+	for rk in RulesEngine.RANKS:
+		if (mine["board"][rk] as Array).size() > 0:
+			front_rank = rk
+			break
+	var my_uid := -1
+	var my_hp := 0
+	for u in mine["board"][front_rank]:
+		my_uid = int(u["uid"])
+		my_hp = int(u["hp"])
+		u["hp"] = 30
+		u["maxHp"] = 30
+		my_hp = 30
+		break
+	ok(my_uid >= 0, "我方最前列有部队可作为目标")
+	if my_uid < 0:
+		return
+	scene._sync_all()
+	scene.state["current"] = "p1"
+	scene._apply_remote({"a": "attack", "uid": int(enemy["uid"]), "kind": "unit", "tid": my_uid})
+	var after := my_hp
+	for rk in RulesEngine.RANKS:
+		for u in mine["board"][rk]:
+			if int(u["uid"]) == my_uid:
+				after = int(u["hp"])
+	ok(after < my_hp, "远端攻击在本端引擎里真的结算了（%d → %d）" % [my_hp, after])
+
+# ---------------- ⑧ 结束回合的「没事可做」高亮 ----------------
+
+func _test_end_turn_glow(scene: Control) -> void:
+	scene.state["current"] = "p1"
+	scene.state["over"] = false
+	var me: Dictionary = scene.state["players"]["p1"]
+	me["mana"] = 0
+	for r in RulesEngine.RANKS:
+		for u in me["board"][r]:
+			u["canAttack"] = false
+	scene._set_busy(false)
+	var idle: bool = not bool(scene._has_actions())
+	var glow_on: bool = (scene._end_glow as Panel).visible
+	ok(idle == glow_on, "金边 ⇔ 无事可做（idle=%s / glow=%s）" % [str(idle), str(glow_on)])
+	# 反过来验一次：给足军粮后必然有牌可出，金边必须灭
+	me["mana"] = 10
+	scene._sync_skill_btn()
+	if scene._has_actions():
+		ok(not (scene._end_glow as Panel).visible, "一旦有牌可出，金边自动灭")
+	else:
+		ok(true, "手牌都出不起，金边保持（本局无低费牌）")
+
+# ---------------- ⑨ busy 只能有一个写入口 ----------------
+## 「有时结束回合不自动高亮」的根因是 busy 有 7 个分散的赋值点，每处都要记得刷新
+## 手牌/按钮。收成 _set_busy 之后，这条静态检查防止以后又冒出新赋值点。
+
+func _test_busy_single_entry() -> void:
+	# 用 load 取 source_code：headless 下 FileAccess 对 res:// 可能读不到
+	var path := ProjectSettings.globalize_path("res://scenes/battle.gd")
+	var src := _read(path)
+	ok(src != "", "读到 battle.gd 源码")
+	var direct := 0
+	var where := ""
+	for line in src.split("\n"):
+		var t := str(line).strip_edges()
+		if t.begins_with("#") or t.begins_with("##"):
+			continue
+		# 任何形式的 busy 赋值都算（`busy = true/false/v`），只允许 _set_busy 里那一处
+		if t.begins_with("busy = "):
+			direct += 1
+			where = t
+	ok(direct == 1, "busy 只有 _set_busy 里一处直接赋值", "发现 %d 处：%s" % [direct, where])
 
 # ---------------- 文件工具 ----------------
 

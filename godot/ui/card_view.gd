@@ -193,9 +193,12 @@ func _corner_label(text: String, pos: Vector2, color: Color) -> Label:
 	return l
 
 ## 费用不够 / 列满时压暗，并给出「不可出」的视觉
+##
+## **不做「状态没变就跳过」的优化**：`_playable` 的初值是 false，但 modulate 初值是
+## 全白——一旦这里 early-return，新抽到的手牌就永远不会被压暗，看起来「张张都能出」，
+## 而真正的可出牌金边又被一堆同样亮的牌淹掉（玩家反馈「点数够的牌不高亮」）。
+## 这个函数只改 modulate 和 glow.visible，10 张牌重画一次的成本远小于一次误判。
 func set_playable(on: bool) -> void:
-	if _playable == on:
-		return
 	_playable = on
 	modulate = Color(1, 1, 1, 1) if on else Color(0.62, 0.6, 0.58, 0.9)
 	if _glow != null:

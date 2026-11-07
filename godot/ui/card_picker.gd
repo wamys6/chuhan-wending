@@ -121,9 +121,8 @@ func _build_grid() -> void:
 		var col := i % cols
 		var row := int(i / cols)
 		var cv: CardView = Widgets.card_view(str(_ids[i]), s)
-		# 缩放轴在牌中心，左上角要按 pivot 反向补偿
-		cv.position = Vector2(x0 + col * (cw + GAP_X), y0 + row * (ch + GAP_Y)) \
-			- CardView.SIZE * 0.5 * (1.0 - s)
+		# 缩放轴在左上角（见 Widgets.card_view 的注释），所以直接给格子左上角即可
+		cv.position = Vector2(x0 + col * (cw + GAP_X), y0 + row * (ch + GAP_Y))
 		var idx := i
 		cv.clicked.connect(func (_uid: int): _toggle(idx))
 		add_child(cv)

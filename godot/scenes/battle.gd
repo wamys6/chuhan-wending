@@ -94,6 +94,8 @@ var ui_layer: Control
 var toast_label: Label
 var turn_label: Label
 var end_btn: Button
+var _end_glow: Panel
+var _end_tw: Tween
 var hero_bars: Dictionary = {}      # pid -> Dictionary{hp, mana, avatar, name}
 var flash_rect: ColorRect
 var log_box: VBoxContainer
@@ -255,6 +257,17 @@ func _build_layers() -> void:
 	end_btn.size = Vector2(176, 52)
 	end_btn.pressed.connect(_on_end_turn)
 	ui_layer.add_child(end_btn)
+
+	# 「这一回合已经没别的可做」时给结束回合套一圈金边并呼吸：
+	# 不这么标的话，玩家要自己把整副手牌和三个列扫一遍才知道该收回合。
+	_end_glow = Panel.new()
+	_end_glow.position = end_btn.position - Vector2(5, 5)
+	_end_glow.size = end_btn.size + Vector2(10, 10)
+	_end_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_end_glow.add_theme_stylebox_override("panel",
+		UiTheme.panel_style(Color(UiTheme.GOLD, 0.10), Color(UiTheme.GOLD, 0.95), 10, 2))
+	_end_glow.visible = false
+	ui_layer.add_child(_end_glow)
 
 	# 主将技能：与结束回合同一条操作栏、同尺寸，紧挨在左侧
 	skill_btn = UiTheme.button("主将技能", false)
@@ -751,6 +764,20 @@ func _refresh_hand_playable() -> void:
 		if is_instance_valid(v):
 			v.set_playable(_can_play_ui(v.card))
 
+## busy 的唯一写入口。
+##
+## 「正在播动画」这件事同时决定三处 UI：手牌明暗（`_can_play_ui` 里查 busy）、
+## 结束回合按钮、技能/军师按钮。以前 7 处直接给 busy 赋值，每处都得自己
+## 记得补刷新——漏一处就表现为「回合开始了结束回合还是灰的」「牌明明能出却压着」。
+## 收成一个入口后，改 busy 就必然三处同步；这也是「有时不高亮」的根治点。
+func _set_busy(v: bool) -> void:
+	busy = v
+	if state.is_empty():
+		return
+	_refresh_hand_playable()
+	_sync_skill_btn()
+	_sync_adv_btn()
+
 ## 悬停：卡牌抬起 + 弹出详情浮层。
 ## 只在卡片创建时连一次——早先每次同步都连，悬停位移会累积成一串，卡会往下漂。
 func _bind_hover(v: CardView, uid: int) -> void:
@@ -863,6 +890,36 @@ func _sync_skill_btn() -> void:
 	if end_btn != null:
 		var my_turn: bool = str(state["current"]) == my_pid and not busy and not bool(state["over"])
 		end_btn.modulate.a = 1.0 if my_turn else 0.6
+		_set_end_glow(my_turn and not _has_actions())
+
+## 这一回合还有没有「能做的事」：手牌里有一张出得起，或者场上有一支部队还能攻击。
+## 只为结束回合的高亮服务，不参与规则——所以不考虑技能/军师技（它们自己会亮）。
+func _has_actions() -> bool:
+	if state.is_empty():
+		return false
+	var me: Dictionary = state["players"][my_pid]
+	for c in me["hand"]:
+		if RulesEngine.can_play(state, my_pid, c):
+			return true
+	for r in RulesEngine.RANKS:
+		for u in me["board"][r]:
+			if bool(u.get("canAttack", false)) and int(u["atk"]) > 0:
+				return true
+	return false
+
+## 结束回合的金边开关（开时呼吸）
+func _set_end_glow(on: bool) -> void:
+	if _end_glow == null or _end_glow.visible == on:
+		return
+	_end_glow.visible = on
+	if _end_tw != null and _end_tw.is_valid():
+		_end_tw.kill()
+		_end_tw = null
+	if not on:
+		return
+	_end_tw = create_tween().set_loops()
+	_end_tw.tween_property(_end_glow, "modulate:a", 0.45, 0.7)
+	_end_tw.tween_property(_end_glow, "modulate:a", 1.0, 0.7)
 
 func _sync_log() -> void:
 	for child in log_box.get_children():
@@ -959,7 +1016,7 @@ func _on_card_clicked(uid: int) -> void:
 	var to_pos := Vector2(COL_X[col_idx] - UNIT_SIZE.x * 0.5, PLAYER_Y)
 	Audio.sfx("card" if str(card["type"]) == "piece" else "spell")
 
-	busy = true
+	_set_busy(true)
 	if view != null:
 		view.z_index = 10
 		view.pivot_offset = CARD_SIZE * 0.5
@@ -971,10 +1028,10 @@ func _on_card_clicked(uid: int) -> void:
 		tw.chain().tween_callback(func ():
 			if is_instance_valid(view):
 				view.queue_free()
-			busy = false
+			_set_busy(false)
 			_after_action(before))
 	else:
-		busy = false
+		_set_busy(false)
 		_after_action(before)
 
 func _on_unit_clicked(uid: int) -> void:
@@ -992,6 +1049,10 @@ func _on_unit_clicked(uid: int) -> void:
 					return
 				selected_uid = -1 if selected_uid == uid else uid
 				_refresh_selection()
+				if selected_uid >= 0:
+					# 选中这一刻给一句确认：金圈脉动是持续的，「选中了」这件事
+					# 只在点击那一瞬间有把握，否则玩家会反复点同一张牌试。
+					_toast("已选中 · 点敌方部队或敌将发起攻击")
 				return
 
 	# 点敌方单位 → 攻击
@@ -1024,12 +1085,12 @@ func _do_attack(attacker_uid: int, target: Dictionary) -> void:
 		coach.notify("attack")
 	selected_uid = -1
 	_refresh_selection()
-	busy = true
+	_set_busy(true)
 	# 冲刺 → 命中瞬间结算（飘字/震屏/特效）→ 收招回位
 	Audio.sfx("attack")
 	var on_hit: Callable = func () -> void: _after_action(before)
 	await _play_attack_anim(attacker_uid, target, my_pid, on_hit)
-	busy = false
+	_set_busy(false)
 	_refresh_hand_playable()
 	_drain_pvp()
 
@@ -1045,6 +1106,16 @@ func _attack_target_pos(target: Dictionary, attacker_pid: String) -> Vector2:
 	return tv.get_global_rect().get_center()
 
 ## 冲刺动画：朝目标突进（近身封顶 90px），命中瞬间回调 on_hit，再收招回位
+##
+## **不能 `await tw.finished`**：tween 绑在单位节点上，单位若在命中瞬间阵亡
+## （死战反伤、被同时结算的溅射带走），`_sync_all` 会调 `v.die()` 并在 0.3s 后
+## queue_free；节点一被释放，引擎把它的 tween 一并 kill，`finished` 再也发不出来
+## → 这个 await 永远不返回 → busy 永久为 true。表现就是玩家截图里那三件事一起出现：
+## 单位停在两格之间（卡在半空）、手牌全灰、结束回合按钮不亮。
+## 所以改成按固定时长等场景计时器：计时器不依附单位，单位死不死都照常走到收尾。
+const LUNGE_OUT := 0.09
+const LUNGE_BACK := 0.16
+
 func _play_attack_anim(attacker_uid: int, target: Dictionary, attacker_pid: String,
 		on_hit: Callable) -> void:
 	var v: UnitView = unit_views.get(attacker_uid, null)
@@ -1059,16 +1130,21 @@ func _play_attack_anim(attacker_uid: int, target: Dictionary, attacker_pid: Stri
 	v.lunging = true
 	v.z_index = 20
 	# 残影拖尾：冲刺全程每拍留一片淡金虚影
-	_ghost_trail(v, 0.1)
+	_ghost_trail(v, LUNGE_OUT)
 	var tw := v.create_tween()
-	tw.tween_property(v, "position", step, 0.09).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_property(v, "position", step, LUNGE_OUT).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tw.tween_callback(func () -> void:
 		_impact_burst(hit_pos)
 		on_hit.call())
-	tw.tween_property(v, "position", home, 0.16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	await tw.finished
-	v.lunging = false
-	v.z_index = 0
+	tw.tween_property(v, "position", home, LUNGE_BACK).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	await get_tree().create_timer(LUNGE_OUT + LUNGE_BACK + 0.03).timeout
+	if is_instance_valid(v):
+		v.lunging = false
+		v.z_index = 0
+	# 命中结算后同列可能少了一张，`home` 这个坐标已经过期；按当前阵型重钉一次，
+	# 否则单位会停在两格之间不动，直到玩家下一个动作才被 _sync_all 拽回去。
+	# （这就是「攻击完卡在半空中」——不是动画没播完，是归位归到了旧坐标。）
+	_sync_all()
 
 ## 冲刺残影：按拍复制当前立绘，淡金虚影边淡出边微缩，形成拖尾
 func _ghost_trail(v: UnitView, dur: float) -> void:
@@ -1184,10 +1260,35 @@ func _impact_burst(global_pos: Vector2) -> void:
 		tw.chain().tween_callback(p.queue_free)
 
 func _refresh_selection() -> void:
+	# 选中我方某支部队时，把「真的打得到」的敌方单位点亮。
+	# 判据必须走引擎的 get_attack_targets（它算挡路列/迂回/远程/守御嘲讽），
+	# 不能一律点亮——标错了比不标更糟，玩家会去点一个点不通的兵。
+	var reach: Dictionary = {}
+	if selected_uid >= 0:
+		var a := _unit_by_uid(my_pid, selected_uid)
+		if not a.is_empty():
+			var info := RulesEngine.get_attack_targets(state, my_pid, a)
+			var must_taunt := bool(info["mustTaunt"])
+			for row in info["units"]:
+				var eu: Dictionary = row["unit"]
+				if must_taunt and not bool(eu.get("taunt", false)):
+					continue
+				reach[int(eu["uid"])] = true
 	for uid in unit_views.keys():
 		var v: UnitView = unit_views[uid]
 		if is_instance_valid(v):
-			v.set_selected(uid == selected_uid)
+			v.set_selected(int(uid) == selected_uid)
+			v.set_target(reach.has(int(uid)))
+
+## 按 uid 在某一方军阵里找部队（找不到返回空字典）
+func _unit_by_uid(pid: String, uid: int) -> Dictionary:
+	if state.is_empty() or uid < 0:
+		return {}
+	for r in RulesEngine.RANKS:
+		for u in state["players"][pid]["board"][r]:
+			if int(u["uid"]) == uid:
+				return u
+	return {}
 
 func _on_skill() -> void:
 	if busy or state["over"] or state["current"] != my_pid:
@@ -1271,7 +1372,7 @@ func _on_advisor_active() -> void:
 func _on_end_turn() -> void:
 	if busy or state["over"]:
 		return
-	busy = true
+	_set_busy(true)
 	selected_uid = -1
 	_refresh_selection()
 	Audio.sfx("turn")
@@ -1280,11 +1381,11 @@ func _on_end_turn() -> void:
 	_after_action({})
 	if pvp:
 		_drain_pvp()
-		busy = false
+		_set_busy(false)
 		_refresh_hand_playable()
 		return
 	await _run_ai()
-	busy = false
+	_set_busy(false)
 	_sync_all()
 
 func _run_ai() -> void:
@@ -1300,12 +1401,60 @@ func _run_ai() -> void:
 				func () -> void:
 					Ai.apply_action(state, "p2", act)
 					_after_action(before))
+		elif str(act["type"]) == "play":
+			# 敌方出牌要看得见：先落一张牌，再结算。
+			# 以前是 apply + _after_action 一气做完，玩家只看到阵里凭空多一个兵，
+			# 完全不知道对面出了什么（反馈原话「对方出牌没动画，瞬间完成」）。
+			var card := _hand_card("p2", int(act["uid"]))
+			await _anim_enemy_play(card)
+			Ai.apply_action(state, "p2", act)
+			_after_action(before)
 		else:
 			Ai.apply_action(state, "p2", act)
 			_after_action(before)
 		await get_tree().create_timer(0.55).timeout
 		if str(act["type"]) == "end":
 			break
+
+## 起一张手牌（AI 出牌前要拿它做落牌动画）
+func _hand_card(pid: String, uid: int) -> Dictionary:
+	if state.is_empty() or uid < 0:
+		return {}
+	for c in state["players"][pid]["hand"]:
+		if int(c["uid"]) == uid:
+			return c
+	return {}
+
+## 敌方出牌动画：一张牌从屏幕上缘（对手那一侧）落到目标列，
+## 边落边缩到部队大小并淡出，落地瞬间 `_sync_board` 的 pop_in 接手 ——
+## 两段接起来就是「一张牌变成了阵上的兵」。时长压在 AI 的 0.55s 节奏内。
+func _anim_enemy_play(card: Dictionary) -> void:
+	if card.is_empty() or not Settings.motion:
+		return
+	# 计谋牌的 col 是 null，落到中军列
+	var rank := str(card["col"]) if card.get("col") != null else "mid"
+	var ci: int = maxi(0, RulesEngine.RANKS.find(rank))
+	var slot := Vector2(COL_X[ci] - UNIT_SIZE.x * 0.5, ENEMY_Y)
+	var v := CardView.new()
+	v.setup(card)
+	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# z_index 留在 0：fx_layer 在 ui_layer 之前入树，牌会**从敌方主将栏后面滑出来**。
+	# 一开始给了 19，结果牌从屏幕顶飞入时整块盖住项羽的血量/军粮（验图抓到）。
+	v.z_index = 0
+	v.pivot_offset = CARD_SIZE * 0.5
+	v.position = slot + Vector2(0, -196)
+	v.rotation_degrees = -9.0
+	fx_layer.add_child(v)
+	var tw := v.create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(v, "position", slot, 0.26).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_property(v, "rotation_degrees", 0.0, 0.26)
+	tw.tween_property(v, "scale", UNIT_SIZE / CARD_SIZE, 0.26)
+	tw.tween_property(v, "modulate:a", 0.0, 0.14).set_delay(0.12)
+	# 与攻击动画同一条纪律：不 await tween.finished（节点被提前释放就再也等不到）
+	await get_tree().create_timer(0.28).timeout
+	if is_instance_valid(v):
+		v.queue_free()
 
 # ---------------- PvP：动作交换与限时 ----------------
 
@@ -1325,24 +1474,26 @@ func _drain_pvp() -> void:
 	if _pvp_queue.is_empty() or busy or state.is_empty() or state["over"]:
 		return
 	var a: Dictionary = _pvp_queue.pop_front()
-	busy = true
+	_set_busy(true)
 	turn_left = -1.0
-	_apply_remote(a)
+	# 快照必须取在 _apply_remote **之前**：攻击的结算就发生在里面，
+	# 取在后面量不到掉血，飘字/震屏/阵亡特效全哑。
+	var before := _snapshot()
+	_apply_remote(a, before)
 	if str(a.get("a", "")) == "attack":
 		# 远端进攻也走冲刺→命中结算→收招，和本端同一套表现
-		Audio.sfx("attack")
 		var target := {"kind": str(a.get("kind", "unit")), "uid": int(a.get("tid", -1))}
-		var before := _snapshot()
 		await _play_attack_anim(int(a.get("uid", -1)), target, foe_id,
 			func () -> void: _after_action(before))
-	else:
-		busy = false
-		_refresh_hand_playable()
+	# 攻击分支以前在这里直接落到 _drain_pvp()，漏了放开 busy——
+	# 结果是对手打一下之后本端永久「动画中」：手牌全灰、结束回合不亮、后续动作也不放。
+	_set_busy(false)
 	_drain_pvp()
 
 ## 把远端动作在本端引擎上重放执行（两端代码路径一致 → 状态一致）
-func _apply_remote(a: Dictionary) -> void:
-	var before := _snapshot()
+func _apply_remote(a: Dictionary, before: Dictionary = {}) -> void:
+	if before.is_empty():
+		before = _snapshot()
 	_applied += 1
 	match str(a.get("a", "")):
 		"play":
@@ -1351,6 +1502,13 @@ func _apply_remote(a: Dictionary) -> void:
 		"skill":
 			RulesEngine.use_skill(state, foe_id)
 			Audio.sfx("skill")
+		"attack":
+			# **这一条之前是漏的**：远端攻击只播了冲刺动画、引擎里一步没走，
+			# 两端状态从此分叉（本端少挨一次打、少死一个兵），后面每一帧都在不同的局上打。
+			# `tests/pvp_client.gd` 有这一条，所以联机测试一直绿——测试路径不等于生产路径。
+			var target := {"kind": str(a.get("kind", "unit")), "uid": int(a.get("tid", -1))}
+			RulesEngine.attack(state, foe_id, int(a.get("uid", -1)), target)
+			Audio.sfx("attack")
 		"end":
 			RulesEngine.end_turn(state)
 			Audio.sfx("turn")
@@ -1597,7 +1755,25 @@ func _float_number(text: String, global_pos: Vector2, color: Color, font_size: i
 	tw.tween_property(l, "modulate:a", 0.0, 0.75).set_delay(0.25)
 	tw.chain().tween_callback(l.queue_free)
 
+## 受击抖动。
+##
+## **冲刺中的单位不能抖 position**：它此刻的位置由攻击 tween 掌控（先冲到 step、
+## 再收回 home）。这里再开一条 position tween，两条会互相覆盖——而抖动总时长
+## 0.31s 比冲刺回程（0.25s）长，最后一笔写的还是抖动开始时抓到的「半空」坐标，
+## 于是单位永远停在楚河汉界上方，直到玩家下一个动作才被 _sync_all 拽回去。
+## 玩家截图里那张悬在两行之间的牌就是这么来的（互相伤害才会触发，所以是「有时」）。
+## 对冲刺中的单位改成抖旋转：视觉上一样是「挨了一下」，却不碰 position。
 func _shake(node: Control) -> void:
+	if not is_instance_valid(node):
+		return
+	if node is UnitView and (node as UnitView).lunging:
+		var rot0: float = node.rotation
+		var tw := node.create_tween()
+		for i in 3:
+			tw.tween_property(node, "rotation", rot0 + 0.07, 0.045)
+			tw.tween_property(node, "rotation", rot0 - 0.07, 0.045)
+		tw.tween_property(node, "rotation", rot0, 0.04)
+		return
 	var home := node.position
 	var tw := node.create_tween()
 	for i in 3:
@@ -1784,7 +1960,7 @@ func _restart_battle() -> void:
 			(hero_bars[pid]["holder"] as Control).queue_free()
 	hero_bars.clear()
 	selected_uid = -1
-	busy = false
+	_set_busy(false)
 	_result_shown = false
 	_start_battle()
 

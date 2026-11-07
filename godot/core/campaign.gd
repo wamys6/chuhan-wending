@@ -584,11 +584,9 @@ static func _empty_store() -> Dictionary:
 
 static func _read_store() -> Dictionary:
 	var store := _empty_store()
-	if FileAccess.file_exists(SAVE_PATH):
-		var text := FileAccess.get_file_as_string(SAVE_PATH)
-		var parsed = JSON.parse_string(text)
-		if typeof(parsed) == TYPE_DICTIONARY:
-			store = parsed
+	var parsed: Dictionary = SafeFile.read_dict(SAVE_PATH)
+	if not parsed.is_empty():
+		store = parsed
 	var slots: Array = store.get("slots", [])
 	while slots.size() < SLOT_COUNT:
 		slots.append(null)
@@ -598,12 +596,8 @@ static func _read_store() -> Dictionary:
 	return store
 
 static func _write_store(store: Dictionary) -> void:
-	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
-	if f == null:
+	if not SafeFile.write(SAVE_PATH, JSON.stringify(store)):
 		push_warning("Campaign: 存档写入失败 %s" % SAVE_PATH)
-		return
-	f.store_string(JSON.stringify(store))
-	f.close()
 
 static func active_slot() -> int:
 	return int(_read_store()["active"])

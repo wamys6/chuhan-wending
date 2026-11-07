@@ -28,8 +28,8 @@ static func ensure_loaded() -> void:
 	_loaded = true
 	if not FileAccess.file_exists(PATH):
 		return
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string(PATH))
-	if typeof(parsed) != TYPE_DICTIONARY:
+	var parsed: Dictionary = SafeFile.read_dict(PATH)
+	if parsed.is_empty():
 		return
 	bgm = clampf(float(parsed.get("bgm", bgm)), 0.0, 1.0)
 	sfx = clampf(float(parsed.get("sfx", sfx)), 0.0, 1.0)
@@ -40,20 +40,18 @@ static func ensure_loaded() -> void:
 	pvp_relay = str(parsed.get("pvpRelay", pvp_relay))
 
 ## 丢掉内存里的值，重新从磁盘读（巡览还原设置用）
-static func reload() -> void:
+## 注意不能叫 `reload`：这个名字会撞引擎侧的方法，静态调用被静默吞掉
+## （表现为「调了 reload，静态变量却回到默认值」——排查了很久）。
+static func reload_from_disk() -> void:
 	_loaded = false
 	ensure_loaded()
 
 static func save() -> void:
-	var f := FileAccess.open(PATH, FileAccess.WRITE)
-	if f == null:
-		return
-	f.store_string(JSON.stringify({
+	SafeFile.write(PATH, JSON.stringify({
 		"bgm": bgm, "sfx": sfx, "muted": muted,
 		"motion": motion, "fullscreen": fullscreen, "lang": lang,
 		"pvpRelay": pvp_relay,
 	}, "\t"))
-	f.close()
 
 static func set_bgm(v: float) -> void:
 	bgm = clampf(v, 0.0, 1.0)

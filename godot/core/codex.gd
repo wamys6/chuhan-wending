@@ -104,14 +104,23 @@ static func ensure_loaded() -> void:
 	_career = empty_career()
 	if not FileAccess.file_exists(PATH):
 		return
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string(PATH))
-	if typeof(parsed) != TYPE_DICTIONARY:
+	var d: Dictionary = SafeFile.read_dict(PATH)
+	if d.is_empty():
 		return
-	var d: Dictionary = parsed
 	# 用空档补齐缺字段，老存档也能安全读
+	var num_types := [TYPE_INT, TYPE_FLOAT]
 	for k in _career.keys():
-		if d.has(k):
-			_career[k] = d[k]
+		if not d.has(k):
+			continue
+		var v = d[k]
+		var tv := typeof(v)
+		var tk := typeof(_career[k])
+		# 类型不符（手改档 / 旧版本）就丢弃该字段——把 Array 塞进 Dictionary 字段，
+		# 后面 .has() 会直接运行时报错。数字之间允许互通。
+		if tv != tk and not (tv in num_types and tk in num_types):
+			push_warning("Codex: 字段 %s 类型异常，已忽略" % k)
+			continue
+		_career[k] = v
 	_career["version"] = 1
 	# 老存档迁移：通关过但没记过次数 → 按 1 次算（解锁状态只多不少）
 	if bool(_career.get("finished", false)) and int(_career.get("runWins", 0)) == 0:
@@ -119,11 +128,8 @@ static func ensure_loaded() -> void:
 
 static func save() -> void:
 	ensure_loaded()
-	var f := FileAccess.open(PATH, FileAccess.WRITE)
-	if f == null:
-		return
-	f.store_string(JSON.stringify(_career, "\t"))
-	f.close()
+	if not SafeFile.write(PATH, JSON.stringify(_career, "\t")):
+		push_warning("Codex: 存档写入失败 %s" % PATH)
 
 static func current() -> Dictionary:
 	ensure_loaded()

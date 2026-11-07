@@ -693,7 +693,7 @@ func _tour() -> void:
 	Tutorial._reload()
 	# 设置文件原样写回（巡览期间可能被 --lang 改过语言），再重新读一遍
 	_write_file(Settings.PATH, _settings_backup)
-	Settings.reload()
+	Settings.reload_from_disk()
 	I18n.init_from_settings()
 	progress = {}
 	stage = {}

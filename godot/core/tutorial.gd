@@ -41,13 +41,9 @@ static func _load() -> void:
 	if _loaded:
 		return
 	_loaded = true
-	if not FileAccess.file_exists(PATH):
+	var raw := SafeFile.read(PATH)
+	if raw.is_empty():
 		return
-	var f := FileAccess.open(PATH, FileAccess.READ)
-	if f == null:
-		return
-	var raw := f.get_as_text()
-	f.close()
 	# 用 JSON 实例而不是 parse_string：坏档只当作空档处理，不往控制台喷错误
 	var j := JSON.new()
 	if j.parse(raw) != OK or not (j.data is Dictionary):
@@ -61,11 +57,7 @@ static func _load() -> void:
 		_hints = ph
 
 static func _save() -> void:
-	var f := FileAccess.open(PATH, FileAccess.WRITE)
-	if f == null:
-		return
-	f.store_string(JSON.stringify({"flags": _flags, "hints": _hints}))
-	f.close()
+	SafeFile.write(PATH, JSON.stringify({"flags": _flags, "hints": _hints}))
 
 ## 清空全部记录（设置面板里的「重置引导」）
 static func reset() -> void:

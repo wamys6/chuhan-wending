@@ -25,6 +25,7 @@ ART = os.path.join(ROOT, "godot", "assets", "cards")          # 游戏内立绘�
 SRC = os.path.join(ROOT, "store", "steam", "_art")
 NOTITLE = os.path.join(SRC, "no-title")
 RAW = os.path.join(SRC, "_raw")
+RAW4K = os.path.join(SRC, "_raw4k")      # AI 超分过的库英雄底图（见 tools/upscale-hero.py）
 OUT = os.path.join(ROOT, "store", "steam")
 SHOTS = os.path.join(ROOT, "godot", "tests")
 
@@ -89,6 +90,31 @@ def hd_resize(im, size):
     cur = cur.filter(ImageFilter.UnsharpMask(radius=1.2, percent=40, threshold=3))
     y = (cur.height - H) // 2
     return cur.crop((0, y, W, y + H))
+
+
+def fit_height(im, size):
+    """已经是目标宽（或更宽）时用：等比贴宽，只居中裁高——不再上采。"""
+    W, H = size
+    if im.width != W:
+        im = im.resize((W, max(H, round(im.height * W / im.width))), Image.LANCZOS)
+    y = (im.height - H) // 2
+    return im.crop((0, y, W, y + H))
+
+
+def hero_src(which):
+    """库英雄底图：优先 `_raw4k/` 里的 AI 超分版。
+
+    生图只给到 2172×724，而 Steam 库英雄图要 3840×1240（1.77×）。裸 LANCZOS
+    会把飞白糊成灰雾，`hd_resize` 的两段锐化只救回一部分；Real-ESRGAN x4 再降回
+    0.44× 是真的把笔锋和甲片边缘重建出来了（对照见 store/steam/_ab-hero-up4k.png）。
+    """
+    p4 = os.path.join(RAW4K, "library_hero_%s.png" % which)
+    if os.path.exists(p4):
+        im = Image.open(p4).convert("RGB")
+        # 原生那张只有 2172 宽。低于 3000 说明拿到的还是旧图，不如走 hd_resize。
+        if im.width >= 3000:
+            return im
+    return art("library_hero_%s" % which, raw=True)
 
 
 def crop_bottom(im, size):
@@ -262,7 +288,9 @@ def make_hero(lang="zh", which="duel", titled=False, mirror=False, out_name=None
     见 `_preview-library-hero.jpg`（合成预览）。
     """
     W, H = 3840, 1240
-    canvas = hd_resize(art("library_hero_%s" % which, raw=True), (W, H))
+    src = hero_src(which)
+    # 源已经够宽（超分版）就只裁高，不再上采一次——多一次插值就是多一次糊。
+    canvas = fit_height(src, (W, H)) if src.width >= W else hd_resize(src, (W, H))
     if mirror:
         canvas = canvas.transpose(Image.FLIP_LEFT_RIGHT)
     tag = out_name or "library-hero-%s%s" % (which, "-mirror" if mirror else "")
@@ -276,6 +304,31 @@ def make_hero(lang="zh", which="duel", titled=False, mirror=False, out_name=None
     tag += "" if lang == "zh" else "-en"
     canvas.save(os.path.join(OUT, tag + ".png"))
     return canvas
+
+
+def make_ab_up4k():
+    """库英雄图对照：旧的两段上采 vs AI 超分，1:1 三块并排。
+
+    评审用图，也是 `hero_src()` 的说明图。两块都按正式流程走（含镜像），
+    裁同一坐标，所以除了细节没有别的变量。
+    """
+    W, H = 3840, 1240
+    raw = art("library_hero_charge", raw=True)
+    old = hd_resize(raw, (W, H)).transpose(Image.FLIP_LEFT_RIGHT)
+    new = fit_height(hero_src("charge"), (W, H)).transpose(Image.FLIP_LEFT_RIGHT)
+    regions = [(2350, 40, 2800, 300), (2350, 330, 2800, 590), (2350, 620, 2800, 880)]
+    cw, ch, pad, top = 450, 260, 8, 26
+    can = Image.new("RGB", (2 * cw + 3 * pad, len(regions) * (ch + top) + pad), (18, 18, 18))
+    d = ImageDraw.Draw(can)
+    lf = ImageFont.truetype(FONT_TITLE_ZH, 18)
+    for ci, lb in enumerate(["上采 hd_resize（旧）", "AI 超分 Real-ESRGAN x4（新）"]):
+        d.text((pad + ci * (cw + pad) + 4, 6), lb, font=lf, fill=(240, 200, 120))
+    for ri, (x1, y1, x2, y2) in enumerate(regions):
+        y0 = pad + ri * (ch + top) + top
+        for ci, im in enumerate([old, new]):
+            can.paste(im.crop((x1, y1, x2, y2)), (pad + ci * (cw + pad), y0))
+    can.save(os.path.join(OUT, "_ab-hero-up4k.png"))
+    return can
 
 
 def make_hero_preview():
@@ -555,6 +608,7 @@ def main():
     make_hero("zh", "duel", True)
     make_hero("en", "duel", True)
     make_hero_preview()
+    make_ab_up4k()
     make_page_bg()
     make_video_cover()
     make_title_cards()

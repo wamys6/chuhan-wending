@@ -42,8 +42,8 @@
         ],
         "mode": "RGB",
         "format": "PNG",
-        "bytes": 5442144,
-        "sha256": "83ba66e76e1281df755a23c95f4fb4f48e9bac35bdeff9eb670ecfc5465523e7"
+        "bytes": 5259517,
+        "sha256": "6baf28ecb8be495e010030832621f4441bfd089121542327e1ddad142e782ec2"
       },
       "processing": {
         "resize": "LANCZOS, proportional to target width",
@@ -68,7 +68,8 @@
           "percent": 45,
           "threshold": 3
         },
-        "text_overlay": false
+        "text_overlay": false,
+        "upscale": "2172x724 -> x4 (8688x2896) -> LANCZOS to 3840x1280, stored in _art/_raw4k/"
       },
       "validation": {
         "decoded": true,
@@ -76,6 +77,13 @@
         "visual_reviewed": true,
         "text_check": "No readable or pseudo lettering observed.",
         "composition_reviewed": true
+      },
+      "raw4k": {
+        "path": "store/steam/_art/_raw4k/library_hero_duel.png",
+        "size": [
+          3840,
+          1280
+        ]
       }
     },
     {
@@ -115,8 +123,8 @@
         ],
         "mode": "RGB",
         "format": "PNG",
-        "bytes": 6402191,
-        "sha256": "3f9ada836d09bc6a52037d7a6ad4c205980d9ddaf22be33039874d39de8aa914"
+        "bytes": 6394128,
+        "sha256": "feba555fde9de9e6a444aaf30ccf624489f693f18c14987629640c0991f2d9d4"
       },
       "processing": {
         "resize": "LANCZOS, proportional to target width",
@@ -141,7 +149,8 @@
           "percent": 45,
           "threshold": 3
         },
-        "text_overlay": false
+        "text_overlay": false,
+        "upscale": "2172x724 -> x4 (8688x2896) -> LANCZOS to 3840x1280, stored in _art/_raw4k/"
       },
       "validation": {
         "decoded": true,
@@ -149,6 +158,13 @@
         "visual_reviewed": true,
         "text_check": "No readable or pseudo lettering observed.",
         "composition_reviewed": true
+      },
+      "raw4k": {
+        "path": "store/steam/_art/_raw4k/library_hero_charge.png",
+        "size": [
+          3840,
+          1280
+        ]
       }
     },
     {
@@ -435,6 +451,18 @@
     "native_raws_preserved": true,
     "target_versions_proportionally_resized": true,
     "steam_upload_performed": false,
-    "project_typesetting_script_executed": false
+    "project_typesetting_script_executed": false,
+    "hero_upscaled_4k": true,
+    "hero_native_width_min": 3072
+  },
+  "hero_upscale": {
+    "tool": "Real-ESRGAN ncnn-vulkan v0.2.5.0",
+    "model": "realesrgan-x4plus",
+    "command": "realesrgan-ncnn-vulkan -n realesrgan-x4plus -s 4  (must be native x4; -s 2 has broken tile stitching)",
+    "pipeline": "2172x724 -> x4 (8688x2896) -> LANCZOS to 3840x1280, stored in _art/_raw4k/",
+    "effective_scale": "0.442x downscale from the x4 result (net 1.77x over native)",
+    "script": "tools/upscale-hero.py",
+    "why": "1.77x LANCZOS/hd_resize turns the dry-brush strokes into grey mush; x4 rebuilds bristle and armour edges, then downsamples so the final pixels are sampled, not invented",
+    "note": "AI reconstruction, not native render: it restores high-frequency structure consistent with the reference, but it is not the artist's original 4K"
   }
 }

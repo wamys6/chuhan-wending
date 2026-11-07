@@ -315,7 +315,9 @@ def make_screenshots():
     sdir = os.path.join(OUT, "screenshots")
     os.makedirs(sdir, exist_ok=True)
     picks = [
-        ("_gd-battle-campaign.png", "01-battle.png"),
+        # 首图必须有兵：巡览里的 battle 是开局瞬间、盘面全空，改用 battle_shot_peek 拍的第 5 回合
+        ("_gd-battle-mid.png", "01-battle.png"),
+        ("_gd-battle-mid-en.png", "01-battle-en.png"),
         ("_gd-map.png", "02-campaign-map.png"),
         ("_gd-reward.png", "03-reward.png"),
         ("_gd-advisor.png", "04-advisor.png"),

@@ -12,7 +12,7 @@ _art/no-title/    交付包已按目标尺寸整理好的无字图
 _art/manifest.json 每张图的尺寸/处理方式/校验值（交付包原样）
 _preview-sheet.jpg 一页看完全部胶囊（验收用）
 _preview-library-hero.jpg  库英雄图 + Logo 合成预览（验收「左侧留空」）
-screenshots/      商店截图 6 张 1920×1080
+screenshots/      商店截图 6 张 1920×1080（01 另有英文版）
 ```
 
 ## 已出（可直接上传的尺寸）
@@ -31,7 +31,7 @@ screenshots/      商店截图 6 张 1920×1080
 | `page-background-1438x810.png` | 1438×810 | 商店页背景（无字） | 可用 |
 | `video-cover-1920x1080.png` | 1920×1080 | 宣传片首帧 | 可用 |
 | `app-icon-184x184.png` | 184×184 | 应用图标 | 可用 |
-| `screenshots/01~06-*.png` | 1920×1080 | 商店截图 6 张 | 可用 |
+| `screenshots/01~06-*.png` | 1920×1080 | 商店截图 6 张（`01-battle-en.png` 为英文版） | 可用 |
 
 英文版：同名加 `-en`（`capsule-main-1232x706-en.png` / `library-logo-en-1280x720.png` 等），
 给 Steam 按语言分流用。英文标题 `CHU–HAN` / `BATTLE FOR THE THRONE`，与游戏内文案一致。
@@ -64,10 +64,22 @@ screenshots/      商店截图 6 张 1920×1080
 # 只重排文字/换尺寸（底图在 _art/ 里，不需要重新生图）
 python tools/make-steam-art.py
 
-# 截图要真机渲染，非 headless
+# 截图要真机渲染，非 headless；--resolution 不能省
 env -u ELECTRON_RUN_AS_NODE "D:/godot/Godot_v4.7.2-stable_win64.exe" \
   --path godot --resolution 1920x1080 -- --tour
+# 01-battle 不走巡览：巡览那一刻是开局、盘面全空，看不出这是卡牌对战。
+# 这张由 AI 双方对下 5 回合后拍，同时出中英两版。
+env -u ELECTRON_RUN_AS_NODE "D:/godot/Godot_v4.7.2-stable_win64.exe" \
+  --path godot --resolution 1920x1080 --script res://tests/battle_shot_peek.gd
 ```
+
+## 截图说明
+
+巡览渲出的是 1920×1055（窗口被任务栏挤掉 25px），统一 LANCZOS 放大到 1920×1080
+（纵向 +2.4%，无可见形变）。**必须带 `--resolution 1920x1080`**，否则按默认窗口 1366×768
+出图、再放大 1.4×，明显发虚（第一版就是这样）。
+
+选图顺序（商店页第一屏 4 张最重要）：战斗 → 战役地图 → 奖励三选一 → 军师三选一 → 事件 → 图鉴。
 
 ## 设计约束（改图时别踩）
 

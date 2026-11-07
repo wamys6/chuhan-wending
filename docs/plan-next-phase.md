@@ -849,6 +849,55 @@ y 22–70，不碰任何东西。
 才拍、中英各一整局、拍前把指针挪到左上角空处（默认指针停在窗口中央正压手牌，卡牌会放大悬出来
 糊住战场）。判定标准就是「缩到 1280 宽还能一眼看出这是三列军阵的卡牌对战」。
 
+## 五·十七、战场之外的界面也量一遍：巡览自带溢出扫描（✅ 2026-11-07）
+
+五·十五 / 五·十六 那条线只覆盖了**战斗界面**。军师选择、事件、奖励、图鉴、存档位、地图
+同样是「固定宽度 + 文案来自表」，英文界面里大概率一样会坏，但这次没靠人盯截图——
+`--tour` 每拍一张就顺手扫一遍当前场景。
+
+### 一、扫描器：把「靠眼睛看」换成「每次巡览打一张表」
+
+`App._scan_overflow()` 在 `_shot()` 里对整棵树跑：逐个数 `Label`，用
+`get_string_size()` 量**单行所需宽度**对比实际可用宽度，超了就打印路径、字号、need/have、
+是否 clip、以及最近一层有背景的祖先有多宽（判断「溢出」还是「能容身」）。Button 走
+`get_combined_minimum_size()`。
+
+扫描器自己先踩了两个测量口径的坑，都修在工具里（见踩坑 76）：
+- `get_string_size()` 对含 `\n` 的文本是**整段量**，两行宽度相加 → 图鉴 7 处「溢出」全是假的；
+- 居中的 Label 常比自身 rect 所处的面板窄，文字溢到 rect 外但仍在面板内 → 视觉正常。
+
+修正后英文 + 1366×768 全量巡览：**21 屏里 8 处报警，其中 6 处是 2~5px 的「能容身」**
+（存档时间戳、图鉴统计、地图 chip、事件代价各一处），真问题只有一处。
+
+### 二、真问题：存档位空槽说明被静默截断
+
+空槽那句「初阵：主将 +6 血、敌军首回合 -1 军粮，适合新手」中文实测 308px（放得下）、
+英文要 **520px**，框只有 352px，而它的「兜底」是 `clip_text = true`：
+
+- 英文玩家看到的是**以 `…Provision short —` 结尾**的一句话，「for new players」整段没了；
+- 而且**不留省略号**，看上去像一句正常的、只是有点怪的英文。
+
+改成折行（`autowrap` + 框高 48 = 两行 + 4px 呼吸），「常规」一行下移到 264。中文仍是一行
+（308 放得下），英文两行。`legibility_test` 新增 4 项钉住：两行装得下、**尺寸真的等于框宽**
+（不折行时会被顶回 591）、不靠裁剪、最宽的语言确实需要两行。
+
+### 三、顺手挖出上一轮留下的一个真 bug
+
+`art_rect_test` 的「卡名 Label 不被文本宽度顶回」**从加上两行牌名那天起就一直是红的**，
+我一直以为全绿。查下来是真问题：CardView 在 `setup()` 里造节点时还没挂主题，
+`get_minimum_size()` 按引擎默认字体（16px）算，两行名把 124×38 顶成 **157×47.67**；
+入树后最小值回落成 108×33.7，**但尺寸不会自己缩回去** —— 牌名整体右移 16px、下移 5px、
+第二行压出墨条下沿。修法 `_pin_name_size()` 在 `setup()` 尾与 `_ready()` 各钉一次。
+这条断言之前「红得没道理」是因为测试脚手架没给宿主挂主题（量的是另一个字体），
+顺手补上 `host.theme = UiTheme.build()`，断言才重新有意义。
+
+### 四、结论与验收
+
+- 英文 + 1366×768：21 屏 **0 处真溢出**；中文全量巡览同样 0 处。
+- 剩余 4 处 2~5px 的「能容身」不动：文字在自己的框外，但还在面板里，1280 宽下看不出来；
+  要动就得改栅格，等真人测试后一起决定。
+- 全量 **2521 项 + E2E 24**（连跑三次一致），JS 侧 3358 项；巡览截图按原分辨率重拍。
+
 ## 六、只有用户能做的三件事
 
 1. **六张事件插图**（生图，我接不了这一步）；
@@ -871,7 +920,7 @@ P0 事件图（半天）→ P1 军师 6→8（2~3 天，含 200 局实测）
 ```bash
 # 引擎/数值改动
 node tools/trace.js                                   # 重录等价性 trace
-Godot --headless --path godot --script res://tests/replay.gd    # 564 项
+Godot --headless --path godot --script res://tests/replay.gd    # 661 项
 Godot --headless --path godot --script res://tests/campaign_test.gd
 # 新增/修改文案
 Godot --headless --path godot --script res://tests/i18n_test.gd
@@ -880,7 +929,7 @@ Godot --headless --path godot --script res://tests/fonts_test.gd  # 缺字会红
 Godot --path godot --resolution 1920x1080 -- --tour   # 19 张截图逐张看
 # 全量
 # replay / campaign / audio / codex / tutorial / i18n / pvp / battle_ui /
-# fonts / card_art / art_rect / keyword_stamp / event_pick / advisor  → 2423 项 + E2E 24
+# fonts / card_art / art_rect / keyword_stamp / event_pick / advisor  → 2521 项 + E2E 24
 ```
 
 ---

@@ -322,6 +322,11 @@ func _collect_bleed(n: Node, out: Array) -> void:
 ## 中文卡名短，这个 bug 只在英文化之后才看得见。
 func _test_card_name() -> void:
 	var host := Control.new()
+	# **必须挂主题**：CardView 的牌名是靠 `UiTheme.font()` 量的，而 Label 画字用的是
+	# 主题字体。裸 Control 上两者不是同一个字体（引擎默认字体更宽），于是「量出来放得下、
+	# 画出来放不下」，这条断言会一直红——红的是脚手架，不是界面。真实场景根节点都挂着
+	# UiTheme.build()，这里照抄一份才等价。
+	host.theme = UiTheme.build()
 	root.add_child(host)
 	var before := I18n.lang
 	I18n.set_lang_soft(I18n.EN)
@@ -338,7 +343,12 @@ func _test_card_name() -> void:
 	if nl != null:
 		ok(nl.size.x <= CardView.SIZE.x - 4.0 + 0.01, "卡名 Label 不被文本宽度顶回", str(nl.size))
 		var fs := nl.get_theme_font_size("font_size")
-		var w := UiTheme.font().get_string_size(nl.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		# 按行拆开取最大值：`get_string_size` 对含 "\n" 的文本是「整段量」，
+		# 两行名的宽度会被相加（108+43=151），看着像放不下，其实两行各自都富余。
+		var w := 0.0
+		for ln in nl.text.split("\n"):
+			w = maxf(w, UiTheme.font().get_string_size(str(ln),
+				HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x)
 		ok(w <= nl.size.x + 0.5, "最长卡名在该字号下真的放得下（%d 号 %.0fpx）" % [fs, w],
 			"%.0f vs %.0f" % [w, nl.size.x])
 		ok(fs >= 8, "字号不低于 8（再小就没人看得见）", str(fs))

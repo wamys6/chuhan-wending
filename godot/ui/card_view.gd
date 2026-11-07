@@ -218,4 +218,18 @@ func refresh_text() -> void:
 		_name_label.clip_text = not two
 		_name_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING if two \
 			else TextServer.OVERRUN_TRIM_ELLIPSIS
+		_pin_name_size()
+
+## 把牌名 Label 的尺寸钉回墨条大小。
+##
+## **入树之后必须再钉一次**：建节点时它还没挂主题，最小尺寸按引擎默认字体（16px）算，
+## 两行名（「General\nWarlord of the Dead」）会把 124×38 顶成 157×47.67 —— 名字于是
+## 右移 16px、下移 5px、还压出墨条下沿。挂上主题后最小值回落成 108×33.7，但尺寸一旦
+## 被顶大就不会自己回去。单行那条因为开着 clip（最小宽度 1）不受影响。
+## `art_rect_test` 的「卡名 Label 不被文本宽度顶回」钉的就是这条。
+func _pin_name_size() -> void:
+	if _name_label != null:
 		_name_label.size = Vector2(SIZE.x - 4, NAME_BAND_H)
+
+func _ready() -> void:
+	_pin_name_size()

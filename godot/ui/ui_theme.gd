@@ -66,6 +66,17 @@ static func label(text: String, size: int = 18, color: Color = INK) -> Label:
 	l.add_theme_color_override("font_color", color)
 	return l
 
+## 按可用宽度自动降档，返回能放下的那一档字号。
+## 名字这类「长度随语言变、又必须单行不折」的文本用它；给的是字号阶梯而不是任意值，
+## 免得又长出一堆 17/19 的野档位。
+static func fit_size(text: String, max_w: float, sizes: Array) -> int:
+	var f := font()
+	for s in sizes:
+		var n := int(s)
+		if f.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, n).x <= max_w:
+			return n
+	return int(sizes[sizes.size() - 1])
+
 static func button(text: String, primary: bool = false) -> Button:
 	var b := Button.new()
 	b.text = I18n.T(text)

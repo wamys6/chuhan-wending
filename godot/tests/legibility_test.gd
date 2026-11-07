@@ -38,6 +38,7 @@ func _initialize() -> void:
 		return
 	_test_font_floor()
 	_test_log_width()
+	_test_hero_bar()
 	print("通过 %d 项，失败 %d 项" % [checks, failures])
 	quit(0 if failures == 0 else 1)
 
@@ -196,3 +197,45 @@ func _test_log_width() -> void:
 func _width(f: Font, text: String) -> float:
 	var fs := int(Battle.get_script_constant_map()["FS_SMALL"])
 	return f.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+
+# ---------------- 三、主将卡两处「长度随语言变」的文字 ----------------
+
+## 主将卡左栏名字只有 210px、右栏提示只有 136px。
+## 中文都富余，英文会超出：名字「Xiang Yu · Hegemon-King」20px 要 252px，
+## 提示「Click to strike the commander」13px 要 192px —— 后者右对齐且不裁剪，
+## 直接溢出卡片、压到顶部的关卡目标条上（1920 商店截图里糊成一片才发现）。
+## 判据：名字必须能在「20 或 16」里找到一档放得下（再小就低于正文档），
+## 提示必须 13px 单行 ≤136；并且提示要开着裁剪，作为最后一道兜底。
+func _test_hero_bar() -> void:
+	var f := UiTheme.font()
+	var name_w := 210.0
+	var hint_w := 136.0
+	var title: int = int(Battle.get_script_constant_map()["FS_TITLE"])
+	var body: int = int(Battle.get_script_constant_map()["FS_BODY"])
+	var micro: int = int(Battle.get_script_constant_map()["FS_MICRO"])
+	var overflow: Array = []
+	var too_small: Array = []
+	for lang in ["zh", "en"]:
+		I18n.set_lang_soft(str(lang))
+		for hid in GameData.heroes.keys():
+			var h: Dictionary = GameData.hero(str(hid))
+			var line := "%s · %s" % [str(h.get("name", "")), str(h.get("title", ""))]
+			var w_title := text_width(f, line, title)
+			var w_body := text_width(f, line, body)
+			if w_title > name_w and w_body > name_w:
+				overflow.append("%s %s %.0f/%.0f" % [lang, line, w_title, w_body])
+			if UiTheme.fit_size(line, name_w, [title, body]) < body:
+				too_small.append("%s %s" % [lang, line])
+		var hint := I18n.T("点此直取敌将")
+		if text_width(f, hint, micro) > hint_w:
+			overflow.append("%s %s %.0f" % [lang, hint, text_width(f, hint, micro)])
+		if UiTheme.fit_size(hint, hint_w, [micro]) < micro:
+			too_small.append("%s 提示" % lang)
+	var src := FileAccess.get_file_as_string("res://scenes/battle.gd")
+	I18n.set_lang_soft("zh")
+	ok(overflow.is_empty(), "主将卡名字与提示都放得下（名字 ≤%.0f / 提示 ≤%.0fpx）" % [name_w, hint_w], str(overflow))
+	ok(too_small.is_empty(), "降档后仍不低于正文档 %dpx" % body, str(too_small))
+	ok(src.contains("hint.clip_text = true"), "敌将提示开着裁剪（溢出时截断而不是压到目标条上）")
+
+func text_width(f: Font, text: String, size: int) -> float:
+	return f.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x

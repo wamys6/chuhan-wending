@@ -60,7 +60,9 @@ section('② 数据层来回切换');
   I.setLang('en', { noDom: true });
   assert(D.CARDS.n_bing1.name === 'Infantry · Recruit', 'EN 卡名：' + D.CARDS.n_bing1.name);
   assert(D.CARDS.n_shi3.desc.indexOf('Taunt') === 0, 'EN 牌面应含 Taunt 关键词');
-  assert(D.HEROES.xiangyu.title === 'Hegemon-King of Chu', 'EN 头衔');
+  // 「Hegemon-King of Chu」在主将卡名字栏（210px）里 16px 还有 260px，怎么降档都放不下，
+  // 全项目统一收成 Hegemon-King（godot/tests/legibility_test.gd 会盯着这个宽度）
+  assert(D.HEROES.xiangyu.title === 'Hegemon-King', 'EN 头衔');
   assert(C.STAGES[0].name === 'Rising at Pei County', 'EN 关名');
   assert(C.STAGES[0].enemy.meta.name === 'Qin · Sishui Commandant', 'EN 敌将名');
   assert(C.ADVISORS[0].name === 'Zhang Liang', 'EN 军师名');

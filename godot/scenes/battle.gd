@@ -436,6 +436,11 @@ func _make_hero_bar(pid: String) -> Dictionary:
 	name_label.size = Vector2(210, 26)
 	name_label.clip_text = true
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	# 右栏从 x=312 起，名字只能用 210px。中文名 137px 富余，英文
+	# 「Xiang Yu · Hegemon-King」20px 要 252px、「Liu Bang · King of Han」要 220px，
+	# 两个都会截成「Hegemon-Ki…」。长度随语言变、又必须单行，就按宽度降一档到 16px。
+	name_label.add_theme_font_size_override("font_size",
+		UiTheme.fit_size(name_label.text, 210.0, [FS_TITLE, FS_BODY]))
 	holder.add_child(name_label)
 
 	var hp_label := UiTheme.label("", FS_TITLE, UiTheme.SEAL)
@@ -495,6 +500,10 @@ func _make_hero_bar(pid: String) -> Dictionary:
 		hint.position = Vector2(312, 5)
 		hint.size = Vector2(136, 15)
 		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		# 右对齐 + 不裁剪时，文字放不下会往左溢出卡片、压到顶部的关卡目标条
+		# （英文旧译 192px vs 框宽 136px，实测在 1920 截图里糊成一片）。
+		hint.clip_text = true
+		hint.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		holder.add_child(hint)
 		holder.gui_input.connect(func (e: InputEvent):
 			if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:

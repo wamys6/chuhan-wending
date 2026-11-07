@@ -7,7 +7,7 @@
     "刘邦": "Liu Bang",
     "汉王": "King of Han",
     "项羽": "Xiang Yu",
-    "西楚霸王": "Hegemon-King of Chu",
+    "西楚霸王": "Hegemon-King",
     "技能「约法三章」（2 军粮）": "Power “Three Articles” (2 Prov)",
     "恢复 2 点血；满血时随机友军 +1 攻": "Restore 2 Health; at full Health, a random friendly unit gains +1 Attack.",
     "技能「破釜沉舟」（1 军粮）": "Power “Break the Kettles” (1 Prov)",
@@ -626,7 +626,7 @@
     },
     "xiangyu": {
       "name": "Xiang Yu",
-      "title": "Hegemon-King of Chu",
+      "title": "Hegemon-King",
       "intro": "26 Health, aggression style. A power that sweeps the enemy Vanguard—all tempo, no mercy.",
       "skill": {
         "name": "Break the Kettles",
@@ -661,7 +661,7 @@
       "goalText": "Survive 10 turns (you have 12 Health and a hand limit of 3)",
       "enemy": {
         "name": "Xiang Yu",
-        "title": "Hegemon-King of Chu"
+        "title": "Hegemon-King"
       }
     },
     "pengcheng": {
@@ -673,7 +673,7 @@
       "goalText": "Defeat Xiang Yu (1 enemy vanguard is already arrayed; you gain +2 Provisions turn 1)",
       "enemy": {
         "name": "Xiang Yu",
-        "title": "Hegemon-King of Chu"
+        "title": "Hegemon-King"
       }
     },
     "xingyang": {
@@ -685,7 +685,7 @@
       "goalText": "Defeat Xiang Yu (22 Health; Chu holds the walls. You gain +2 Provisions turn 1)",
       "enemy": {
         "name": "Xiang Yu",
-        "title": "Hegemon-King of Chu"
+        "title": "Hegemon-King"
       }
     },
     "jingxing": {
@@ -721,7 +721,7 @@
       "goalText": "Defeat Xiang Yu (18 Health, hand limit 4, +2 Provisions turn 1; the enemy also gains +2 Provisions turn 1)",
       "enemy": {
         "name": "Xiang Yu",
-        "title": "Hegemon-King of Chu"
+        "title": "Hegemon-King"
       }
     },
     "gaixia": {
@@ -733,7 +733,7 @@
       "goalText": "Defeat Xiang Yu (30 Health; an enemy Lancer opens on the field and the enemy gains +2 Provisions turn 1; you gain +3 Provisions turn 1)",
       "enemy": {
         "name": "Xiang Yu",
-        "title": "Hegemon-King of Chu"
+        "title": "Hegemon-King"
       }
     }
   },

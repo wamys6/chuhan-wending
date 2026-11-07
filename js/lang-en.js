@@ -19,7 +19,7 @@
       '楚汉': 'CHU–HAN',
       '问鼎': 'BATTLE FOR THE THRONE',
       '刘邦': 'Liu Bang', '汉王': 'King of Han',
-      '项羽': 'Xiang Yu', '西楚霸王': 'Hegemon-King of Chu',
+      '项羽': 'Xiang Yu', '西楚霸王': 'Hegemon-King',
       '技能「约法三章」（2 军粮）': 'Power \u201CThree Articles\u201D (2 Prov)',
       '恢复 2 点血；满血时随机友军 +1 攻': 'Restore 2 Health; at full Health, a random friendly unit gains +1 Attack.',
       '技能「破釜沉舟」（1 军粮）': 'Power \u201CBreak the Kettles\u201D (1 Prov)',
@@ -340,7 +340,7 @@
         skill: { name: 'Three Articles', desc: 'Restore 2 Health; if already at full Health, a random friendly unit gains +1 Attack.' }
       },
       xiangyu: {
-        name: 'Xiang Yu', title: 'Hegemon-King of Chu',
+        name: 'Xiang Yu', title: 'Hegemon-King',
         intro: '26 Health, aggression style. A power that sweeps the enemy Vanguard—all tempo, no mercy.',
         skill: { name: 'Break the Kettles', desc: 'Deal 1 damage to every enemy in the Vanguard; if that column is empty, deal 1 damage to the enemy commander.' }
       }
@@ -363,7 +363,7 @@
         subtitle: 'They are the knife and block; we are the fish and meat',
         lore: 'You entered the Pass first and broke Xianyang. Xiang Yu brought four hundred thousand men to Hongmen; you have ten thousand.\n\nYou come to the feast. At table, Fan Zeng lifts his jade pendant three times; Xiang Yu sits silent. Xiang Zhuang rises to dance with his sword, and its edge grazes your seat again and again—Xiang Bo shields you with his body; Fan Kuai storms the tent, eyes blazing.\n\nThis battle is not for winning. Walk out of that tent alive, and you have won.',
         goalText: 'Survive 10 turns (you have 12 Health and a hand limit of 3)',
-        enemy: { name: 'Xiang Yu', title: 'Hegemon-King of Chu' }
+        enemy: { name: 'Xiang Yu', title: 'Hegemon-King' }
       },
       pengcheng: {
         chapter: 'Chapter III', name: 'The Battle of Pengcheng',
@@ -371,7 +371,7 @@
         subtitle: 'The Sui River could not flow for the dead',
         lore: 'While Xiang Yu marched north against Qi, you fell on Pengcheng with half a million allied troops and took it. You thought the matter settled, and feasted day after day.\n\nThen Xiang Yu came back with thirty thousand picked horse. In half a day, half a million men came apart. The Sui River could not flow for the dead.\n\nHis riders are drawn up in their ranks. You will get one chance, and only one.',
         goalText: 'Defeat Xiang Yu (1 enemy vanguard is already arrayed; you gain +2 Provisions turn 1)',
-        enemy: { name: 'Xiang Yu', title: 'Hegemon-King of Chu' }
+        enemy: { name: 'Xiang Yu', title: 'Hegemon-King' }
       },
       xingyang: {
         chapter: 'Chapter IV', name: 'The Standoff at Xingyang',
@@ -379,7 +379,7 @@
         subtitle: 'Ji Xin burns; the King slips out by night',
         lore: 'Xiang Yu walls you into Xingyang and cuts the grain road. The city is starving; the soldiers are spent.\n\nChen Ping\u2019s sowing of distrust drives Fan Zeng away. Ji Xin dresses in your robes and rides your chariot out the east gate, offering a false surrender—and burns for it. You cut your way out the west gate with a few dozen riders, under cover of dark.\n\nTo leave this city, first punch through Chu\u2019s iron wall.',
         goalText: 'Defeat Xiang Yu (22 Health; Chu holds the walls. You gain +2 Provisions turn 1)',
-        enemy: { name: 'Xiang Yu', title: 'Hegemon-King of Chu' }
+        enemy: { name: 'Xiang Yu', title: 'Hegemon-King' }
       },
       jingxing: {
         chapter: 'Chapter V', name: 'Backs to the River',
@@ -403,7 +403,7 @@
         subtitle: 'No relief comes; hold the line alone',
         lore: 'The Treaty of the Hong Canal is signed, and Xiang Yu marches east for home. You tear it up and follow on his heels, sending word for Han Xin and Peng Yue to join you at Guling.\n\nThe appointed day comes. Not one soldier of either relief army appears. Xiang Yu wheels about and smashes into you; you dig in behind high walls and deep ditches.\n\nIf no relief is coming, then hold this line yourself.',
         goalText: 'Defeat Xiang Yu (18 Health, hand limit 4, +2 Provisions turn 1; the enemy also gains +2 Provisions turn 1)',
-        enemy: { name: 'Xiang Yu', title: 'Hegemon-King of Chu' }
+        enemy: { name: 'Xiang Yu', title: 'Hegemon-King' }
       },
       gaixia: {
         chapter: 'Chapter VIII', name: 'The Final Battle at Gaixia',
@@ -411,7 +411,7 @@
         subtitle: 'Ambush on ten sides; songs of Chu on four',
         lore: 'Han Xin\u2019s three hundred thousand hold the center, Kong Xi on the left, Chen He on the right, Zhou Bo and Chai Wu behind—ambush upon ambush, ten deep, folding around the Chu army at Gaixia.\n\nAt midnight the Han camp sings songs of Chu on every side. Xiang Yu starts up in alarm: \u201CHas Han taken all of Chu? Why are there so many men of Chu over there!\u201D\n\nThis is the last battle. He is still the Hegemon who once lifted a cauldron.',
         goalText: 'Defeat Xiang Yu (30 Health; an enemy Lancer opens on the field and the enemy gains +2 Provisions turn 1; you gain +3 Provisions turn 1)',
-        enemy: { name: 'Xiang Yu', title: 'Hegemon-King of Chu' }
+        enemy: { name: 'Xiang Yu', title: 'Hegemon-King' }
       }
     },
 

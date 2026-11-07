@@ -679,8 +679,8 @@
 
     /* 战报：引擎保留中文输出，显示时按序匹配（卡名/列名/人名已被数据层本地化） */
     logPatterns: [
-      [/^—— 第 (\d+) 回合：(.+)（军粮 (\d+)\/(\d+)）$/, function (m) {
-        return '—— Turn ' + m[1] + ': ' + (SIDE[m[2]] || m[2]) + ' (Provisions ' + m[3] + '/' + m[4] + ')';
+      [/^—— 第 (\d+) 回合 · (.+)$/, function (m) {
+        return '—— Turn ' + m[1] + ' · ' + (SIDE[m[2]] || m[2]);
       }],
       [/^(我方|敌方)抢得先机，率先出手$/, function (m) { return SIDE[m[1]] + ' seize first mover and strike first.'; }],
       [/^(我方|敌方)换掉 (\d+) 张起手牌$/, function (m) { return SIDE[m[1]] + ' mulligan ' + m[2] + ' opening cards.'; }],

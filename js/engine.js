@@ -254,7 +254,7 @@
         log(state, '军师郦食其舌下齐城：' + lyBest.name + ' 攻击力 -' + ADV.liyijiDown);
       }
     }
-    log(state, '—— 第 ' + state.turnNo + ' 回合：' + (pid === 'p1' ? '我方' : '敌方') + '（军粮 ' + p.mana + '/' + p.maxMana + '）');
+    log(state, '—— 第 ' + state.turnNo + ' 回合 · ' + (pid === 'p1' ? '我方' : '敌方'));
     drawCard(state, pid);
   }
 

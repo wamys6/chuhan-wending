@@ -350,8 +350,8 @@ static func start_turn(state: Dictionary, pid: String) -> void:
 			p["lyCuts"] = int(p.get("lyCuts", 0)) + 1
 			_log(state, "adv_liyiji", {"name": ly_best["name"], "d": ADV_LIYIJI_DOWN})
 
-	_log(state, "turn", {"n": int(state["turnNo"]), "side": pid,
-		"m": int(p["mana"]), "mm": int(p["maxMana"])})
+	# 抬头不带军粮数了（战报栏放不下，见 log_text.gd 注释），这里也别再传没人用的键
+	_log(state, "turn", {"n": int(state["turnNo"]), "side": pid})
 	draw_card(state, pid)
 
 

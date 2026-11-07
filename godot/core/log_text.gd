@@ -17,7 +17,10 @@ const ZH := {
 	"opening_draw": "轻装疾行，我军起手多摸 {n} 张牌",
 	"adv_draw": "军师献策，我军起手多摸 {n} 张牌",
 	"mulligan": "{side}换掉 {n} 张起手牌",
-	"turn": "—— 第 {n} 回合：{side}（军粮 {m}/{mm}）",
+	# 抬头不带军粮数：战报栏内宽只有 184px，14px 字一行只放得下 13 个汉字，
+	# 「—— 第 12 回合：我方（军粮 10/10）」实测 218px，必然折行、且正好断在「军「粮」之间。
+	# 军粮本身在双方主将卡上一直可见，战报要的是顺序，不是记账。
+	"turn": "—— 第 {n} 回合 · {side}",
 	"survive_win": "你熬过了 {n} 个回合，全身而退！",
 	"fatigue": "{side}粮草耗尽，疲劳受 {n} 点伤害",
 	"hand_full": "{side}手牌已满，{name} 被烧毁",
@@ -64,7 +67,7 @@ const EN := {
 	"opening_draw": "Light marching: draw {n} extra cards",
 	"adv_draw": "Advisor's counsel: draw {n} extra cards",
 	"mulligan": "{side} mulligan {n} cards",
-	"turn": "—— Turn {n}: {side} (Provision {m}/{mm})",
+	"turn": "—— Turn {n} · {side}",
 	"survive_win": "You held out for {n} turns and withdrew intact!",
 	"fatigue": "{side} run out of supplies: {n} fatigue damage",
 	"hand_full": "{side} hand is full: {name} is burned",

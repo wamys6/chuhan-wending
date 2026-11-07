@@ -16,7 +16,8 @@ const RIGHT_EDGE := 1416.0        # = 1440 - MARGIN_X
 
 ## 字号阶梯只有五档：微 12 / 辅助 14 / 正文 16 / 标题 20 / 显示 26
 ## （原来散着 12/13/14/15/16/17/18/20/22 九档，同层元素字号互不相等）
-const FS_MICRO := 12
+const FS_MICRO := 13           # 12 → 13：1366×768 下整屏缩到 0.853，12px 只剩 10.2px，
+                              # 汉字「牌库」「疲劳」的撇捺会糊在一起（实测 1:1 裁切可辨但发虚）
 const FS_SMALL := 14
 const FS_BODY := 16
 const FS_TITLE := 20
@@ -868,11 +869,17 @@ func _sync_log() -> void:
 	# 以前是旧的在上、新的在下，超出可视区时被裁掉的正是最新那条 —— 等于把最该看的裁了。
 	var start: int = maxi(0, log.size() - LOG_LIMIT)
 	for i in range(log.size() - 1, start - 1, -1):
-		var is_boon := str(log[i].get("k", "")) == "summon_bonus"
-		var l := UiTheme.label("· " + LogText.render(log[i]), FS_SMALL,
-			UiTheme.SEAL if is_boon else UiTheme.INK_SOFT)
+		var key := str(log[i].get("k", ""))
+		var is_boon := key == "summon_bonus"
+		# 回合抬头自带「——」，前面再加一个「·」是「· —— 第 9 回合」双重记号，
+		# 既难看又白占 14px（内宽只有 184px，一行刚好 13 个汉字）
+		var line := LogText.render(log[i]) if key == "turn" else "· " + LogText.render(log[i])
+		var l := UiTheme.label(line, FS_SMALL,
+			UiTheme.INK if key == "turn" else (UiTheme.SEAL if is_boon else UiTheme.INK_SOFT))
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		l.max_lines_visible = 2
+		# 英文句子比中文长六成：内宽 184px 下最长的一行实测 539px ≈ 2.9 行，
+		# 钉死 2 行会静默截断半句话（legibility_test 会量）。所以英文给 3 行。
+		l.max_lines_visible = 3 if I18n.is_en() else 2
 		# 注意：不要设 clip_text —— 那会让 Label 的最小高度塌成 1px，整条战报直接看不见
 		l.custom_minimum_size = Vector2(LOG_BOX_W, 0)
 		l.add_theme_constant_override("line_spacing", 3)

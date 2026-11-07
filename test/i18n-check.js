@@ -96,8 +96,8 @@ section('③ t() 与占位符');
 section('④ 战报与 reason 翻译');
 (function () {
   I.setLang('en', { noDom: true });
-  assert(I.trLog('—— 第 3 回合：我方（军粮 4/10）') === '—— Turn 3: Your army (Provisions 4/10)',
-    '回合行：' + I.trLog('—— 第 3 回合：我方（军粮 4/10）'));
+  assert(I.trLog('—— 第 3 回合 · 我方') === '—— Turn 3 · Your army',
+    '回合行：' + I.trLog('—— 第 3 回合 · 我方'));
   assert(I.trLog('我方派出 ' + D.CARDS.n_bing1.name + ' → ' + D.RANK_NAMES.front) ===
     'Your army deploy Infantry · Recruit to the Vanguard column.',
     '出牌行：' + I.trLog('我方派出 ' + D.CARDS.n_bing1.name + ' → ' + D.RANK_NAMES.front));

@@ -141,6 +141,9 @@
   "已解锁": "Unlocked",
   "解 锁": "UNLOCKS",
   "整轮通关与心魔推进都会带新军师、新事件入场": "Each cleared campaign and Inner Demon tier brings new advisors and events",
+  "兵败": "DEFEAT",
+  "重整尚有一次": "One rally left",
+  "重整已尽 · 再败即终局": "No rallies left — the next defeat ends this run",
   "、": ", "
  }
 }

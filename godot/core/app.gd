@@ -34,6 +34,9 @@ var advisor_choices: Array = []
 var pending_mode: String = "regular"
 ## 本局终结的提示（清档回存档位时显示一次，读完即清）
 var run_end_notice: String = ""
+## 上一场兵败的战报：失败回地图时带上，地图页显示一次（读完即清）
+## 胜利有奖励页承载信息，失败原来什么都没有——玩家连「差多少」都不知道
+var pending_report: Dictionary = {}
 ## 从战役里「看牌组」后返回用的标记
 var return_to := SCENE_MAP
 ## 被仪式页压住的成就横幅（天时揭晓结束后补播）
@@ -276,6 +279,9 @@ func finish_battle(win: bool, info: Dictionary = {}) -> void:
 	last_battle["win"] = win
 	last_battle["heroId"] = str(battle_config.get("hero", "liubang"))
 	last_battle["level"] = str(battle_config.get("aiLevel", "bijiang"))
+	# 关 id 单独带上：关名要按语言取（结构化数据，不是扁平文案）
+	if not stage.is_empty():
+		last_battle["stageId"] = str(stage.get("id", ""))
 	# 战绩与成就：字段摊平，方便 Codex 的判定条件直接取
 	var st: Dictionary = last_battle.get("stats", {})
 	for k in ["dmg", "heroDmg", "units", "spells"]:
@@ -289,6 +295,8 @@ func finish_battle(win: bool, info: Dictionary = {}) -> void:
 		# 用完还败 → 本局终结，清档回存档位（成就与生涯是独立存档，不受影响）
 		var sid := str(stage.get("id", ""))
 		if Campaign.take_retry(progress, sid):
+			pending_report = last_battle.duplicate(true)
+			pending_report["retryLeft"] = Campaign.retry_left(progress, sid)
 			go(SCENE_MAP, 0.1)
 			return
 		Campaign.end_run()

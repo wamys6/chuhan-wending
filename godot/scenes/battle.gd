@@ -1727,12 +1727,17 @@ func _show_result() -> void:
 func _leave_battle(win: bool) -> void:
 	var st: Dictionary = state["stats"][my_pid]
 	var p1: Dictionary = state["players"][my_pid]
+	var foe_pid := "p2" if my_pid == "p1" else "p1"
+	var foe: Dictionary = state["players"][foe_pid]
 	App.finish_battle(win, {
 		"turns": int(state["turnNo"]),
 		"stats": st.duplicate(),
 		"stage": str(App.battle_config.get("stageName", "")),
 		"hp": int(p1["hp"]),
 		"maxHp": int(p1["maxHp"]),
+		# 敌方残血：兵败后玩家最想知道的就是「差多少」，没有这一项战报就说不清
+		"foeHp": int(foe["hp"]),
+		"foeMaxHp": int(foe["maxHp"]),
 	})
 
 func _restart_battle() -> void:

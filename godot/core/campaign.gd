@@ -691,3 +691,30 @@ static func slot_count() -> int:
 static func _wipe_all() -> void:
 	if FileAccess.file_exists(SAVE_PATH):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
+
+
+## ---------------- 兵败战报 ----------------
+
+## 兵败后给玩家一份小结（三行：标题 / 明细 / 重整余量）。
+## 之前失败直接回地图、什么都不说——玩家不知道自己是「差一点」还是「差很远」，
+## 重打只能凭记忆。胜利有奖励页承载信息，失败也应当有。
+## info 来自 battle.gd 的 _leave_battle：turns / stats{dmg,units} / foeHp / retryLeft
+static func battle_report(info: Dictionary) -> Array:
+	if info.is_empty():
+		return []
+	var turns := int(info.get("turns", 0))
+	var stats: Dictionary = info.get("stats", {})
+	var dmg := int(stats.get("dmg", 0))
+	var units := int(stats.get("units", 0))
+	var foe_hp := maxi(0, int(info.get("foeHp", 0)))
+	var left := int(info.get("retryLeft", 0))
+	# 关名不是扁平文案，是结构化数据（stages[].name），命中不了 I18n.T 的键表——
+	# 必须走 stage_field，否则英文界面里会出现「DEFEAT · 固陵之战」
+	var sname := str(info.get("stage", ""))
+	var sid := str(info.get("stageId", ""))
+	if sid != "":
+		sname = I18n.stage_field(sid, "name", sname)
+	var head := I18n.T("兵败") + " · " + sname
+	var detail := I18n.T("%d 回合 · 造成 %d 伤 · 出兵 %d · 敌将余 %d 血" % [turns, dmg, units, foe_hp])
+	var note := I18n.T("重整尚有一次") if left > 0 else I18n.T("重整已尽 · 再败即终局")
+	return [head, detail, note]

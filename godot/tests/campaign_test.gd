@@ -30,6 +30,7 @@ func _initialize() -> void:
 	_test_chuben()
 	_test_retry()
 	_test_slots()
+	_test_battle_report()
 
 	print("通过 %d 项，失败 %d 项" % [checks, failures])
 	quit(1 if failures > 0 else 0)
@@ -562,3 +563,29 @@ func _test_slots() -> void:
 	ok(bool(Campaign.slot_summary(1)["empty"]), "清空生效")
 	Campaign.use_slot(0)
 	Campaign._wipe_all()
+
+func _test_battle_report() -> void:
+	print("· 兵败战报")
+	ok(Campaign.battle_report({}).is_empty(), "空 info 返回空")
+	var info := {
+		"turns": 12, "stats": {"dmg": 21, "units": 8},
+		"stage": "固陵之战", "foeHp": 9, "retryLeft": 1,
+	}
+	var lines := Campaign.battle_report(info)
+	ok(lines.size() == 3, "三个部分")
+	ok(str(lines[0]).contains("固陵之战"), "标题带关名")
+	var d := str(lines[1])
+	ok(d.contains("12") and d.contains("21") and d.contains("8") and d.contains("9"),
+		"明细含四个数字", d)
+	ok(str(lines[2]) != "", "有重整提示")
+	# 重整用完 → 提示换成终局告警
+	var info2 := info.duplicate(true)
+	info2["retryLeft"] = 0
+	ok(str(Campaign.battle_report(info2)[2]) != str(lines[2]), "重整用尽时提示不同")
+	# 敌方残血为负（理论上不会）不能显示成负数
+	var info3 := info.duplicate(true)
+	info3["foeHp"] = -5
+	ok(not str(Campaign.battle_report(info3)[1]).contains("-"), "敌将残血不为负")
+	# 缺字段不崩
+	var lines4 := Campaign.battle_report({"turns": 3})
+	ok(lines4.size() == 3, "缺字段仍返回三行")

@@ -19,7 +19,44 @@ func _build() -> void:
 	Widgets.paper_bg(self)
 	_build_header()
 	_build_info()
+	_build_battle_report()
 	_build_path()
+
+# ---------------- 兵败战报 ----------------
+
+## 兵败后回地图时显示一次（读完即清）。位置取状态条（底 214）与关卡路径（356）之间的空档。
+## 之前失败什么都不说，玩家分不清「差一点」和「差很远」，重打只能凭记忆。
+func _build_battle_report() -> void:
+	if App.pending_report.is_empty():
+		return
+	var lines := Campaign.battle_report(App.pending_report)
+	App.pending_report = {}
+	if lines.size() < 3:
+		return
+	var box := PanelContainer.new()
+	box.position = Vector2(44, 226)
+	box.size = Vector2(1352, 76)
+	box.add_theme_stylebox_override("panel",
+		UiTheme.panel_style(UiTheme.PAPER_DEEP, UiTheme.SEAL, 8, 2))
+	add_child(box)
+
+	var pad := MarginContainer.new()
+	pad.add_theme_constant_override("margin_left", 20)
+	pad.add_theme_constant_override("margin_right", 20)
+	pad.add_theme_constant_override("margin_top", 9)
+	pad.add_theme_constant_override("margin_bottom", 9)
+	box.add_child(pad)
+
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 3)
+	pad.add_child(col)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 18)
+	row.add_child(UiTheme.label(str(lines[0]), 19, UiTheme.SEAL))
+	row.add_child(UiTheme.label(str(lines[2]), 15, UiTheme.INK_SOFT))
+	col.add_child(row)
+	col.add_child(UiTheme.label(str(lines[1]), 15, UiTheme.INK))
 
 # ---------------- 顶部 ----------------
 
@@ -176,8 +213,11 @@ func _build_path() -> void:
 		bar.add_child(tagbg)
 		tagbg.add_child(tag)
 		var goal_label := UiTheme.label(goal_txt, 16, UiTheme.INK)
-		goal_label.position = Vector2(116, 0)
-		goal_label.size = Vector2(bar.size.x - 140, 56)
+		# 目标句的起点必须跟着标签胶囊的右边缘走：英文标签更宽（98 vs 70），
+		# 写死 x=116 会让胶囊压住句子开头（截图里 "Objective" 和 "defeat" 粘在一起）
+		var goal_x := 18.0 + tag_w + 12.0 + 14.0
+		goal_label.position = Vector2(goal_x, 0)
+		goal_label.size = Vector2(bar.size.x - goal_x - 20.0, 56)
 		goal_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		goal_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		bar.add_child(goal_label)
